@@ -1,0 +1,60 @@
+-- First, ensure name is unique for the products table to allow ON CONFLICT
+ALTER TABLE public.products ADD CONSTRAINT products_name_key UNIQUE (name);
+
+-- Delete existing products to avoid duplicates based on name
+DELETE FROM public.products;
+
+-- Insert all products from the landing page (mock data)
+INSERT INTO public.products (name, price, category, image_url, description, descripcion_larga, is_active)
+VALUES
+  ('Netflix Premium 4K', 15.00, 'streaming', 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=500&q=80', 'NETFLIX PREMIUM — PERFIL X 30 DÍAS', '🔒 Producto de acceso digital. No compartir credenciales.\n\n• Entrega inmediata tras confirmar pago.\n• Garantía durante toda la vigencia del plan.\n• Soporte por WhatsApp en horario de atención.\n• Al comprar aceptas las condiciones de uso del servicio.', true),
+  ('Prime Video', 10.00, 'streaming', 'https://images.unsplash.com/photo-1620332372374-f108c53d2e03?w=500&q=80', 'PRIME VIDEO — PERFIL 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Disney+', 45.00, 'streaming', 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=80', 'DISNEY+ — CUENTA COMPLETA 12 MESES', '🔒 Producto de acceso digital.', true),
+  ('HBO Max', 12.00, 'streaming', 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=500&q=80', 'HBO MAX — PERFIL 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Apple TV', 15.00, 'streaming', 'https://images.unsplash.com/photo-1586899028174-e7001483f3c0?w=500&q=80', 'APPLE TV — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Paramount+', 9.00, 'streaming', 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500&q=80', 'PARAMOUNT+ — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Crunchyroll', 7.00, 'streaming', 'https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=500&q=80', 'CRUNCHYROLL — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('YouTube Premium', 10.00, 'streaming', 'https://images.unsplash.com/photo-1611162617263-4cc3040af3ee?w=500&q=80', 'YOUTUBE PREMIUM — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Spotify', 8.00, 'music', 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&q=80', 'SPOTIFY PREMIUM — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Apple Music', 15.00, 'music', 'https://images.unsplash.com/photo-1514525253361-bee8718a300c?w=500&q=80', 'APPLE MUSIC — 3 MESES', '🔒 Producto de acceso digital.', true),
+  ('YouTube Music', 12.00, 'music', 'https://images.unsplash.com/photo-1611162617263-4cc3040af3ee?w=500&q=80', 'YOUTUBE MUSIC PREMIUM — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Deezer', 10.00, 'music', 'https://images.unsplash.com/photo-1614680376593-902f74cf0d41?w=500&q=80', 'DEEZER PREMIUM — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('TIDAL', 15.00, 'music', 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=500&q=80', 'TIDAL HI-FI — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Amazon Music', 12.00, 'music', 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=500&q=80', 'AMAZON MUSIC UNLIMITED — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('SoundCloud', 18.00, 'music', 'https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=500&q=80', 'SOUNDCLOUD NEXT PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('ViX Premium', 12.00, 'streaming', 'https://images.unsplash.com/photo-1522869635100-9f4c5e86aa37?w=500&q=80', 'VIX PREMIUM — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('MUBI', 10.00, 'streaming', 'https://images.unsplash.com/photo-1485846234645-a62644f84728?w=500&q=80', 'MUBI — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Combo Streaming Total', 35.00, 'combos', 'https://images.unsplash.com/photo-1586899028174-e7001483f3c0?w=500&q=80', 'COMBO 3 PLATAFORMAS — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Pack Familiar 5 Apps', 55.00, 'combos', 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=500&q=80', 'PACK FAMILIAR 5 APPS — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('ChatGPT Plus', 35.00, 'ia', 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&q=80', 'CHATGPT PLUS — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Claude Pro', 35.00, 'ia', 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&q=80', 'CLAUDE PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Google Gemini Advanced', 35.00, 'ia', 'https://images.unsplash.com/photo-1707343843437-caacff5c6a74?w=500&q=80', 'GEMINI ADVANCED — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Perplexity Pro', 35.00, 'ia', 'https://images.unsplash.com/photo-1620712943543-bcc4628c9757?w=500&q=80', 'PERPLEXITY PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Grok AI', 35.00, 'ia', 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=500&q=80', 'GROK AI (X PREMIUM) — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Microsoft Copilot Pro', 35.00, 'ia', 'https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=500&q=80', 'COPILOT PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Midjourney Pro', 45.00, 'ia', 'https://images.unsplash.com/photo-1684163762274-5bf7d020d57e?w=500&q=80', 'MIDJOURNEY — PLAN BÁSICO', '🔒 Producto de acceso digital.', true),
+  ('Leonardo AI', 35.00, 'ia', 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=500&q=80', 'LEONARDO AI PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Ideogram Pro', 35.00, 'ia', 'https://images.unsplash.com/photo-1620641788421-7a1c342ea42e?w=500&q=80', 'IDEOGRAM PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Runway Gen-3', 45.00, 'ia', 'https://images.unsplash.com/photo-1633167606207-d840b5070fc2?w=500&q=80', 'RUNWAY GEN-3 — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Kling AI', 45.00, 'ia', 'https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?w=500&q=80', 'KLING AI — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Dreamina AI', 35.00, 'ia', 'https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=500&q=80', 'DREAMINA PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('ElevenLabs', 25.00, 'ia', 'https://images.unsplash.com/photo-1478737270239-2f02b77fc618?w=500&q=80', 'ELEVENLABS — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Suno AI', 35.00, 'ia', 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&q=80', 'SUNO AI PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Gamma App', 25.00, 'ia', 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&q=80', 'GAMMA APP PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Notion AI', 20.00, 'ia', 'https://images.unsplash.com/photo-1662026911591-335639b11db6?w=500&q=80', 'NOTION AI — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Cursor Pro', 45.00, 'ia', 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=500&q=80', 'CURSOR PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('GitHub Copilot', 35.00, 'ia', 'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=500&q=80', 'GITHUB COPILOT — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Lovable', 65.00, 'ia', 'https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=500&q=80', 'LOVABLE PRO — 1 MES', '🔒 Producto de acceso digital.', true),
+  ('Microsoft 365', 45.00, 'licencias', 'https://images.unsplash.com/photo-1633412802994-5c058f151b66?w=500&q=80', 'MICROSOFT 365 PERSONAL — 1 AÑO', '🔒 Producto de acceso digital.', true),
+  ('Windows 11 Pro', 35.00, 'licencias', 'https://images.unsplash.com/photo-1624555130581-1d9cca783bc0?w=500&q=80', 'WINDOWS 11 PRO — CLAVE OEM', '🔒 Producto de acceso digital.', true),
+  ('ESET NOD32', 25.00, 'licencias', 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=500&q=80', 'ESET NOD32 ANTIVIRUS — 1 PC', '🔒 Producto de acceso digital.', true),
+  ('Bitdefender', 35.00, 'licencias', 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&q=80', 'BITDEFENDER TOTAL SECURITY', '🔒 Producto de acceso digital.', true),
+  ('Malwarebytes', 25.00, 'licencias', 'https://images.unsplash.com/photo-1563986768494-4dee2763ff3f?w=500&q=80', 'MALWAREBYTES PREMIUM — 1 PC', '🔒 Producto de acceso digital.', true),
+  ('Acronis', 45.00, 'licencias', 'https://images.unsplash.com/photo-1558494949-ef010cbdcc51?w=500&q=80', 'ACRONIS CYBER PROTECT', '🔒 Producto de acceso digital.', true),
+  ('Adobe Creative Cloud', 85.00, 'licencias', 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500&q=80', 'ADOBE CREATIVE CLOUD — TODAS LAS APPS', '🔒 Producto de acceso digital.', true),
+  ('Canva Pro', 15.00, 'licencias', 'https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500&q=80', 'CANVA PRO — EQUIPO PREMIUM', '🔒 Producto de acceso digital.', true),
+  ('1Password', 25.00, 'licencias', 'https://images.unsplash.com/photo-1633265485768-3c620417170e?w=500&q=80', '1PASSWORD FAMILIAR', '🔒 Producto de acceso digital.', true),
+  ('Dropbox', 35.00, 'licencias', 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&q=80', 'DROPBOX PLUS — 2TB', '🔒 Producto de acceso digital.', true),
+  ('Pornhub Premium', 15.00, 'adult', 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500&q=80', 'PORNHUB PREMIUM — 30 DÍAS', '🔒 Producto de acceso digital.', true),
+  ('Brazzers', 20.00, 'adult', 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500&q=80', 'BRAZZERS PREMIUM — 30 DÍAS', '🔒 Producto de acceso digital.', true)
+ON CONFLICT (name) DO NOTHING;

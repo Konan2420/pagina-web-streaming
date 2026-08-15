@@ -1,0 +1,1 @@
+ALTER TABLE public.supplier_profiles ADD COLUMN IF NOT EXISTS avatar_effect text NOT NULL DEFAULT 'none';

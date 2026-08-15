@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anonymous and authenticated users can insert events" ON public.analytics_events;

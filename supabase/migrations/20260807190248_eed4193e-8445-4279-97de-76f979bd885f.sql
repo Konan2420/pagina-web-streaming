@@ -1,0 +1,4 @@
+INSERT INTO public.products (id, name, description, price, category, image_url, descripcion_larga, is_active)
+VALUES 
+  (gen_random_uuid(), 'Pornhub Premium', 'PORNHUB PREMIUM — 30 DÍAS', 15.0, 'adult', 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500&q=80', '🔒 Producto de acceso digital. No compartir credenciales.\n\n• Entrega inmediata tras confirmar pago.\n• Garantía durante toda la vigencia del plan.\n• Soporte por WhatsApp en horario de atención.\n• Al comprar aceptas las condiciones de uso del servicio.', true),
+  (gen_random_uuid(), 'Brazzers', 'BRAZZERS PREMIUM — 30 DÍAS', 20.0, 'adult', 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500&q=80', '🔒 Producto de acceso digital. No compartir credenciales.\n\n• Entrega inmediata tras confirmar pago.\n• Garantía durante toda la vigencia del plan.\n• Soporte por WhatsApp en horario de atención.\n• Al comprar aceptas las condiciones de uso del servicio.', true);

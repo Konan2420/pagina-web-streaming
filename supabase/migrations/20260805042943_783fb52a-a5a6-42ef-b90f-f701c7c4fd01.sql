@@ -1,0 +1,9 @@
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1574375927938-d5a98e8ffe85?w=500&q=80' WHERE name ILIKE '%netflix%';
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&q=80' WHERE name ILIKE '%disney%';
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1616469829581-73993eb86b02?w=500&q=80' WHERE name ILIKE '%hbo%';
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1620332372374-f108c53d2e03?w=500&q=80' WHERE name ILIKE '%prime%';
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=500&q=80' WHERE name ILIKE '%spotify%';
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1586899028174-e7001483f3c0?w=500&q=80' WHERE name ILIKE '%combo%';
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1611162617263-4cc3040af3ee?w=500&q=80' WHERE name ILIKE '%youtube%';
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1578632292335-df3abbb0d586?w=500&q=80' WHERE name ILIKE '%crunchyroll%';
+UPDATE products SET image_url = 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500&q=80' WHERE name ILIKE '%paramount%';
