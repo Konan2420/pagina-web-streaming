@@ -15,7 +15,7 @@ export default defineConfig({
       server: { entry: "server" },
     }),
     nitro({
-      preset: "node-server",
+      preset: "vercel",
     }),
     react(),
     tailwindcss(),
