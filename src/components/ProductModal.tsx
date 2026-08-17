@@ -52,12 +52,14 @@ export function ProductModal({
   onClose,
   onAddToCart,
   onBuyNow,
+  onLoginRequired,
   isBuying = false,
 }: {
   product: ProductDetail | null;
   onClose: () => void;
   onAddToCart: (p: ProductDetail) => void;
   onBuyNow?: (p: ProductDetail) => void;
+  onLoginRequired?: () => void;
   isBuying?: boolean;
 }) {
   const { playHover, playClick } = useFuturisticSound();
@@ -289,7 +291,13 @@ export function ProductModal({
               href={inquiryHref}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={playClick}
+              onClick={(event) => {
+                playClick();
+                if (!onLoginRequired) return;
+
+                event.preventDefault();
+                onLoginRequired();
+              }}
               onMouseEnter={playHover}
               className="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#25D366] text-white text-sm font-bold hover:brightness-110 transition"
             >

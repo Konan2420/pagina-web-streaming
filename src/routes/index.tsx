@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { LandingAuthGate } from "@/components/LandingAuthGate";
 import { TiendaPage } from "./tienda";
 
 export const Route = createFileRoute("/")({
@@ -22,5 +23,9 @@ export const Route = createFileRoute("/")({
     ],
     links: [{ rel: "canonical", href: "https://cmdstreaming.pe/" }],
   }),
-  component: TiendaPage,
+  component: () => (
+    <LandingAuthGate>
+      <TiendaPage />
+    </LandingAuthGate>
+  ),
 });

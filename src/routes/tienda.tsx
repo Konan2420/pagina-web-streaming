@@ -1681,6 +1681,7 @@ export function TiendaPage() {
           onBuyNow={(p) => {
             handleBuyNow(p);
           }}
+          onLoginRequired={session ? undefined : () => setAuthOpen(true)}
           isBuying={isOrderSubmitting}
         />
 

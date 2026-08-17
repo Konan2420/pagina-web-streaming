@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-DGeXAQPT.js";var t=e(),n=()=>(0,t.jsx)(`div`,{className:`min-h-screen bg-background text-foreground p-8`,children:(0,t.jsx)(`p`,{children:`No se encontraron datos.`})});export{n as notFoundComponent};
