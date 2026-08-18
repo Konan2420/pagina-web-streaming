@@ -16,6 +16,7 @@ export default defineConfig({
     }),
     nitro({
       preset: "vercel",
+      noExternals: true,
     }),
     react(),
     tailwindcss(),
