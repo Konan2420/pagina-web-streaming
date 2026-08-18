@@ -22,7 +22,7 @@ export default defineConfig({
     tailwindcss(),
   ],
   ssr: {
-  noExternal: ['tslib', '@supabase/functions-js', '@supabase/supabase-js'],
+    noExternal: ["tslib", "@supabase/functions-js", "@supabase/supabase-js"],
   },
   resolve: {
     tsconfigPaths: true,
