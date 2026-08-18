@@ -1,10 +1,15 @@
-import { i as __toESM } from "../../_runtime.mjs";
+import { o as __toESM } from "../../_runtime.mjs";
 import { a as offset, c as useFloating, i as limitShift, n as flip, o as shift, r as hide, s as size, t as arrow, u as require_react } from "../@floating-ui/react-dom+[...].mjs";
 import { a as useComposedRefs, n as createContextScope, o as require_jsx_runtime } from "./react-collection+[...].mjs";
-import { _ as Primitive, b as useLayoutEffect2, g as useCallbackRef } from "./react-dialog+[...].mjs";
+import { b as useLayoutEffect2, g as Primitive, h as useCallbackRef } from "./react-dialog+[...].mjs";
 import { n as autoUpdate } from "../@floating-ui/dom+[...].mjs";
 //#region node_modules/@radix-ui/react-use-size/dist/index.mjs
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
+var __defProp$1 = Object.defineProperty;
+var __name$1 = (target, value) => __defProp$1(target, "name", {
+	value,
+	configurable: true
+});
 function useSize(element) {
 	const [size, setSize] = import_react.useState(void 0);
 	useLayoutEffect2(() => {
@@ -39,6 +44,7 @@ function useSize(element) {
 	}, [element]);
 	return size;
 }
+__name$1(useSize, "useSize");
 //#endregion
 //#region node_modules/@radix-ui/react-popper/dist/index.mjs
 var import_jsx_runtime = require_jsx_runtime();
@@ -69,10 +75,11 @@ var PopperAnchor = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __nam
 	const context = usePopperContext(ANCHOR_NAME, __scopePopper);
 	const ref = import_react.useRef(null);
 	const onAnchorChange = context.onAnchorChange;
-	const composedRefs = useComposedRefs(forwardedRef, import_react.useCallback((node) => {
+	const callbackRef = import_react.useCallback((node) => {
 		ref.current = node;
 		if (node) onAnchorChange(node);
-	}, [onAnchorChange]));
+	}, [onAnchorChange]);
+	const composedRefs = useComposedRefs(forwardedRef, callbackRef);
 	const anchorRef = import_react.useRef(null);
 	import_react.useEffect(() => {
 		if (!virtualRef) return;

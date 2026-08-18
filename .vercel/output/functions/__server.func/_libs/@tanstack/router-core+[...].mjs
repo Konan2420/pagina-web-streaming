@@ -985,7 +985,6 @@ async function parseObjectAsync(ctx, depth, id, current) {
 		case DataView: return parseDataView$1(ctx, depth, id, current);
 		case Map: return parseMap$1(ctx, depth, id, current);
 		case Set: return parseSet$1(ctx, depth, id, current);
-		default: break;
 	}
 	if (currentClass === Promise || current instanceof Promise) return parsePromise$1(ctx, depth, id, current);
 	const currentFeatures = ctx.base.features;
@@ -2409,7 +2408,6 @@ function parseObjectPhase2(ctx, depth, id, current, currentClass) {
 		case DataView: return parseDataView(ctx, depth, id, current);
 		case Map: return parseMap(ctx, depth, id, current);
 		case Set: return parseSet(ctx, depth, id, current);
-		default: break;
 	}
 	if (currentClass === Promise || current instanceof Promise) return parsePromise(ctx, depth, id, current);
 	const currentFeatures = ctx.base.features;
@@ -3042,66 +3040,6 @@ var defaultSerovalPlugins = [
 	})
 ];
 //#endregion
-//#region node_modules/cookie-es/dist/index.mjs
-function splitSetCookieString(cookiesString) {
-	if (Array.isArray(cookiesString)) return cookiesString.flatMap((c) => splitSetCookieString(c));
-	if (typeof cookiesString !== "string") return [];
-	const cookiesStrings = [];
-	let pos = 0;
-	let start;
-	let ch;
-	let lastComma;
-	let nextStart;
-	let cookiesSeparatorFound;
-	const skipWhitespace = () => {
-		while (pos < cookiesString.length && /\s/.test(cookiesString.charAt(pos))) pos += 1;
-		return pos < cookiesString.length;
-	};
-	const notSpecialChar = () => {
-		ch = cookiesString.charAt(pos);
-		return ch !== "=" && ch !== ";" && ch !== ",";
-	};
-	while (pos < cookiesString.length) {
-		start = pos;
-		cookiesSeparatorFound = false;
-		while (skipWhitespace()) {
-			ch = cookiesString.charAt(pos);
-			if (ch === ",") {
-				lastComma = pos;
-				pos += 1;
-				skipWhitespace();
-				nextStart = pos;
-				while (pos < cookiesString.length && notSpecialChar()) pos += 1;
-				if (pos < cookiesString.length && cookiesString.charAt(pos) === "=") {
-					cookiesSeparatorFound = true;
-					pos = nextStart;
-					cookiesStrings.push(cookiesString.slice(start, lastComma));
-					start = pos;
-				} else pos = lastComma + 1;
-			} else pos += 1;
-		}
-		if (!cookiesSeparatorFound || pos >= cookiesString.length) cookiesStrings.push(cookiesString.slice(start));
-	}
-	return cookiesStrings;
-}
-//#endregion
-//#region node_modules/@tanstack/router-core/dist/esm/ssr/headers.js
-function toHeadersInstance(init) {
-	if (init instanceof Headers) return init;
-	else if (Array.isArray(init)) return new Headers(init);
-	else if (typeof init === "object") return new Headers(init);
-	else return null;
-}
-function mergeHeaders(...headers) {
-	return headers.reduce((acc, header) => {
-		const headersInstance = toHeadersInstance(header);
-		if (!headersInstance) return acc;
-		for (const [key, value] of headersInstance.entries()) if (key === "set-cookie") splitSetCookieString(value).forEach((cookie) => acc.append("set-cookie", cookie));
-		else acc.set(key, value);
-		return acc;
-	}, new Headers());
-}
-//#endregion
 //#region node_modules/@tanstack/router-core/dist/esm/ssr/tsrScript.js
 var tsrScript_default = "self.$_TSR={h(){this.hydrated=!0,this.c()},e(){this.streamEnded=!0,this.c()},c(){this.hydrated&&this.streamEnded&&(delete self.$_TSR,delete self.$R.tsr)},p(e){this.initialized?e():this.buffer.push(e)},buffer:[]}";
 //#endregion
@@ -3583,6 +3521,66 @@ function getNormalizedURL(url, base) {
 	};
 }
 //#endregion
+//#region node_modules/cookie-es/dist/index.mjs
+function splitSetCookieString(cookiesString) {
+	if (Array.isArray(cookiesString)) return cookiesString.flatMap((c) => splitSetCookieString(c));
+	if (typeof cookiesString !== "string") return [];
+	const cookiesStrings = [];
+	let pos = 0;
+	let start;
+	let ch;
+	let lastComma;
+	let nextStart;
+	let cookiesSeparatorFound;
+	const skipWhitespace = () => {
+		while (pos < cookiesString.length && /\s/.test(cookiesString.charAt(pos))) pos += 1;
+		return pos < cookiesString.length;
+	};
+	const notSpecialChar = () => {
+		ch = cookiesString.charAt(pos);
+		return ch !== "=" && ch !== ";" && ch !== ",";
+	};
+	while (pos < cookiesString.length) {
+		start = pos;
+		cookiesSeparatorFound = false;
+		while (skipWhitespace()) {
+			ch = cookiesString.charAt(pos);
+			if (ch === ",") {
+				lastComma = pos;
+				pos += 1;
+				skipWhitespace();
+				nextStart = pos;
+				while (pos < cookiesString.length && notSpecialChar()) pos += 1;
+				if (pos < cookiesString.length && cookiesString.charAt(pos) === "=") {
+					cookiesSeparatorFound = true;
+					pos = nextStart;
+					cookiesStrings.push(cookiesString.slice(start, lastComma));
+					start = pos;
+				} else pos = lastComma + 1;
+			} else pos += 1;
+		}
+		if (!cookiesSeparatorFound || pos >= cookiesString.length) cookiesStrings.push(cookiesString.slice(start));
+	}
+	return cookiesStrings;
+}
+//#endregion
+//#region node_modules/@tanstack/router-core/dist/esm/ssr/headers.js
+function toHeadersInstance(init) {
+	if (init instanceof Headers) return init;
+	else if (Array.isArray(init)) return new Headers(init);
+	else if (typeof init === "object") return new Headers(init);
+	else return null;
+}
+function mergeHeaders(...headers) {
+	return headers.reduce((acc, header) => {
+		const headersInstance = toHeadersInstance(header);
+		if (!headersInstance) return acc;
+		for (const [key, value] of headersInstance.entries()) if (key === "set-cookie") splitSetCookieString(value).forEach((cookie) => acc.append("set-cookie", cookie));
+		else acc.set(key, value);
+		return acc;
+	}, new Headers());
+}
+//#endregion
 //#region node_modules/@tanstack/router-core/dist/esm/ssr/createRequestHandler.js
 var requestWaiters = /* @__PURE__ */ new WeakMap();
 function removeRequestWaiter(waiters, index, reject) {
@@ -3626,4 +3624,4 @@ function waitForRequest(value, signal, onLate) {
 	});
 }
 //#endregion
-export { mergeHeaders as a, createSerializationAdapter as c, toCrossJSONAsync as d, toCrossJSONStream as f, getOrigin as i, makeSerovalPlugin as l, attachRouterServerSsrUtils as n, defaultSerovalPlugins as o, getNormalizedURL as r, createRawStreamRPCPlugin as s, waitForRequest as t, fromJSON as u };
+export { getOrigin as a, createSerializationAdapter as c, toCrossJSONAsync as d, toCrossJSONStream as f, getNormalizedURL as i, makeSerovalPlugin as l, mergeHeaders as n, defaultSerovalPlugins as o, attachRouterServerSsrUtils as r, createRawStreamRPCPlugin as s, waitForRequest as t, fromJSON as u };

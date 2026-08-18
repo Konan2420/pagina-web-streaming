@@ -1,4 +1,31 @@
-import { t as createMiddleware } from "./createMiddleware-B_4t7rW1.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/createMiddleware-B_4t7rW1.js
+var createMiddleware = (options, __opts) => {
+	const resolvedOptions = {
+		type: "request",
+		...__opts || options
+	};
+	const setValidator = (validator) => {
+		return createMiddleware({}, Object.assign(resolvedOptions, {
+			validator,
+			inputValidator: validator
+		}));
+	};
+	return {
+		options: resolvedOptions,
+		middleware: (middleware) => {
+			return createMiddleware({}, Object.assign(resolvedOptions, { middleware }));
+		},
+		validator: setValidator,
+		inputValidator: setValidator,
+		client: (client) => {
+			return createMiddleware({}, Object.assign(resolvedOptions, { client }));
+		},
+		server: (server) => {
+			return createMiddleware({}, Object.assign(resolvedOptions, { server }));
+		}
+	};
+};
+//#endregion
 //#region node_modules/.nitro/vite/services/ssr/assets/createCsrfMiddleware-jzif2P7h.js
 var innerCreateCsrfMiddleware = (opts = {}) => {
 	return createMiddleware().server(async (ctx) => {
@@ -54,4 +81,4 @@ async function getFailureResponse(opts, ctx) {
 	return opts.failureResponse?.clone() ?? new Response("Forbidden", { status: 403 });
 }
 //#endregion
-export { createCsrfMiddleware as t };
+export { createMiddleware as n, createCsrfMiddleware as t };

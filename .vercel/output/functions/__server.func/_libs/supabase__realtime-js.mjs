@@ -1,47 +1,52 @@
-import { n as Socket, t as Presence } from "./supabase__phoenix.mjs";
+import { o as __toESM } from "../_runtime.mjs";
 //#region node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
-/**
-* Utilities for creating WebSocket instances across runtimes.
-*/
 var WebSocketFactory = class {
-	/**
-	* Static-only utility – prevent instantiation.
-	*/
-	constructor() {}
 	static detectEnvironment() {
 		var _a;
 		if (typeof WebSocket !== "undefined") return {
 			type: "native",
-			wsConstructor: WebSocket
+			constructor: WebSocket
 		};
-		const gt = globalThis;
-		if (typeof globalThis !== "undefined" && typeof gt.WebSocket !== "undefined") return {
+		if (typeof globalThis !== "undefined" && typeof globalThis.WebSocket !== "undefined") return {
 			type: "native",
-			wsConstructor: gt.WebSocket
+			constructor: globalThis.WebSocket
 		};
-		const gl = typeof global !== "undefined" ? global : void 0;
-		if (gl && typeof gl.WebSocket !== "undefined") return {
+		if (typeof global !== "undefined" && typeof global.WebSocket !== "undefined") return {
 			type: "native",
-			wsConstructor: gl.WebSocket
+			constructor: global.WebSocket
 		};
-		if (typeof globalThis !== "undefined" && typeof gt.WebSocketPair !== "undefined" && typeof globalThis.WebSocket === "undefined") return {
+		if (typeof globalThis !== "undefined" && typeof globalThis.WebSocketPair !== "undefined" && typeof globalThis.WebSocket === "undefined") return {
 			type: "cloudflare",
 			error: "Cloudflare Workers detected. WebSocket clients are not supported in Cloudflare Workers.",
 			workaround: "Use Cloudflare Workers WebSocket API for server-side WebSocket handling, or deploy to a different runtime."
 		};
-		if (typeof globalThis !== "undefined" && gt.EdgeRuntime || typeof navigator !== "undefined" && ((_a = navigator.userAgent) === null || _a === void 0 ? void 0 : _a.includes("Vercel-Edge"))) return {
+		if (typeof globalThis !== "undefined" && globalThis.EdgeRuntime || typeof navigator !== "undefined" && ((_a = navigator.userAgent) === null || _a === void 0 ? void 0 : _a.includes("Vercel-Edge"))) return {
 			type: "unsupported",
 			error: "Edge runtime detected (Vercel Edge/Netlify Edge). WebSockets are not supported in edge functions.",
 			workaround: "Use serverless functions or a different deployment target for WebSocket functionality."
 		};
-		const _process = globalThis["process"];
-		if (_process) {
-			const processVersions = _process["versions"];
-			if (processVersions && processVersions["node"]) return {
-				type: "unsupported",
-				error: "Node.js detected but native WebSocket not found.",
-				workaround: "Ensure you are running Node.js 22+ or provide a WebSocket implementation via the transport option."
-			};
+		if (typeof process !== "undefined") {
+			const processVersions = process["versions"];
+			if (processVersions && processVersions["node"]) {
+				const versionString = processVersions["node"];
+				const nodeVersion = parseInt(versionString.replace(/^v/, "").split(".")[0]);
+				if (nodeVersion >= 22) {
+					if (typeof globalThis.WebSocket !== "undefined") return {
+						type: "native",
+						constructor: globalThis.WebSocket
+					};
+					return {
+						type: "unsupported",
+						error: `Node.js ${nodeVersion} detected but native WebSocket not found.`,
+						workaround: "Provide a WebSocket implementation via the transport option."
+					};
+				}
+				return {
+					type: "unsupported",
+					error: `Node.js ${nodeVersion} detected without native WebSocket support.`,
+					workaround: "For Node.js < 22, install \"ws\" package and provide it via the transport option:\nimport ws from \"ws\"\nnew RealtimeClient(url, { transport: ws })"
+				};
+			}
 		}
 		return {
 			type: "unsupported",
@@ -49,44 +54,20 @@ var WebSocketFactory = class {
 			workaround: "Ensure you're running in a supported environment (browser, Node.js, Deno) or provide a custom WebSocket implementation."
 		};
 	}
-	/**
-	* Returns the best available WebSocket constructor for the current runtime.
-	*
-	* @category Realtime
-	*
-	* @example Example with error handling
-	* ```ts
-	* try {
-	*   const WS = WebSocketFactory.getWebSocketConstructor()
-	*   const socket = new WS('wss://example.com/socket')
-	* } catch (error) {
-	*   console.error('WebSocket not available in this environment.', error)
-	* }
-	* ```
-	*/
 	static getWebSocketConstructor() {
 		const env = this.detectEnvironment();
-		if (env.wsConstructor) return env.wsConstructor;
+		if (env.constructor) return env.constructor;
 		let errorMessage = env.error || "WebSocket not supported in this environment.";
 		if (env.workaround) errorMessage += `\n\nSuggested solution: ${env.workaround}`;
 		throw new Error(errorMessage);
 	}
-	/**
-	* Detects whether the runtime can establish WebSocket connections.
-	*
-	* @category Realtime
-	*
-	* @example Example in a Node.js script
-	* ```ts
-	* if (!WebSocketFactory.isWebSocketSupported()) {
-	*   console.error('WebSockets are required for this script.')
-	*   process.exitCode = 1
-	* }
-	* ```
-	*/
+	static createWebSocket(url, protocols) {
+		return new (this.getWebSocketConstructor())(url, protocols);
+	}
 	static isWebSocketSupported() {
 		try {
-			return this.detectEnvironment().type === "native";
+			const env = this.detectEnvironment();
+			return env.type === "native" || env.type === "ws";
 		} catch (_a) {
 			return false;
 		}
@@ -94,173 +75,110 @@ var WebSocketFactory = class {
 };
 //#endregion
 //#region node_modules/@supabase/realtime-js/dist/module/lib/constants.js
-var DEFAULT_VERSION = `realtime-js/2.110.7`;
-var VSN_1_0_0 = "1.0.0";
-var VSN_2_0_0 = "2.0.0";
-var DEFAULT_VSN = VSN_2_0_0;
+var DEFAULT_VERSION = `realtime-js/2.75.1`;
+var VSN = "1.0.0";
 var DEFAULT_TIMEOUT = 1e4;
-var CHANNEL_STATES = {
-	closed: "closed",
-	errored: "errored",
-	joined: "joined",
-	joining: "joining",
-	leaving: "leaving"
-};
-var CHANNEL_EVENTS = {
-	close: "phx_close",
-	error: "phx_error",
-	join: "phx_join",
-	reply: "phx_reply",
-	leave: "phx_leave",
-	access_token: "access_token"
-};
-var CONNECTION_STATE = {
-	connecting: "connecting",
-	open: "open",
-	closing: "closing",
-	closed: "closed"
-};
+var SOCKET_STATES;
+(function(SOCKET_STATES) {
+	SOCKET_STATES[SOCKET_STATES["connecting"] = 0] = "connecting";
+	SOCKET_STATES[SOCKET_STATES["open"] = 1] = "open";
+	SOCKET_STATES[SOCKET_STATES["closing"] = 2] = "closing";
+	SOCKET_STATES[SOCKET_STATES["closed"] = 3] = "closed";
+})(SOCKET_STATES || (SOCKET_STATES = {}));
+var CHANNEL_STATES;
+(function(CHANNEL_STATES) {
+	CHANNEL_STATES["closed"] = "closed";
+	CHANNEL_STATES["errored"] = "errored";
+	CHANNEL_STATES["joined"] = "joined";
+	CHANNEL_STATES["joining"] = "joining";
+	CHANNEL_STATES["leaving"] = "leaving";
+})(CHANNEL_STATES || (CHANNEL_STATES = {}));
+var CHANNEL_EVENTS;
+(function(CHANNEL_EVENTS) {
+	CHANNEL_EVENTS["close"] = "phx_close";
+	CHANNEL_EVENTS["error"] = "phx_error";
+	CHANNEL_EVENTS["join"] = "phx_join";
+	CHANNEL_EVENTS["reply"] = "phx_reply";
+	CHANNEL_EVENTS["leave"] = "phx_leave";
+	CHANNEL_EVENTS["access_token"] = "access_token";
+})(CHANNEL_EVENTS || (CHANNEL_EVENTS = {}));
+var TRANSPORTS;
+(function(TRANSPORTS) {
+	TRANSPORTS["websocket"] = "websocket";
+})(TRANSPORTS || (TRANSPORTS = {}));
+var CONNECTION_STATE;
+(function(CONNECTION_STATE) {
+	CONNECTION_STATE["Connecting"] = "connecting";
+	CONNECTION_STATE["Open"] = "open";
+	CONNECTION_STATE["Closing"] = "closing";
+	CONNECTION_STATE["Closed"] = "closed";
+})(CONNECTION_STATE || (CONNECTION_STATE = {}));
 //#endregion
 //#region node_modules/@supabase/realtime-js/dist/module/lib/serializer.js
 var Serializer = class {
-	constructor(allowedMetadataKeys) {
+	constructor() {
 		this.HEADER_LENGTH = 1;
-		this.USER_BROADCAST_PUSH_META_LENGTH = 6;
-		this.KINDS = {
-			userBroadcastPush: 3,
-			userBroadcast: 4
-		};
-		this.BINARY_ENCODING = 0;
-		this.JSON_ENCODING = 1;
-		this.BROADCAST_EVENT = "broadcast";
-		this.allowedMetadataKeys = [];
-		this.allowedMetadataKeys = allowedMetadataKeys !== null && allowedMetadataKeys !== void 0 ? allowedMetadataKeys : [];
-	}
-	encode(msg, callback) {
-		if (msg.event === this.BROADCAST_EVENT && !(msg.payload instanceof ArrayBuffer) && typeof msg.payload.event === "string") return callback(this._binaryEncodeUserBroadcastPush(msg));
-		let payload = [
-			msg.join_ref,
-			msg.ref,
-			msg.topic,
-			msg.event,
-			msg.payload
-		];
-		return callback(JSON.stringify(payload));
-	}
-	_binaryEncodeUserBroadcastPush(message) {
-		var _a;
-		if (this._isArrayBuffer((_a = message.payload) === null || _a === void 0 ? void 0 : _a.payload)) return this._encodeBinaryUserBroadcastPush(message);
-		else return this._encodeJsonUserBroadcastPush(message);
-	}
-	_encodeBinaryUserBroadcastPush(message) {
-		var _a, _b;
-		const userPayload = (_b = (_a = message.payload) === null || _a === void 0 ? void 0 : _a.payload) !== null && _b !== void 0 ? _b : /* @__PURE__ */ new ArrayBuffer(0);
-		return this._encodeUserBroadcastPush(message, this.BINARY_ENCODING, userPayload);
-	}
-	_encodeJsonUserBroadcastPush(message) {
-		var _a, _b;
-		const userPayload = (_b = (_a = message.payload) === null || _a === void 0 ? void 0 : _a.payload) !== null && _b !== void 0 ? _b : {};
-		const encodedUserPayload = new TextEncoder().encode(JSON.stringify(userPayload)).buffer;
-		return this._encodeUserBroadcastPush(message, this.JSON_ENCODING, encodedUserPayload);
-	}
-	_encodeUserBroadcastPush(message, encodingType, encodedPayload) {
-		var _a, _b;
-		const encoder = new TextEncoder();
-		const topic = encoder.encode(message.topic);
-		const ref = encoder.encode((_a = message.ref) !== null && _a !== void 0 ? _a : "");
-		const joinRef = encoder.encode((_b = message.join_ref) !== null && _b !== void 0 ? _b : "");
-		const userEvent = encoder.encode(message.payload.event);
-		const rest = this.allowedMetadataKeys ? this._pick(message.payload, this.allowedMetadataKeys) : {};
-		const metadata = encoder.encode(Object.keys(rest).length === 0 ? "" : JSON.stringify(rest));
-		if (joinRef.length > 255) throw new Error(`joinRef length ${joinRef.length} exceeds maximum of 255`);
-		if (ref.length > 255) throw new Error(`ref length ${ref.length} exceeds maximum of 255`);
-		if (topic.length > 255) throw new Error(`topic length ${topic.length} exceeds maximum of 255`);
-		if (userEvent.length > 255) throw new Error(`userEvent length ${userEvent.length} exceeds maximum of 255`);
-		if (metadata.length > 255) throw new Error(`metadata length ${metadata.length} exceeds maximum of 255`);
-		const metaLength = this.USER_BROADCAST_PUSH_META_LENGTH + joinRef.length + ref.length + topic.length + userEvent.length + metadata.length;
-		const header = new ArrayBuffer(this.HEADER_LENGTH + metaLength);
-		const view = new DataView(header);
-		const bytes = new Uint8Array(header);
-		let offset = 0;
-		view.setUint8(offset++, this.KINDS.userBroadcastPush);
-		view.setUint8(offset++, joinRef.length);
-		view.setUint8(offset++, ref.length);
-		view.setUint8(offset++, topic.length);
-		view.setUint8(offset++, userEvent.length);
-		view.setUint8(offset++, metadata.length);
-		view.setUint8(offset++, encodingType);
-		bytes.set(joinRef, offset);
-		offset += joinRef.length;
-		bytes.set(ref, offset);
-		offset += ref.length;
-		bytes.set(topic, offset);
-		offset += topic.length;
-		bytes.set(userEvent, offset);
-		offset += userEvent.length;
-		bytes.set(metadata, offset);
-		offset += metadata.length;
-		var combined = new Uint8Array(header.byteLength + encodedPayload.byteLength);
-		combined.set(new Uint8Array(header), 0);
-		combined.set(new Uint8Array(encodedPayload), header.byteLength);
-		return combined.buffer;
 	}
 	decode(rawPayload, callback) {
-		if (this._isArrayBuffer(rawPayload)) return callback(this._binaryDecode(rawPayload));
-		if (typeof rawPayload === "string") {
-			const [join_ref, ref, topic, event, payload] = JSON.parse(rawPayload);
-			return callback({
-				join_ref,
-				ref,
-				topic,
-				event,
-				payload
-			});
-		}
+		if (rawPayload.constructor === ArrayBuffer) return callback(this._binaryDecode(rawPayload));
+		if (typeof rawPayload === "string") return callback(JSON.parse(rawPayload));
 		return callback({});
 	}
 	_binaryDecode(buffer) {
 		const view = new DataView(buffer);
-		const kind = view.getUint8(0);
 		const decoder = new TextDecoder();
-		switch (kind) {
-			case this.KINDS.userBroadcast: return this._decodeUserBroadcast(buffer, view, decoder);
-		}
+		return this._decodeBroadcast(buffer, view, decoder);
 	}
-	_decodeUserBroadcast(buffer, view, decoder) {
+	_decodeBroadcast(buffer, view, decoder) {
 		const topicSize = view.getUint8(1);
-		const userEventSize = view.getUint8(2);
-		const metadataSize = view.getUint8(3);
-		const payloadEncoding = view.getUint8(4);
-		let offset = this.HEADER_LENGTH + 4;
+		const eventSize = view.getUint8(2);
+		let offset = this.HEADER_LENGTH + 2;
 		const topic = decoder.decode(buffer.slice(offset, offset + topicSize));
 		offset = offset + topicSize;
-		const userEvent = decoder.decode(buffer.slice(offset, offset + userEventSize));
-		offset = offset + userEventSize;
-		const metadata = decoder.decode(buffer.slice(offset, offset + metadataSize));
-		offset = offset + metadataSize;
-		const payload = buffer.slice(offset, buffer.byteLength);
-		const parsedPayload = payloadEncoding === this.JSON_ENCODING ? JSON.parse(decoder.decode(payload)) : payload;
-		const data = {
-			type: this.BROADCAST_EVENT,
-			event: userEvent,
-			payload: parsedPayload
-		};
-		if (metadataSize > 0) data["meta"] = JSON.parse(metadata);
+		const event = decoder.decode(buffer.slice(offset, offset + eventSize));
+		offset = offset + eventSize;
 		return {
-			join_ref: null,
 			ref: null,
 			topic,
-			event: this.BROADCAST_EVENT,
-			payload: data
+			event,
+			payload: JSON.parse(decoder.decode(buffer.slice(offset, buffer.byteLength)))
 		};
 	}
-	_isArrayBuffer(buffer) {
-		var _a;
-		return buffer instanceof ArrayBuffer || ((_a = buffer === null || buffer === void 0 ? void 0 : buffer.constructor) === null || _a === void 0 ? void 0 : _a.name) === "ArrayBuffer";
+};
+//#endregion
+//#region node_modules/@supabase/realtime-js/dist/module/lib/timer.js
+/**
+* Creates a timer that accepts a `timerCalc` function to perform calculated timeout retries, such as exponential backoff.
+*
+* @example
+*    let reconnectTimer = new Timer(() => this.connect(), function(tries){
+*      return [1000, 5000, 10000][tries - 1] || 10000
+*    })
+*    reconnectTimer.scheduleTimeout() // fires after 1000
+*    reconnectTimer.scheduleTimeout() // fires after 5000
+*    reconnectTimer.reset()
+*    reconnectTimer.scheduleTimeout() // fires after 1000
+*/
+var Timer = class {
+	constructor(callback, timerCalc) {
+		this.callback = callback;
+		this.timerCalc = timerCalc;
+		this.timer = void 0;
+		this.tries = 0;
+		this.callback = callback;
+		this.timerCalc = timerCalc;
 	}
-	_pick(obj, keys) {
-		if (!obj || typeof obj !== "object") return {};
-		return Object.fromEntries(Object.entries(obj).filter(([key]) => keys.includes(key)));
+	reset() {
+		this.tries = 0;
+		clearTimeout(this.timer);
+		this.timer = void 0;
+	}
+	scheduleTimeout() {
+		clearTimeout(this.timer);
+		this.timer = setTimeout(() => {
+			this.tries = this.tries + 1;
+			this.callback();
+		}, this.timerCalc(this.tries + 1));
 	}
 };
 //#endregion
@@ -335,7 +253,7 @@ var convertColumn = (columnName, columns, record, skipTypes) => {
 	const colType = column === null || column === void 0 ? void 0 : column.type;
 	const value = record[columnName];
 	if (colType && !skipTypes.includes(colType)) return convertCell(colType, value);
-	return noop(value);
+	return noop$1(value);
 };
 /**
 * If the value of the cell is `null`, returns null.
@@ -376,11 +294,11 @@ var convertCell = (type, value) => {
 		case PostgresTypes.timestamptz:
 		case PostgresTypes.timetz:
 		case PostgresTypes.tsrange:
-		case PostgresTypes.tstzrange: return noop(value);
-		default: return noop(value);
+		case PostgresTypes.tstzrange: return noop$1(value);
+		default: return noop$1(value);
 	}
 };
-var noop = (value) => {
+var noop$1 = (value) => {
 	return value;
 };
 var toBoolean = (value) => {
@@ -400,7 +318,8 @@ var toNumber = (value) => {
 var toJson = (value) => {
 	if (typeof value === "string") try {
 		return JSON.parse(value);
-	} catch (_a) {
+	} catch (error) {
+		console.log(`JSON parse error: ${error}`);
 		return value;
 	}
 	return value;
@@ -443,41 +362,259 @@ var toTimestampString = (value) => {
 	return value;
 };
 var httpEndpointURL = (socketUrl) => {
-	const wsUrl = new URL(socketUrl);
-	wsUrl.protocol = wsUrl.protocol.replace(/^ws/i, "http");
-	wsUrl.pathname = wsUrl.pathname.replace(/\/+$/, "").replace(/\/socket\/websocket$/i, "").replace(/\/socket$/i, "").replace(/\/websocket$/i, "");
-	if (wsUrl.pathname === "" || wsUrl.pathname === "/") wsUrl.pathname = "/api/broadcast";
-	else wsUrl.pathname = wsUrl.pathname + "/api/broadcast";
-	return wsUrl.href;
+	let url = socketUrl;
+	url = url.replace(/^ws/i, "http");
+	url = url.replace(/(\/socket\/websocket|\/socket|\/websocket)\/?$/i, "");
+	return url.replace(/\/+$/, "") + "/api/broadcast";
 };
 //#endregion
-//#region node_modules/@supabase/realtime-js/dist/module/phoenix/presenceAdapter.js
-var PresenceAdapter = class PresenceAdapter {
-	constructor(channel, opts) {
-		const phoenixOptions = phoenixPresenceOptions(opts);
-		this.presence = new Presence(channel.getChannel(), phoenixOptions);
-		this.presence.onJoin((key, currentPresence, newPresence) => {
-			const onJoinPayload = PresenceAdapter.onJoinPayload(key, currentPresence, newPresence);
-			channel.getChannel().trigger("presence", onJoinPayload);
-		});
-		this.presence.onLeave((key, currentPresence, leftPresence) => {
-			const onLeavePayload = PresenceAdapter.onLeavePayload(key, currentPresence, leftPresence);
-			channel.getChannel().trigger("presence", onLeavePayload);
-		});
-		this.presence.onSync(() => {
-			channel.getChannel().trigger("presence", { event: "sync" });
+//#region node_modules/@supabase/realtime-js/dist/module/lib/push.js
+var Push = class {
+	/**
+	* Initializes the Push
+	*
+	* @param channel The Channel
+	* @param event The event, for example `"phx_join"`
+	* @param payload The payload, for example `{user_id: 123}`
+	* @param timeout The push timeout in milliseconds
+	*/
+	constructor(channel, event, payload = {}, timeout = DEFAULT_TIMEOUT) {
+		this.channel = channel;
+		this.event = event;
+		this.payload = payload;
+		this.timeout = timeout;
+		this.sent = false;
+		this.timeoutTimer = void 0;
+		this.ref = "";
+		this.receivedResp = null;
+		this.recHooks = [];
+		this.refEvent = null;
+	}
+	resend(timeout) {
+		this.timeout = timeout;
+		this._cancelRefEvent();
+		this.ref = "";
+		this.refEvent = null;
+		this.receivedResp = null;
+		this.sent = false;
+		this.send();
+	}
+	send() {
+		if (this._hasReceived("timeout")) return;
+		this.startTimeout();
+		this.sent = true;
+		this.channel.socket.push({
+			topic: this.channel.topic,
+			event: this.event,
+			payload: this.payload,
+			ref: this.ref,
+			join_ref: this.channel._joinRef()
 		});
 	}
-	get state() {
-		return PresenceAdapter.transformState(this.presence.state);
+	updatePayload(payload) {
+		this.payload = Object.assign(Object.assign({}, this.payload), payload);
+	}
+	receive(status, callback) {
+		var _a;
+		if (this._hasReceived(status)) callback((_a = this.receivedResp) === null || _a === void 0 ? void 0 : _a.response);
+		this.recHooks.push({
+			status,
+			callback
+		});
+		return this;
+	}
+	startTimeout() {
+		if (this.timeoutTimer) return;
+		this.ref = this.channel.socket._makeRef();
+		this.refEvent = this.channel._replyEventName(this.ref);
+		const callback = (payload) => {
+			this._cancelRefEvent();
+			this._cancelTimeout();
+			this.receivedResp = payload;
+			this._matchReceive(payload);
+		};
+		this.channel._on(this.refEvent, {}, callback);
+		this.timeoutTimer = setTimeout(() => {
+			this.trigger("timeout", {});
+		}, this.timeout);
+	}
+	trigger(status, response) {
+		if (this.refEvent) this.channel._trigger(this.refEvent, {
+			status,
+			response
+		});
+	}
+	destroy() {
+		this._cancelRefEvent();
+		this._cancelTimeout();
+	}
+	_cancelRefEvent() {
+		if (!this.refEvent) return;
+		this.channel._off(this.refEvent, {});
+	}
+	_cancelTimeout() {
+		clearTimeout(this.timeoutTimer);
+		this.timeoutTimer = void 0;
+	}
+	_matchReceive({ status, response }) {
+		this.recHooks.filter((h) => h.status === status).forEach((h) => h.callback(response));
+	}
+	_hasReceived(status) {
+		return this.receivedResp && this.receivedResp.status === status;
+	}
+};
+//#endregion
+//#region node_modules/@supabase/realtime-js/dist/module/RealtimePresence.js
+var REALTIME_PRESENCE_LISTEN_EVENTS;
+(function(REALTIME_PRESENCE_LISTEN_EVENTS) {
+	REALTIME_PRESENCE_LISTEN_EVENTS["SYNC"] = "sync";
+	REALTIME_PRESENCE_LISTEN_EVENTS["JOIN"] = "join";
+	REALTIME_PRESENCE_LISTEN_EVENTS["LEAVE"] = "leave";
+})(REALTIME_PRESENCE_LISTEN_EVENTS || (REALTIME_PRESENCE_LISTEN_EVENTS = {}));
+var RealtimePresence = class RealtimePresence {
+	/**
+	* Initializes the Presence.
+	*
+	* @param channel - The RealtimeChannel
+	* @param opts - The options,
+	*        for example `{events: {state: 'state', diff: 'diff'}}`
+	*/
+	constructor(channel, opts) {
+		this.channel = channel;
+		this.state = {};
+		this.pendingDiffs = [];
+		this.joinRef = null;
+		this.enabled = false;
+		this.caller = {
+			onJoin: () => {},
+			onLeave: () => {},
+			onSync: () => {}
+		};
+		const events = (opts === null || opts === void 0 ? void 0 : opts.events) || {
+			state: "presence_state",
+			diff: "presence_diff"
+		};
+		this.channel._on(events.state, {}, (newState) => {
+			const { onJoin, onLeave, onSync } = this.caller;
+			this.joinRef = this.channel._joinRef();
+			this.state = RealtimePresence.syncState(this.state, newState, onJoin, onLeave);
+			this.pendingDiffs.forEach((diff) => {
+				this.state = RealtimePresence.syncDiff(this.state, diff, onJoin, onLeave);
+			});
+			this.pendingDiffs = [];
+			onSync();
+		});
+		this.channel._on(events.diff, {}, (diff) => {
+			const { onJoin, onLeave, onSync } = this.caller;
+			if (this.inPendingSyncState()) this.pendingDiffs.push(diff);
+			else {
+				this.state = RealtimePresence.syncDiff(this.state, diff, onJoin, onLeave);
+				onSync();
+			}
+		});
+		this.onJoin((key, currentPresences, newPresences) => {
+			this.channel._trigger("presence", {
+				event: "join",
+				key,
+				currentPresences,
+				newPresences
+			});
+		});
+		this.onLeave((key, currentPresences, leftPresences) => {
+			this.channel._trigger("presence", {
+				event: "leave",
+				key,
+				currentPresences,
+				leftPresences
+			});
+		});
+		this.onSync(() => {
+			this.channel._trigger("presence", { event: "sync" });
+		});
 	}
 	/**
-	* @private
+	* Used to sync the list of presences on the server with the
+	* client's state.
+	*
+	* An optional `onJoin` and `onLeave` callback can be provided to
+	* react to changes in the client's local presences across
+	* disconnects and reconnects with the server.
+	*
+	* @internal
+	*/
+	static syncState(currentState, newState, onJoin, onLeave) {
+		const state = this.cloneDeep(currentState);
+		const transformedState = this.transformState(newState);
+		const joins = {};
+		const leaves = {};
+		this.map(state, (key, presences) => {
+			if (!transformedState[key]) leaves[key] = presences;
+		});
+		this.map(transformedState, (key, newPresences) => {
+			const currentPresences = state[key];
+			if (currentPresences) {
+				const newPresenceRefs = newPresences.map((m) => m.presence_ref);
+				const curPresenceRefs = currentPresences.map((m) => m.presence_ref);
+				const joinedPresences = newPresences.filter((m) => curPresenceRefs.indexOf(m.presence_ref) < 0);
+				const leftPresences = currentPresences.filter((m) => newPresenceRefs.indexOf(m.presence_ref) < 0);
+				if (joinedPresences.length > 0) joins[key] = joinedPresences;
+				if (leftPresences.length > 0) leaves[key] = leftPresences;
+			} else joins[key] = newPresences;
+		});
+		return this.syncDiff(state, {
+			joins,
+			leaves
+		}, onJoin, onLeave);
+	}
+	/**
+	* Used to sync a diff of presence join and leave events from the
+	* server, as they happen.
+	*
+	* Like `syncState`, `syncDiff` accepts optional `onJoin` and
+	* `onLeave` callbacks to react to a user joining or leaving from a
+	* device.
+	*
+	* @internal
+	*/
+	static syncDiff(state, diff, onJoin, onLeave) {
+		const { joins, leaves } = {
+			joins: this.transformState(diff.joins),
+			leaves: this.transformState(diff.leaves)
+		};
+		if (!onJoin) onJoin = () => {};
+		if (!onLeave) onLeave = () => {};
+		this.map(joins, (key, newPresences) => {
+			var _a;
+			const currentPresences = (_a = state[key]) !== null && _a !== void 0 ? _a : [];
+			state[key] = this.cloneDeep(newPresences);
+			if (currentPresences.length > 0) {
+				const joinedPresenceRefs = state[key].map((m) => m.presence_ref);
+				const curPresences = currentPresences.filter((m) => joinedPresenceRefs.indexOf(m.presence_ref) < 0);
+				state[key].unshift(...curPresences);
+			}
+			onJoin(key, currentPresences, newPresences);
+		});
+		this.map(leaves, (key, leftPresences) => {
+			let currentPresences = state[key];
+			if (!currentPresences) return;
+			const presenceRefsToRemove = leftPresences.map((m) => m.presence_ref);
+			currentPresences = currentPresences.filter((m) => presenceRefsToRemove.indexOf(m.presence_ref) < 0);
+			state[key] = currentPresences;
+			onLeave(key, currentPresences, leftPresences);
+			if (currentPresences.length === 0) delete state[key];
+		});
+		return state;
+	}
+	/** @internal */
+	static map(obj, func) {
+		return Object.getOwnPropertyNames(obj).map((key) => func(key, obj[key]));
+	}
+	/**
 	* Remove 'metas' key
 	* Change 'phx_ref' to 'presence_ref'
 	* Remove 'phx_ref' and 'phx_ref_prev'
 	*
-	* @example Transform state
+	* @example
 	* // returns {
 	*  abc123: [
 	*    { presence_ref: '2', user_id: 1 },
@@ -493,343 +630,41 @@ var PresenceAdapter = class PresenceAdapter {
 	*  }
 	* })
 	*
+	* @internal
 	*/
 	static transformState(state) {
-		state = cloneState(state);
+		state = this.cloneDeep(state);
 		return Object.getOwnPropertyNames(state).reduce((newState, key) => {
 			const presences = state[key];
-			newState[key] = transformState(presences);
+			if ("metas" in presences) newState[key] = presences.metas.map((presence) => {
+				presence["presence_ref"] = presence["phx_ref"];
+				delete presence["phx_ref"];
+				delete presence["phx_ref_prev"];
+				return presence;
+			});
+			else newState[key] = presences;
 			return newState;
 		}, {});
 	}
-	static onJoinPayload(key, currentPresence, newPresence) {
-		return {
-			event: "join",
-			key,
-			currentPresences: parseCurrentPresences(currentPresence),
-			newPresences: transformState(newPresence)
-		};
+	/** @internal */
+	static cloneDeep(obj) {
+		return JSON.parse(JSON.stringify(obj));
 	}
-	static onLeavePayload(key, currentPresence, leftPresence) {
-		return {
-			event: "leave",
-			key,
-			currentPresences: parseCurrentPresences(currentPresence),
-			leftPresences: transformState(leftPresence)
-		};
+	/** @internal */
+	onJoin(callback) {
+		this.caller.onJoin = callback;
 	}
-};
-function transformState(presences) {
-	return presences.metas.map((presence) => {
-		presence["presence_ref"] = presence["phx_ref"];
-		delete presence["phx_ref"];
-		delete presence["phx_ref_prev"];
-		return presence;
-	});
-}
-function cloneState(state) {
-	return JSON.parse(JSON.stringify(state));
-}
-function phoenixPresenceOptions(opts) {
-	return (opts === null || opts === void 0 ? void 0 : opts.events) && { events: opts.events };
-}
-function parseCurrentPresences(currentPresences) {
-	return (currentPresences === null || currentPresences === void 0 ? void 0 : currentPresences.metas) ? transformState(currentPresences) : [];
-}
-//#endregion
-//#region node_modules/@supabase/realtime-js/dist/module/RealtimePresence.js
-var REALTIME_PRESENCE_LISTEN_EVENTS;
-(function(REALTIME_PRESENCE_LISTEN_EVENTS) {
-	REALTIME_PRESENCE_LISTEN_EVENTS["SYNC"] = "sync";
-	REALTIME_PRESENCE_LISTEN_EVENTS["JOIN"] = "join";
-	REALTIME_PRESENCE_LISTEN_EVENTS["LEAVE"] = "leave";
-})(REALTIME_PRESENCE_LISTEN_EVENTS || (REALTIME_PRESENCE_LISTEN_EVENTS = {}));
-var RealtimePresence = class {
-	get state() {
-		return this.presenceAdapter.state;
+	/** @internal */
+	onLeave(callback) {
+		this.caller.onLeave = callback;
 	}
-	/**
-	* Creates a Presence helper that keeps the local presence state in sync with the server.
-	*
-	* @param channel - The realtime channel to bind to.
-	* @param opts - Optional custom event names, e.g. `{ events: { state: 'state', diff: 'diff' } }`.
-	*
-	* @category Realtime
-	*
-	* @example Example for a presence channel
-	* ```ts
-	* const presence = new RealtimePresence(channel)
-	*
-	* channel.on('presence', ({ event, key }) => {
-	*   console.log(`Presence ${event} on ${key}`)
-	* })
-	* ```
-	*/
-	constructor(channel, opts) {
-		this.channel = channel;
-		this.presenceAdapter = new PresenceAdapter(this.channel.channelAdapter, opts);
+	/** @internal */
+	onSync(callback) {
+		this.caller.onSync = callback;
 	}
-};
-//#endregion
-//#region node_modules/@supabase/realtime-js/dist/module/lib/normalizeChannelError.js
-/**
-* Normalize the various shapes a channel error reason can take into a real `Error`.
-*
-* Transport-level channel errors arrive as a `CloseEvent`, a transport `Event`, an `Error`,
-* a string, or `undefined` depending on which path in the underlying socket fired. Server-reply
-* errors arrive as a payload object. This helper produces a consistent `Error` for every case
-* and preserves the original via `cause` so callers can still inspect the raw event.
-*/
-function normalizeChannelError(reason) {
-	if (reason instanceof Error) return reason;
-	if (typeof reason === "string") return new Error(reason);
-	if (reason && typeof reason === "object") {
-		const obj = reason;
-		if (typeof obj.code === "number") {
-			const detail = typeof obj.reason === "string" && obj.reason ? ` (${obj.reason})` : "";
-			return new Error(`socket closed: ${obj.code}${detail}`, { cause: reason });
-		}
-		return new Error("channel error: transport failure", { cause: reason });
-	}
-	return /* @__PURE__ */ new Error("channel error: connection lost");
-}
-//#endregion
-//#region node_modules/@supabase/realtime-js/dist/module/phoenix/channelAdapter.js
-var ChannelAdapter = class {
-	constructor(socket, topic, params) {
-		const phoenixParams = phoenixChannelParams(params);
-		this.channel = socket.getSocket().channel(topic, phoenixParams);
-		this.socket = socket;
-	}
-	get state() {
-		return this.channel.state;
-	}
-	set state(state) {
-		this.channel.state = state;
-	}
-	get joinedOnce() {
-		return this.channel.joinedOnce;
-	}
-	get joinPush() {
-		return this.channel.joinPush;
-	}
-	get rejoinTimer() {
-		return this.channel.rejoinTimer;
-	}
-	on(event, callback) {
-		return this.channel.on(event, callback);
-	}
-	off(event, refNumber) {
-		this.channel.off(event, refNumber);
-	}
-	subscribe(timeout) {
-		return this.channel.join(timeout);
-	}
-	unsubscribe(timeout) {
-		return this.channel.leave(timeout);
-	}
-	teardown() {
-		this.channel.teardown();
-	}
-	onClose(callback) {
-		this.channel.onClose(callback);
-	}
-	onError(callback) {
-		return this.channel.onError(callback);
-	}
-	push(event, payload, timeout) {
-		let push;
-		try {
-			push = this.channel.push(event, payload, timeout);
-		} catch (error) {
-			throw new Error(`tried to push '${event}' to '${this.channel.topic}' before joining. Use channel.subscribe() before pushing events`);
-		}
-		if (this.channel.pushBuffer.length > 100) {
-			const removedPush = this.channel.pushBuffer.shift();
-			removedPush.cancelTimeout();
-			this.socket.log("channel", `discarded push due to buffer overflow: ${removedPush.event}`, removedPush.payload());
-		}
-		return push;
-	}
-	updateJoinPayload(payload) {
-		const oldPayload = this.channel.joinPush.payload();
-		this.channel.joinPush.payload = () => Object.assign(Object.assign({}, oldPayload), payload);
-	}
-	canPush() {
-		return this.socket.isConnected() && this.state === CHANNEL_STATES.joined;
-	}
-	isJoined() {
-		return this.state === CHANNEL_STATES.joined;
-	}
-	isJoining() {
-		return this.state === CHANNEL_STATES.joining;
-	}
-	isClosed() {
-		return this.state === CHANNEL_STATES.closed;
-	}
-	isLeaving() {
-		return this.state === CHANNEL_STATES.leaving;
-	}
-	updateFilterBindings(filterBindings) {
-		this.channel.filterBindings = filterBindings;
-	}
-	updatePayloadTransform(callback) {
-		this.channel.onMessage = callback;
-	}
-	/**
-	* @internal
-	*/
-	getChannel() {
-		return this.channel;
-	}
-};
-function phoenixChannelParams(options) {
-	return { config: Object.assign({
-		broadcast: {
-			ack: false,
-			self: false
-		},
-		presence: {
-			key: "",
-			enabled: false
-		},
-		private: false
-	}, options.config) };
-}
-//#endregion
-//#region node_modules/@supabase/realtime-js/dist/module/RealtimePostgresFilterBuilder.js
-var PostgrestReservedCharsRegexp = /[,()"\\]/;
-var needsQuoting = (value) => PostgrestReservedCharsRegexp.test(value) || value !== value.trim();
-var quote = (value) => `"${value.replace(/\\/g, "\\\\").replace(/"/g, "\\\"")}"`;
-var serializeScalar = (value) => {
-	const serialized = value === null ? "null" : String(value);
-	return needsQuoting(serialized) ? quote(serialized) : serialized;
-};
-var serializeIsValue = (value) => value === null ? "null" : String(value);
-var serialize = (operator, value) => {
-	if (operator === "in") {
-		const values = Array.isArray(value) ? value : [value];
-		if (values.length === 0) throw new Error("Realtime `in` filter requires at least one value.");
-		return `in.(${Array.from(new Set(values)).map((v) => serializeScalar(v)).join(",")})`;
-	}
-	if (operator === "is") return `is.${serializeIsValue(value)}`;
-	return `${operator}.${serializeScalar(value)}`;
-};
-/**
-* Fluent builder for Postgres Changes `filter` strings.
-*
-* Each method appends a single `column=operator.value` condition. Multiple
-* conditions are combined with commas, which the Realtime server applies as an
-* `AND`. Pass an instance straight to `channel.on('postgres_changes', …)` — the
-* SDK serializes it to a string automatically — or call {@link build} to obtain
-* the string yourself.
-*
-* The builder mirrors the `postgrest-js` filter API (`eq`, `neq`, `in`, `like`,
-* `not`, …) for the operators that Realtime supports. Values containing reserved
-* characters (`,`, `(`, `)`, `"`, `\`) — or surrounding whitespace — are
-* automatically double-quoted and escaped the same way PostgREST does, so they
-* survive the server's filter parser; all other values are sent verbatim.
-*
-* The filter is snapshotted when passed to `channel.on(...)`; mutating the
-* builder afterwards does not affect an existing subscription. An empty builder
-* serializes to `''`, which the server treats as "no filter".
-*
-* @example
-* channel.on('postgres_changes', {
-*   event: '*',
-*   schema: 'public',
-*   table: 'users',
-*   filter: postgresChangesFilter().eq('id', 1).lt('age', 30), // → 'id=eq.1,age=lt.30'
-* }, (payload) => { ... })
-*/
-var RealtimePostgresFilterBuilder = class {
-	constructor() {
-		this.filters = [];
-	}
-	add(column, operator, value, negate = false) {
-		const prefix = negate ? "not." : "";
-		this.filters.push(`${column}=${prefix}${serialize(operator, value)}`);
-		return this;
-	}
-	/** Match rows where `column` equals `value` (`column=eq.value`). */
-	eq(column, value) {
-		return this.add(column, "eq", value);
-	}
-	/** Match rows where `column` does not equal `value` (`column=neq.value`). */
-	neq(column, value) {
-		return this.add(column, "neq", value);
-	}
-	/** Match rows where `column` is greater than `value` (`column=gt.value`). */
-	gt(column, value) {
-		return this.add(column, "gt", value);
-	}
-	/** Match rows where `column` is greater than or equal to `value` (`column=gte.value`). */
-	gte(column, value) {
-		return this.add(column, "gte", value);
-	}
-	/** Match rows where `column` is less than `value` (`column=lt.value`). */
-	lt(column, value) {
-		return this.add(column, "lt", value);
-	}
-	/** Match rows where `column` is less than or equal to `value` (`column=lte.value`). */
-	lte(column, value) {
-		return this.add(column, "lte", value);
-	}
-	/**
-	* Match rows where `column` is one of `values` (`column=in.(a,b,c)`).
-	* Requires at least one value; duplicates are removed. An element containing a
-	* reserved character is double-quoted (`in.("a,b",c)`), so commas inside an
-	* element are preserved. `null` is intentionally not accepted (`IN (null)`
-	* never matches in SQL) — use `is`/`not('col','is',null)` for null checks.
-	*/
-	in(column, values) {
-		return this.add(column, "in", values);
-	}
-	/** Match rows where `column` matches the case-sensitive `pattern` (`column=like.pattern`). */
-	like(column, pattern) {
-		return this.add(column, "like", pattern);
-	}
-	/** Match rows where `column` matches the case-insensitive `pattern` (`column=ilike.pattern`). */
-	ilike(column, pattern) {
-		return this.add(column, "ilike", pattern);
-	}
-	/** Match rows where `column` matches the POSIX regex `pattern` (`column=match.pattern`). */
-	match(column, pattern) {
-		return this.add(column, "match", pattern);
-	}
-	/** Match rows where `column` matches the case-insensitive POSIX regex `pattern` (`column=imatch.pattern`). */
-	imatch(column, pattern) {
-		return this.add(column, "imatch", pattern);
-	}
-	/**
-	* Match rows where `column` `IS` the given value (`column=is.null`).
-	* Accepts `null`, a boolean, or the keywords `'null' | 'true' | 'false' | 'unknown'`.
-	*/
-	is(column, value) {
-		return this.add(column, "is", value);
-	}
-	/** Match rows where `column` is distinct from `value` (`column=isdistinct.value`). NULL-safe inequality. */
-	isDistinct(column, value) {
-		return this.add(column, "isdistinct", value);
-	}
-	not(column, operator, value) {
-		return this.add(column, operator, value, true);
-	}
-	/**
-	* Serialize all conditions into the comma-separated (AND) filter string.
-	*
-	* Conditions are joined by commas, which the server applies as `AND`. A scalar
-	* value (or single `in` element) that contains a reserved character — `,`,
-	* `(`, `)`, `"`, `\` — or surrounding whitespace is double-quoted and escaped
-	* the way PostgREST does, so commas inside a value are preserved rather than
-	* read as a condition boundary.
-	*/
-	build() {
-		return this.filters.join(",");
-	}
-	/** Alias for {@link build}; lets the builder be used wherever a string is expected. */
-	toString() {
-		return this.build();
+	/** @internal */
+	inPendingSyncState() {
+		return !this.joinRef || this.joinRef !== this.channel._joinRef();
 	}
 };
 //#endregion
@@ -861,59 +696,15 @@ var REALTIME_SUBSCRIBE_STATES;
 * and send and receive messages.
 */
 var RealtimeChannel = class RealtimeChannel {
-	get state() {
-		return this.channelAdapter.state;
-	}
-	set state(state) {
-		this.channelAdapter.state = state;
-	}
-	get joinedOnce() {
-		return this.channelAdapter.joinedOnce;
-	}
-	get timeout() {
-		return this.socket.timeout;
-	}
-	get joinPush() {
-		return this.channelAdapter.joinPush;
-	}
-	get rejoinTimer() {
-		return this.channelAdapter.rejoinTimer;
-	}
-	/**
-	* Creates a channel that can broadcast messages, sync presence, and listen to Postgres changes.
-	*
-	* The topic determines which realtime stream you are subscribing to. Config options let you
-	* enable acknowledgement for broadcasts, presence tracking, or private channels.
-	*
-	* @category Realtime
-	*
-	* @example Using supabase-js (recommended)
-	* ```ts
-	* import { createClient } from '@supabase/supabase-js'
-	*
-	* const supabase = createClient('https://xyzcompany.supabase.co', 'your-publishable-key')
-	* const channel = supabase.channel('room1')
-	* channel
-	*   .on('broadcast', { event: 'cursor-pos' }, (payload) => console.log(payload))
-	*   .subscribe()
-	* ```
-	*
-	* @example Standalone import for bundle-sensitive environments
-	* ```ts
-	* import RealtimeClient from '@supabase/realtime-js'
-	*
-	* const client = new RealtimeClient('https://xyzcompany.supabase.co/realtime/v1', {
-	*   params: { apikey: 'your-publishable-key' },
-	* })
-	* const channel = new RealtimeChannel('realtime:public:messages', { config: {} }, client)
-	* ```
-	*/
 	constructor(topic, params = { config: {} }, socket) {
 		var _a, _b;
 		this.topic = topic;
 		this.params = params;
 		this.socket = socket;
 		this.bindings = {};
+		this.state = CHANNEL_STATES.closed;
+		this.joinedOnce = false;
+		this.pushBuffer = [];
 		this.subTopic = topic.replace(/^realtime:/i, "");
 		this.params.config = Object.assign({
 			broadcast: {
@@ -926,39 +717,52 @@ var RealtimeChannel = class RealtimeChannel {
 			},
 			private: false
 		}, params.config);
-		this.channelAdapter = new ChannelAdapter(this.socket.socketAdapter, topic, this.params);
-		this.presence = new RealtimePresence(this);
+		this.timeout = this.socket.timeout;
+		this.joinPush = new Push(this, CHANNEL_EVENTS.join, this.params, this.timeout);
+		this.rejoinTimer = new Timer(() => this._rejoinUntilConnected(), this.socket.reconnectAfterMs);
+		this.joinPush.receive("ok", () => {
+			this.state = CHANNEL_STATES.joined;
+			this.rejoinTimer.reset();
+			this.pushBuffer.forEach((pushEvent) => pushEvent.send());
+			this.pushBuffer = [];
+		});
 		this._onClose(() => {
+			this.rejoinTimer.reset();
+			this.socket.log("channel", `close ${this.topic} ${this._joinRef()}`);
+			this.state = CHANNEL_STATES.closed;
 			this.socket._remove(this);
 		});
-		this._updateFilterTransform();
-		this.broadcastEndpointURL = httpEndpointURL(this.socket.socketAdapter.endPointURL());
+		this._onError((reason) => {
+			if (this._isLeaving() || this._isClosed()) return;
+			this.socket.log("channel", `error ${this.topic}`, reason);
+			this.state = CHANNEL_STATES.errored;
+			this.rejoinTimer.scheduleTimeout();
+		});
+		this.joinPush.receive("timeout", () => {
+			if (!this._isJoining()) return;
+			this.socket.log("channel", `timeout ${this.topic}`, this.joinPush.timeout);
+			this.state = CHANNEL_STATES.errored;
+			this.rejoinTimer.scheduleTimeout();
+		});
+		this.joinPush.receive("error", (reason) => {
+			if (this._isLeaving() || this._isClosed()) return;
+			this.socket.log("channel", `error ${this.topic}`, reason);
+			this.state = CHANNEL_STATES.errored;
+			this.rejoinTimer.scheduleTimeout();
+		});
+		this._on(CHANNEL_EVENTS.reply, {}, (payload, ref) => {
+			this._trigger(this._replyEventName(ref), payload);
+		});
+		this.presence = new RealtimePresence(this);
+		this.broadcastEndpointURL = httpEndpointURL(this.socket.endPoint);
 		this.private = this.params.config.private || false;
-		if (!this.private && ((_b = (_a = this.params.config) === null || _a === void 0 ? void 0 : _a.broadcast) === null || _b === void 0 ? void 0 : _b.replay)) throw new Error(`tried to use replay on public channel '${this.topic}'. It must be a private channel.`);
+		if (!this.private && ((_b = (_a = this.params.config) === null || _a === void 0 ? void 0 : _a.broadcast) === null || _b === void 0 ? void 0 : _b.replay)) throw `tried to use replay on public channel '${this.topic}'. It must be a private channel.`;
 	}
-	/**
-	* Subscribe registers your client with the server.
-	*
-	* The optional `callback` receives a `status` and, on failure, an `err` argument.
-	* Log the full `err` so its `cause`, `name`, and any structured fields aren't hidden
-	* behind `err.message`.
-	*
-	* @category Realtime
-	*
-	* @example Handling errors
-	* ```js
-	* supabase.channel('room1').subscribe((status, err) => {
-	*   if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-	*     // Log the full error: its `cause` often holds the underlying reason.
-	*     console.error(status, err)
-	*   }
-	* })
-	* ```
-	*/
+	/** Subscribe registers your client with the server */
 	subscribe(callback, timeout = this.timeout) {
 		var _a, _b, _c;
 		if (!this.socket.isConnected()) this.socket.connect();
-		if (this.channelAdapter.isClosed()) {
+		if (this.state == CHANNEL_STATES.closed) {
 			const { config: { broadcast, presence, private: isPrivate } } = this.params;
 			const postgres_changes = (_b = (_a = this.bindings.postgres_changes) === null || _a === void 0 ? void 0 : _a.map((r) => r.filter)) !== null && _b !== void 0 ? _b : [];
 			const presence_enabled = !!this.bindings[REALTIME_LISTEN_TYPES.PRESENCE] && this.bindings[REALTIME_LISTEN_TYPES.PRESENCE].length > 0 || ((_c = this.params.config.presence) === null || _c === void 0 ? void 0 : _c.enabled) === true;
@@ -970,299 +774,68 @@ var RealtimeChannel = class RealtimeChannel {
 				private: isPrivate
 			};
 			if (this.socket.accessTokenValue) accessTokenPayload.access_token = this.socket.accessTokenValue;
-			this._onError((reason) => {
-				callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, normalizeChannelError(reason));
-			});
+			this._onError((e) => callback === null || callback === void 0 ? void 0 : callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, e));
 			this._onClose(() => callback === null || callback === void 0 ? void 0 : callback(REALTIME_SUBSCRIBE_STATES.CLOSED));
 			this.updateJoinPayload(Object.assign({ config }, accessTokenPayload));
-			this._updateFilterMessage();
-			this.channelAdapter.subscribe(timeout).receive("ok", async ({ postgres_changes }) => {
-				if (!this.socket._isManualToken()) this.socket.setAuth();
+			this.joinedOnce = true;
+			this._rejoin(timeout);
+			this.joinPush.receive("ok", async ({ postgres_changes }) => {
+				var _a;
+				this.socket.setAuth();
 				if (postgres_changes === void 0) {
 					callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.SUBSCRIBED);
 					return;
+				} else {
+					const clientPostgresBindings = this.bindings.postgres_changes;
+					const bindingsLen = (_a = clientPostgresBindings === null || clientPostgresBindings === void 0 ? void 0 : clientPostgresBindings.length) !== null && _a !== void 0 ? _a : 0;
+					const newPostgresBindings = [];
+					for (let i = 0; i < bindingsLen; i++) {
+						const clientPostgresBinding = clientPostgresBindings[i];
+						const { filter: { event, schema, table, filter } } = clientPostgresBinding;
+						const serverPostgresFilter = postgres_changes && postgres_changes[i];
+						if (serverPostgresFilter && serverPostgresFilter.event === event && serverPostgresFilter.schema === schema && serverPostgresFilter.table === table && serverPostgresFilter.filter === filter) newPostgresBindings.push(Object.assign(Object.assign({}, clientPostgresBinding), { id: serverPostgresFilter.id }));
+						else {
+							this.unsubscribe();
+							this.state = CHANNEL_STATES.errored;
+							callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, /* @__PURE__ */ new Error("mismatch between server and client bindings for postgres changes"));
+							return;
+						}
+					}
+					this.bindings.postgres_changes = newPostgresBindings;
+					callback && callback(REALTIME_SUBSCRIBE_STATES.SUBSCRIBED);
+					return;
 				}
-				this._updatePostgresBindings(postgres_changes, callback);
 			}).receive("error", (error) => {
 				this.state = CHANNEL_STATES.errored;
-				const message = Object.values(error).join(", ") || "error";
-				callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, new Error(message, { cause: error }));
+				callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, new Error(JSON.stringify(Object.values(error).join(", ") || "error")));
 			}).receive("timeout", () => {
 				callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.TIMED_OUT);
 			});
 		}
 		return this;
 	}
-	_updatePostgresBindings(postgres_changes, callback) {
-		var _a;
-		const clientPostgresBindings = this.bindings.postgres_changes;
-		const bindingsLen = (_a = clientPostgresBindings === null || clientPostgresBindings === void 0 ? void 0 : clientPostgresBindings.length) !== null && _a !== void 0 ? _a : 0;
-		const newPostgresBindings = [];
-		for (let i = 0; i < bindingsLen; i++) {
-			const clientPostgresBinding = clientPostgresBindings[i];
-			const { filter: { event, schema, table, filter } } = clientPostgresBinding;
-			const serverPostgresFilter = postgres_changes && postgres_changes[i];
-			if (serverPostgresFilter && serverPostgresFilter.event === event && RealtimeChannel.isFilterValueEqual(serverPostgresFilter.schema, schema) && RealtimeChannel.isFilterValueEqual(serverPostgresFilter.table, table) && RealtimeChannel.isFilterValueEqual(serverPostgresFilter.filter, filter)) newPostgresBindings.push(Object.assign(Object.assign({}, clientPostgresBinding), { id: serverPostgresFilter.id }));
-			else {
-				this.unsubscribe();
-				this.state = CHANNEL_STATES.errored;
-				callback === null || callback === void 0 || callback(REALTIME_SUBSCRIBE_STATES.CHANNEL_ERROR, /* @__PURE__ */ new Error("mismatch between server and client bindings for postgres changes"));
-				return;
-			}
-		}
-		this.bindings.postgres_changes = newPostgresBindings;
-		if (this.state != CHANNEL_STATES.errored && callback) callback(REALTIME_SUBSCRIBE_STATES.SUBSCRIBED);
-	}
-	/**
-	* Returns the current presence state for this channel.
-	*
-	* The shape is a map keyed by presence key (for example a user id) where each entry contains the
-	* tracked metadata for that user.
-	*
-	* @category Realtime
-	*/
 	presenceState() {
 		return this.presence.state;
 	}
-	/**
-	* Sends the supplied payload to the presence tracker so other subscribers can see that this
-	* client is online. Use `untrack` to stop broadcasting presence for the same key.
-	*
-	* Tracking makes this client visible to other subscribers immediately, regardless of this
-	* channel's `config.presence.enabled` setting or whether it has a `presence` listener — that
-	* flag only affects whether *this* client receives presence updates from others (and, on
-	* RLS-protected channels, whether it's authorized to do so).
-	*
-	* @category Realtime
-	*/
 	async track(payload, opts = {}) {
 		return await this.send({
 			type: "presence",
 			event: "track",
 			payload
-		}, opts);
+		}, opts.timeout || this.timeout);
 	}
-	/**
-	* Removes the current presence state for this client.
-	*
-	* @category Realtime
-	*/
 	async untrack(opts = {}) {
 		return await this.send({
 			type: "presence",
 			event: "untrack"
 		}, opts);
 	}
-	/**
-	* Listen to realtime events on this channel.
-	* @category Realtime
-	*
-	* @remarks
-	* - By default, Broadcast and Presence are enabled for all projects.
-	* - By default, listening to database changes is disabled for new projects due to database performance and security concerns. You can turn it on by managing Realtime's [replication](/docs/guides/api#realtime-api-overview).
-	* - You can receive the "previous" data for updates and deletes by setting the table's `REPLICA IDENTITY` to `FULL` (e.g., `ALTER TABLE your_table REPLICA IDENTITY FULL;`).
-	* - Row level security is not applied to delete statements. When RLS is enabled and replica identity is set to full, only the primary key is sent to clients.
-	*
-	* @example Listen to broadcast messages
-	* ```js
-	* const channel = supabase.channel("room1")
-	*
-	* channel.on("broadcast", { event: "cursor-pos" }, (payload) => {
-	*   console.log("Cursor position received!", payload);
-	* }).subscribe((status) => {
-	*   if (status === "SUBSCRIBED") {
-	*     channel.send({
-	*       type: "broadcast",
-	*       event: "cursor-pos",
-	*       payload: { x: Math.random(), y: Math.random() },
-	*     });
-	*   }
-	* });
-	* ```
-	*
-	* @example Listen to presence sync
-	* ```js
-	* const channel = supabase.channel('room1')
-	* channel
-	*   .on('presence', { event: 'sync' }, () => {
-	*     console.log('Synced presence state: ', channel.presenceState())
-	*   })
-	*   .subscribe(async (status) => {
-	*     if (status === 'SUBSCRIBED') {
-	*       await channel.track({ online_at: new Date().toISOString() })
-	*     }
-	*   })
-	* ```
-	*
-	* @example Listen to presence join
-	* ```js
-	* const channel = supabase.channel('room1')
-	* channel
-	*   .on('presence', { event: 'join' }, ({ newPresences }) => {
-	*     console.log('Newly joined presences: ', newPresences)
-	*   })
-	*   .subscribe(async (status) => {
-	*     if (status === 'SUBSCRIBED') {
-	*       await channel.track({ online_at: new Date().toISOString() })
-	*     }
-	*   })
-	* ```
-	*
-	* @example Listen to presence leave
-	* ```js
-	* const channel = supabase.channel('room1')
-	* channel
-	*   .on('presence', { event: 'leave' }, ({ leftPresences }) => {
-	*     console.log('Newly left presences: ', leftPresences)
-	*   })
-	*   .subscribe(async (status) => {
-	*     if (status === 'SUBSCRIBED') {
-	*       await channel.track({ online_at: new Date().toISOString() })
-	*       await channel.untrack()
-	*     }
-	*   })
-	* ```
-	*
-	* @example Listen to all database changes
-	* ```js
-	* supabase
-	*   .channel('room1')
-	*   .on('postgres_changes', { event: '*', schema: '*' }, payload => {
-	*     console.log('Change received!', payload)
-	*   })
-	*   .subscribe()
-	* ```
-	*
-	* @example Listen to a specific table
-	* ```js
-	* supabase
-	*   .channel('room1')
-	*   .on('postgres_changes', { event: '*', schema: 'public', table: 'countries' }, payload => {
-	*     console.log('Change received!', payload)
-	*   })
-	*   .subscribe()
-	* ```
-	*
-	* @example Listen to inserts
-	* ```js
-	* supabase
-	*   .channel('room1')
-	*   .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'countries' }, payload => {
-	*     console.log('Change received!', payload)
-	*   })
-	*   .subscribe()
-	* ```
-	*
-	* @exampleDescription Listen to updates
-	* By default, Supabase will send only the updated record. If you want to receive the previous values as well you can
-	* enable full replication for the table you are listening to:
-	*
-	* ```sql
-	* alter table "your_table" replica identity full;
-	* ```
-	*
-	* @example Listen to updates
-	* ```js
-	* supabase
-	*   .channel('room1')
-	*   .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'countries' }, payload => {
-	*     console.log('Change received!', payload)
-	*   })
-	*   .subscribe()
-	* ```
-	*
-	* @exampleDescription Listen to deletes
-	* By default, Supabase does not send deleted records. If you want to receive the deleted record you can
-	* enable full replication for the table you are listening to:
-	*
-	* ```sql
-	* alter table "your_table" replica identity full;
-	* ```
-	*
-	* @example Listen to deletes
-	* ```js
-	* supabase
-	*   .channel('room1')
-	*   .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'countries' }, payload => {
-	*     console.log('Change received!', payload)
-	*   })
-	*   .subscribe()
-	* ```
-	*
-	* @exampleDescription Listen to multiple events
-	* You can chain listeners if you want to listen to multiple events for each table.
-	*
-	* @example Listen to multiple events
-	* ```js
-	* supabase
-	*   .channel('room1')
-	*   .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'countries' }, handleRecordInserted)
-	*   .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'countries' }, handleRecordDeleted)
-	*   .subscribe()
-	* ```
-	*
-	* @exampleDescription Listen to row level changes
-	* You can listen to individual rows using the format `{table}:{col}=eq.{val}` - where `{col}` is the column name, and `{val}` is the value which you want to match.
-	*
-	* @example Listen to row level changes
-	* ```js
-	* supabase
-	*   .channel('room1')
-	*   .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'countries', filter: 'id=eq.200' }, handleRecordUpdated)
-	*   .subscribe()
-	* ```
-	*/
 	on(type, filter, callback) {
-		const stateCheck = this.channelAdapter.isJoined() || this.channelAdapter.isJoining();
-		const typeCheck = type === REALTIME_LISTEN_TYPES.PRESENCE || type === REALTIME_LISTEN_TYPES.POSTGRES_CHANGES;
-		if (stateCheck && typeCheck) {
-			this.socket.log("channel", `cannot add \`${type}\` callbacks for ${this.topic} after \`subscribe()\`.`);
-			throw new Error(`cannot add \`${type}\` callbacks for ${this.topic} after \`subscribe()\`.`);
+		if (this.state === CHANNEL_STATES.joined && type === REALTIME_LISTEN_TYPES.PRESENCE) {
+			this.socket.log("channel", `resubscribe to ${this.topic} due to change in presence callbacks on joined channel`);
+			this.unsubscribe().then(() => this.subscribe());
 		}
 		return this._on(type, filter, callback);
-	}
-	/**
-	* Sends a broadcast message explicitly via REST API.
-	*
-	* This method always uses the REST API endpoint regardless of WebSocket connection state.
-	* Useful when you want to guarantee REST delivery or when gradually migrating from implicit REST fallback.
-	*
-	* Payloads that are `ArrayBuffer` or `ArrayBufferView` (e.g. `Uint8Array`) are sent as
-	* `application/octet-stream`; all other payloads are JSON-encoded.
-	*
-	* @param event The name of the broadcast event
-	* @param payload Payload to be sent (required)
-	* @param opts Options including timeout
-	* @returns Promise resolving to object with success status, and error details if failed
-	*
-	* @category Realtime
-	*/
-	async httpSend(event, payload, opts = {}) {
-		var _a;
-		if (payload === void 0 || payload === null) return Promise.reject(/* @__PURE__ */ new Error("Payload is required for httpSend()"));
-		const isBinary = payload instanceof ArrayBuffer || ArrayBuffer.isView(payload);
-		const headers = {
-			apikey: this.socket.apiKey ? this.socket.apiKey : "",
-			"Content-Type": isBinary ? "application/octet-stream" : "application/json"
-		};
-		if (this.socket.accessTokenValue) headers["Authorization"] = `Bearer ${this.socket.accessTokenValue}`;
-		const url = new URL(this.broadcastEndpointURL);
-		url.pathname += `/${encodeURIComponent(this.subTopic)}/events/${encodeURIComponent(event)}`;
-		if (this.private) url.searchParams.set("private", "true");
-		const options = {
-			method: "POST",
-			headers,
-			body: isBinary ? payload : JSON.stringify(payload)
-		};
-		const response = await this._fetchWithTimeout(url.toString(), options, (_a = opts.timeout) !== null && _a !== void 0 ? _a : this.timeout);
-		if (response.status === 202) return { success: true };
-		if (response.status === 404) return Promise.reject(/* @__PURE__ */ new Error("httpSend() requires Realtime server v2.97.0 or newer; the endpoint returned 404. Update your Supabase CLI to a recent version, or upgrade the Realtime server in your self-hosted setup. See https://github.com/supabase/supabase-js/blob/master/packages/core/realtime-js/migrations/httpsend-server-version.md"));
-		let errorMessage = response.statusText;
-		try {
-			const errorBody = await response.json();
-			errorMessage = errorBody.error || errorBody.message || errorMessage;
-		} catch (_b) {}
-		return Promise.reject(new Error(errorMessage));
 	}
 	/**
 	* Sends a message into the channel.
@@ -1272,59 +845,18 @@ var RealtimeChannel = class RealtimeChannel {
 	* @param args.event The name of the event being sent
 	* @param args.payload Payload to be sent
 	* @param opts Options to be used during the send process
-	*
-	* @category Realtime
-	*
-	* @remarks
-	* - When using REST you don't need to subscribe to the channel
-	* - REST calls are only available from 2.37.0 onwards
-	* - If you create a channel only to send a REST broadcast, remove it from
-	*   the client when the send completes
-	*
-	* @example Send a message via websocket
-	* ```js
-	* const channel = supabase.channel('room1')
-	*
-	* channel.subscribe((status) => {
-	*   if (status === 'SUBSCRIBED') {
-	*     channel.send({
-	*       type: 'broadcast',
-	*       event: 'cursor-pos',
-	*       payload: { x: Math.random(), y: Math.random() },
-	*     })
-	*   }
-	* })
-	* ```
-	*
-	* @exampleResponse Send a message via websocket
-	* ```js
-	* ok | timed out | error
-	* ```
-	*
-	* @example Send a message via REST
-	* ```js
-	* const channel = supabase.channel('room1')
-	*
-	* try {
-	*   await channel.httpSend('cursor-pos', { x: Math.random(), y: Math.random() })
-	* } finally {
-	*   await supabase.removeChannel(channel)
-	* }
-	* ```
 	*/
 	async send(args, opts = {}) {
 		var _a, _b;
-		if (!this.channelAdapter.canPush() && args.type === "broadcast") {
-			console.warn("Realtime send() is automatically falling back to REST API. This behavior will be deprecated in the future. Please use httpSend() explicitly for REST delivery.");
+		if (!this._canPush() && args.type === "broadcast") {
 			const { event, payload: endpoint_payload } = args;
-			const headers = {
-				apikey: this.socket.apiKey ? this.socket.apiKey : "",
-				"Content-Type": "application/json"
-			};
-			if (this.socket.accessTokenValue) headers["Authorization"] = `Bearer ${this.socket.accessTokenValue}`;
 			const options = {
 				method: "POST",
-				headers,
+				headers: {
+					Authorization: this.socket.accessTokenValue ? `Bearer ${this.socket.accessTokenValue}` : "",
+					apikey: this.socket.apiKey ? this.socket.apiKey : "",
+					"Content-Type": "application/json"
+				},
 				body: JSON.stringify({ messages: [{
 					topic: this.subTopic,
 					event,
@@ -1337,26 +869,20 @@ var RealtimeChannel = class RealtimeChannel {
 				await ((_b = response.body) === null || _b === void 0 ? void 0 : _b.cancel());
 				return response.ok ? "ok" : "error";
 			} catch (error) {
-				if (error instanceof Error && error.name === "AbortError") return "timed out";
+				if (error.name === "AbortError") return "timed out";
 				else return "error";
 			}
 		} else return new Promise((resolve) => {
 			var _a, _b, _c;
-			const push = this.channelAdapter.push(args.type, args, opts.timeout || this.timeout);
+			const push = this._push(args.type, args, opts.timeout || this.timeout);
 			if (args.type === "broadcast" && !((_c = (_b = (_a = this.params) === null || _a === void 0 ? void 0 : _a.config) === null || _b === void 0 ? void 0 : _b.broadcast) === null || _c === void 0 ? void 0 : _c.ack)) resolve("ok");
 			push.receive("ok", () => resolve("ok"));
 			push.receive("error", () => resolve("error"));
 			push.receive("timeout", () => resolve("timed out"));
 		});
 	}
-	/**
-	* Updates the payload that will be sent the next time the channel joins (reconnects).
-	* Useful for rotating access tokens or updating config without re-creating the channel.
-	*
-	* @category Realtime
-	*/
 	updateJoinPayload(payload) {
-		this.channelAdapter.updateJoinPayload(payload);
+		this.joinPush.updatePayload(payload);
 	}
 	/**
 	* Leaves the channel.
@@ -1366,21 +892,44 @@ var RealtimeChannel = class RealtimeChannel {
 	*
 	* To receive leave acknowledgements, use the a `receive` hook to bind to the server ack, ie:
 	* channel.unsubscribe().receive("ok", () => alert("left!") )
-	*
-	* @category Realtime
 	*/
-	async unsubscribe(timeout = this.timeout) {
+	unsubscribe(timeout = this.timeout) {
+		this.state = CHANNEL_STATES.leaving;
+		const onClose = () => {
+			this.socket.log("channel", `leave ${this.topic}`);
+			this._trigger(CHANNEL_EVENTS.close, "leave", this._joinRef());
+		};
+		this.joinPush.destroy();
+		let leavePush = null;
 		return new Promise((resolve) => {
-			this.channelAdapter.unsubscribe(timeout).receive("ok", () => resolve("ok")).receive("timeout", () => resolve("timed out")).receive("error", () => resolve("error"));
+			leavePush = new Push(this, CHANNEL_EVENTS.leave, {}, timeout);
+			leavePush.receive("ok", () => {
+				onClose();
+				resolve("ok");
+			}).receive("timeout", () => {
+				onClose();
+				resolve("timed out");
+			}).receive("error", () => {
+				resolve("error");
+			});
+			leavePush.send();
+			if (!this._canPush()) leavePush.trigger("ok", {});
+		}).finally(() => {
+			leavePush === null || leavePush === void 0 || leavePush.destroy();
 		});
 	}
 	/**
-	* Destroys and stops related timers.
+	* Teardown the channel.
 	*
-	* @category Realtime
+	* Destroys and stops related timers.
 	*/
 	teardown() {
-		this.channelAdapter.teardown();
+		this.pushBuffer.forEach((push) => push.destroy());
+		this.pushBuffer = [];
+		this.rejoinTimer.reset();
+		this.joinPush.destroy();
+		this.state = CHANNEL_STATES.closed;
+		this.bindings = {};
 	}
 	/** @internal */
 	async _fetchWithTimeout(url, options, timeout) {
@@ -1391,78 +940,86 @@ var RealtimeChannel = class RealtimeChannel {
 		return response;
 	}
 	/** @internal */
-	_on(type, filter, callback) {
-		const typeLower = type.toLocaleLowerCase();
-		const filterValue = filter === null || filter === void 0 ? void 0 : filter.filter;
-		if (filterValue instanceof RealtimePostgresFilterBuilder || typeof filterValue === "object" && filterValue !== null && typeof filterValue.build === "function") filter = Object.assign(Object.assign({}, filter), { filter: filterValue.build() });
-		const ref = this.channelAdapter.on(type, callback);
-		const binding = {
-			type: typeLower,
-			filter,
-			callback,
-			ref
-		};
-		if (this.bindings[typeLower]) this.bindings[typeLower].push(binding);
-		else this.bindings[typeLower] = [binding];
-		this._updateFilterMessage();
-		return this;
-	}
-	/**
-	* Registers a callback that will be executed when the channel closes.
-	*
-	* @internal
-	*/
-	_onClose(callback) {
-		this.channelAdapter.onClose(callback);
-	}
-	/**
-	* Registers a callback that will be executed when the channel encounteres an error.
-	*
-	* @internal
-	*/
-	_onError(callback) {
-		this.channelAdapter.onError(callback);
+	_push(event, payload, timeout = this.timeout) {
+		if (!this.joinedOnce) throw `tried to push '${event}' to '${this.topic}' before joining. Use channel.subscribe() before pushing events`;
+		let pushEvent = new Push(this, event, payload, timeout);
+		if (this._canPush()) pushEvent.send();
+		else this._addToPushBuffer(pushEvent);
+		return pushEvent;
 	}
 	/** @internal */
-	_updateFilterMessage() {
-		this.channelAdapter.updateFilterBindings((binding, payload, ref) => {
-			var _a, _b, _c, _d, _e, _f, _g;
-			const typeLower = binding.event.toLocaleLowerCase();
-			if (this._notThisChannelEvent(typeLower, ref)) return false;
-			const bind = (_a = this.bindings[typeLower]) === null || _a === void 0 ? void 0 : _a.find((bind) => bind.ref === binding.ref);
-			if (!bind) return true;
-			if ([
-				"broadcast",
-				"presence",
-				"postgres_changes"
-			].includes(typeLower)) if ("id" in bind) {
-				const bindId = bind.id;
-				const bindEvent = (_b = bind.filter) === null || _b === void 0 ? void 0 : _b.event;
-				return bindId && ((_c = payload.ids) === null || _c === void 0 ? void 0 : _c.includes(bindId)) && (bindEvent === "*" || (bindEvent === null || bindEvent === void 0 ? void 0 : bindEvent.toLocaleLowerCase()) === ((_d = payload.data) === null || _d === void 0 ? void 0 : _d.type.toLocaleLowerCase()));
-			} else {
-				const bindEvent = (_f = (_e = bind === null || bind === void 0 ? void 0 : bind.filter) === null || _e === void 0 ? void 0 : _e.event) === null || _f === void 0 ? void 0 : _f.toLocaleLowerCase();
-				return bindEvent === "*" || bindEvent === ((_g = payload === null || payload === void 0 ? void 0 : payload.event) === null || _g === void 0 ? void 0 : _g.toLocaleLowerCase());
+	_addToPushBuffer(pushEvent) {
+		pushEvent.startTimeout();
+		this.pushBuffer.push(pushEvent);
+		if (this.pushBuffer.length > 100) {
+			const removedPush = this.pushBuffer.shift();
+			if (removedPush) {
+				removedPush.destroy();
+				this.socket.log("channel", `discarded push due to buffer overflow: ${removedPush.event}`, removedPush.payload);
 			}
-			else return bind.type.toLocaleLowerCase() === typeLower;
-		});
+		}
+	}
+	/**
+	* Overridable message hook
+	*
+	* Receives all events for specialized message handling before dispatching to the channel callbacks.
+	* Must return the payload, modified or unmodified.
+	*
+	* @internal
+	*/
+	_onMessage(_event, payload, _ref) {
+		return payload;
 	}
 	/** @internal */
-	_notThisChannelEvent(event, ref) {
+	_isMember(topic) {
+		return this.topic === topic;
+	}
+	/** @internal */
+	_joinRef() {
+		return this.joinPush.ref;
+	}
+	/** @internal */
+	_trigger(type, payload, ref) {
+		var _a, _b;
+		const typeLower = type.toLocaleLowerCase();
 		const { close, error, leave, join } = CHANNEL_EVENTS;
-		return ref && [
+		if (ref && [
 			close,
 			error,
 			leave,
 			join
-		].includes(event) && ref !== this.joinPush.ref;
-	}
-	/** @internal */
-	_updateFilterTransform() {
-		this.channelAdapter.updatePayloadTransform((event, payload, ref) => {
-			if (typeof payload === "object" && "ids" in payload) {
-				const postgresChanges = payload.data;
+		].indexOf(typeLower) >= 0 && ref !== this._joinRef()) return;
+		let handledPayload = this._onMessage(typeLower, payload, ref);
+		if (payload && !handledPayload) throw "channel onMessage callbacks must return the payload, modified or unmodified";
+		if ([
+			"insert",
+			"update",
+			"delete"
+		].includes(typeLower)) (_a = this.bindings.postgres_changes) === null || _a === void 0 || _a.filter((bind) => {
+			var _a, _b, _c;
+			return ((_a = bind.filter) === null || _a === void 0 ? void 0 : _a.event) === "*" || ((_c = (_b = bind.filter) === null || _b === void 0 ? void 0 : _b.event) === null || _c === void 0 ? void 0 : _c.toLocaleLowerCase()) === typeLower;
+		}).map((bind) => bind.callback(handledPayload, ref));
+		else (_b = this.bindings[typeLower]) === null || _b === void 0 || _b.filter((bind) => {
+			var _a, _b, _c, _d, _e, _f;
+			if ([
+				"broadcast",
+				"presence",
+				"postgres_changes"
+			].includes(typeLower)) {
+				if ("id" in bind) {
+					const bindId = bind.id;
+					const bindEvent = (_a = bind.filter) === null || _a === void 0 ? void 0 : _a.event;
+					return bindId && ((_b = payload.ids) === null || _b === void 0 ? void 0 : _b.includes(bindId)) && (bindEvent === "*" || (bindEvent === null || bindEvent === void 0 ? void 0 : bindEvent.toLocaleLowerCase()) === ((_c = payload.data) === null || _c === void 0 ? void 0 : _c.type.toLocaleLowerCase()));
+				} else {
+					const bindEvent = (_e = (_d = bind === null || bind === void 0 ? void 0 : bind.filter) === null || _d === void 0 ? void 0 : _d.event) === null || _e === void 0 ? void 0 : _e.toLocaleLowerCase();
+					return bindEvent === "*" || bindEvent === ((_f = payload === null || payload === void 0 ? void 0 : payload.event) === null || _f === void 0 ? void 0 : _f.toLocaleLowerCase());
+				}
+			} else return bind.type.toLocaleLowerCase() === typeLower;
+		}).map((bind) => {
+			if (typeof handledPayload === "object" && "ids" in handledPayload) {
+				const postgresChanges = handledPayload.data;
 				const { schema, table, commit_timestamp, type, errors } = postgresChanges;
-				return Object.assign(Object.assign({}, {
+				handledPayload = Object.assign(Object.assign({}, {
 					schema,
 					table,
 					commit_timestamp,
@@ -1472,20 +1029,91 @@ var RealtimeChannel = class RealtimeChannel {
 					errors
 				}), this._getPayloadRecords(postgresChanges));
 			}
-			return payload;
+			bind.callback(handledPayload, ref);
 		});
 	}
-	copyBindings(other) {
-		if (this.joinedOnce) throw new Error("cannot copy bindings into joined channel");
-		for (const kind in other.bindings) for (const binding of other.bindings[kind]) this._on(binding.type, binding.filter, binding.callback);
+	/** @internal */
+	_isClosed() {
+		return this.state === CHANNEL_STATES.closed;
+	}
+	/** @internal */
+	_isJoined() {
+		return this.state === CHANNEL_STATES.joined;
+	}
+	/** @internal */
+	_isJoining() {
+		return this.state === CHANNEL_STATES.joining;
+	}
+	/** @internal */
+	_isLeaving() {
+		return this.state === CHANNEL_STATES.leaving;
+	}
+	/** @internal */
+	_replyEventName(ref) {
+		return `chan_reply_${ref}`;
+	}
+	/** @internal */
+	_on(type, filter, callback) {
+		const typeLower = type.toLocaleLowerCase();
+		const binding = {
+			type: typeLower,
+			filter,
+			callback
+		};
+		if (this.bindings[typeLower]) this.bindings[typeLower].push(binding);
+		else this.bindings[typeLower] = [binding];
+		return this;
+	}
+	/** @internal */
+	_off(type, filter) {
+		const typeLower = type.toLocaleLowerCase();
+		if (this.bindings[typeLower]) this.bindings[typeLower] = this.bindings[typeLower].filter((bind) => {
+			var _a;
+			return !(((_a = bind.type) === null || _a === void 0 ? void 0 : _a.toLocaleLowerCase()) === typeLower && RealtimeChannel.isEqual(bind.filter, filter));
+		});
+		return this;
+	}
+	/** @internal */
+	static isEqual(obj1, obj2) {
+		if (Object.keys(obj1).length !== Object.keys(obj2).length) return false;
+		for (const k in obj1) if (obj1[k] !== obj2[k]) return false;
+		return true;
+	}
+	/** @internal */
+	_rejoinUntilConnected() {
+		this.rejoinTimer.scheduleTimeout();
+		if (this.socket.isConnected()) this._rejoin();
 	}
 	/**
-	* Compares two optional filter values for equality.
-	* Treats undefined, null, and empty string as equivalent empty values.
+	* Registers a callback that will be executed when the channel closes.
+	*
 	* @internal
 	*/
-	static isFilterValueEqual(serverValue, clientValue) {
-		return (serverValue !== null && serverValue !== void 0 ? serverValue : void 0) === (clientValue !== null && clientValue !== void 0 ? clientValue : void 0);
+	_onClose(callback) {
+		this._on(CHANNEL_EVENTS.close, {}, callback);
+	}
+	/**
+	* Registers a callback that will be executed when the channel encounteres an error.
+	*
+	* @internal
+	*/
+	_onError(callback) {
+		this._on(CHANNEL_EVENTS.error, {}, (reason) => callback(reason));
+	}
+	/**
+	* Returns `true` if the socket is connected and the channel has been joined.
+	*
+	* @internal
+	*/
+	_canPush() {
+		return this.socket.isConnected() && this._isJoined();
+	}
+	/** @internal */
+	_rejoin(timeout = this.timeout) {
+		if (this._isLeaving()) return;
+		this.socket._leaveOpenTopic(this.topic);
+		this.state = CHANNEL_STATES.joining;
+		this.joinPush.resend(timeout);
 	}
 	/** @internal */
 	_getPayloadRecords(payload) {
@@ -1499,116 +1127,8 @@ var RealtimeChannel = class RealtimeChannel {
 	}
 };
 //#endregion
-//#region node_modules/@supabase/realtime-js/dist/module/phoenix/socketAdapter.js
-var SocketAdapter = class {
-	constructor(endPoint, options) {
-		this.socket = new Socket(endPoint, options);
-	}
-	get timeout() {
-		return this.socket.timeout;
-	}
-	get endPoint() {
-		return this.socket.endPoint;
-	}
-	get transport() {
-		return this.socket.transport;
-	}
-	get heartbeatIntervalMs() {
-		return this.socket.heartbeatIntervalMs;
-	}
-	get heartbeatCallback() {
-		return this.socket.heartbeatCallback;
-	}
-	set heartbeatCallback(callback) {
-		this.socket.heartbeatCallback = callback;
-	}
-	get heartbeatTimer() {
-		return this.socket.heartbeatTimer;
-	}
-	get pendingHeartbeatRef() {
-		return this.socket.pendingHeartbeatRef;
-	}
-	get reconnectTimer() {
-		return this.socket.reconnectTimer;
-	}
-	get vsn() {
-		return this.socket.vsn;
-	}
-	get encode() {
-		return this.socket.encode;
-	}
-	get decode() {
-		return this.socket.decode;
-	}
-	get reconnectAfterMs() {
-		return this.socket.reconnectAfterMs;
-	}
-	get sendBuffer() {
-		return this.socket.sendBuffer;
-	}
-	get stateChangeCallbacks() {
-		return this.socket.stateChangeCallbacks;
-	}
-	connect() {
-		this.socket.connect();
-	}
-	disconnect(callback, code, reason, timeout = 1e4) {
-		return new Promise((resolve) => {
-			setTimeout(() => resolve("timeout"), timeout);
-			this.socket.disconnect(() => {
-				callback();
-				resolve("ok");
-			}, code, reason);
-		});
-	}
-	push(data) {
-		this.socket.push(data);
-	}
-	log(kind, msg, data) {
-		this.socket.log(kind, msg, data);
-	}
-	makeRef() {
-		return this.socket.makeRef();
-	}
-	onOpen(callback) {
-		this.socket.onOpen(callback);
-	}
-	onClose(callback) {
-		this.socket.onClose(callback);
-	}
-	onError(callback) {
-		this.socket.onError(callback);
-	}
-	onMessage(callback) {
-		this.socket.onMessage(callback);
-	}
-	isConnected() {
-		return this.socket.isConnected();
-	}
-	isConnecting() {
-		return this.socket.connectionState() == CONNECTION_STATE.connecting;
-	}
-	isDisconnecting() {
-		return this.socket.connectionState() == CONNECTION_STATE.closing;
-	}
-	connectionState() {
-		return this.socket.connectionState();
-	}
-	endPointURL() {
-		return this.socket.endPointURL();
-	}
-	sendHeartbeat() {
-		this.socket.sendHeartbeat();
-	}
-	/**
-	* @internal
-	*/
-	getSocket() {
-		return this.socket;
-	}
-};
-//#endregion
 //#region node_modules/@supabase/realtime-js/dist/module/RealtimeClient.js
+var noop = () => {};
 var CONNECTION_TIMEOUTS = {
 	HEARTBEAT_INTERVAL: 25e3,
 	RECONNECT_DELAY: 10,
@@ -1621,36 +1141,6 @@ var RECONNECT_INTERVALS = [
 	1e4
 ];
 var DEFAULT_RECONNECT_FALLBACK = 1e4;
-function createMemorySessionStorage() {
-	const store = /* @__PURE__ */ new Map();
-	return {
-		get length() {
-			return store.size;
-		},
-		clear() {
-			store.clear();
-		},
-		getItem(key) {
-			return store.has(key) ? store.get(key) : null;
-		},
-		key(index) {
-			var _a;
-			return (_a = Array.from(store.keys())[index]) !== null && _a !== void 0 ? _a : null;
-		},
-		removeItem(key) {
-			store.delete(key);
-		},
-		setItem(key, value) {
-			store.set(key, String(value));
-		}
-	};
-}
-function resolveSessionStorage() {
-	try {
-		if (typeof globalThis !== "undefined" && globalThis.sessionStorage) return globalThis.sessionStorage;
-	} catch (_a) {}
-	return createMemorySessionStorage();
-}
 var WORKER_SCRIPT = `
   addEventListener("message", (e) => {
     if (e.data.event === "start") {
@@ -1658,60 +1148,17 @@ var WORKER_SCRIPT = `
     }
   });`;
 var RealtimeClient = class {
-	get endPoint() {
-		return this.socketAdapter.endPoint;
-	}
-	get timeout() {
-		return this.socketAdapter.timeout;
-	}
-	get transport() {
-		return this.socketAdapter.transport;
-	}
-	get heartbeatCallback() {
-		return this.socketAdapter.heartbeatCallback;
-	}
-	get heartbeatIntervalMs() {
-		return this.socketAdapter.heartbeatIntervalMs;
-	}
-	get heartbeatTimer() {
-		if (this.worker) return this._workerHeartbeatTimer;
-		return this.socketAdapter.heartbeatTimer;
-	}
-	get pendingHeartbeatRef() {
-		if (this.worker) return this._pendingWorkerHeartbeatRef;
-		return this.socketAdapter.pendingHeartbeatRef;
-	}
-	get reconnectTimer() {
-		return this.socketAdapter.reconnectTimer;
-	}
-	get vsn() {
-		return this.socketAdapter.vsn;
-	}
-	get encode() {
-		return this.socketAdapter.encode;
-	}
-	get decode() {
-		return this.socketAdapter.decode;
-	}
-	get reconnectAfterMs() {
-		return this.socketAdapter.reconnectAfterMs;
-	}
-	get sendBuffer() {
-		return this.socketAdapter.sendBuffer;
-	}
-	get stateChangeCallbacks() {
-		return this.socketAdapter.stateChangeCallbacks;
-	}
 	/**
 	* Initializes the Socket.
 	*
 	* @param endPoint The string WebSocket endpoint, ie, "ws://example.com/socket", "wss://example.com", "/socket" (inherited host & protocol)
+	* @param httpEndpoint The string HTTP endpoint, ie, "https://example.com", "/" (inherited host & protocol)
 	* @param options.transport The Websocket Transport, for example WebSocket. This can be a custom implementation
 	* @param options.timeout The default timeout in milliseconds to trigger push timeouts.
 	* @param options.params The optional params to pass when connecting.
 	* @param options.headers Deprecated: headers cannot be set on websocket connections and this option will be removed in the future.
 	* @param options.heartbeatIntervalMs The millisec interval to send a heartbeat message.
-	* @param options.heartbeatCallback The optional function to handle heartbeat status and latency.
+	* @param options.heartbeatCallback The optional function to handle heartbeat status.
 	* @param options.logger The optional function for specialized logging, ie: logger: (kind, msg, data) => { console.log(`${kind}: ${msg}`, data) }
 	* @param options.logLevel Sets the log level for Realtime
 	* @param options.encode The function to encode outgoing messages. Defaults to JSON: (payload, callback) => callback(JSON.stringify(payload))
@@ -1719,198 +1166,185 @@ var RealtimeClient = class {
 	* @param options.reconnectAfterMs he optional function that returns the millsec reconnect interval. Defaults to stepped backoff off.
 	* @param options.worker Use Web Worker to set a side flow. Defaults to false.
 	* @param options.workerUrl The URL of the worker script. Defaults to https://realtime.supabase.com/worker.js that includes a heartbeat event call to keep the connection alive.
-	* @param options.vsn The protocol version to use when connecting. Supported versions are "1.0.0" and "2.0.0". Defaults to "2.0.0".
-	*
-	* @category Realtime
-	*
-	* @example Using supabase-js (recommended)
-	* ```ts
-	* import { createClient } from '@supabase/supabase-js'
-	*
-	* const supabase = createClient('https://xyzcompany.supabase.co', 'your-publishable-key')
-	* const channel = supabase.channel('room1')
-	* channel
-	*   .on('broadcast', { event: 'cursor-pos' }, (payload) => console.log(payload))
-	*   .subscribe()
-	* ```
-	*
-	* @example Standalone import for bundle-sensitive environments
-	* ```ts
-	* import RealtimeClient from '@supabase/realtime-js'
-	*
-	* const client = new RealtimeClient('https://xyzcompany.supabase.co/realtime/v1', {
-	*   params: { apikey: 'your-publishable-key' },
-	* })
-	* client.connect()
-	* ```
 	*/
 	constructor(endPoint, options) {
 		var _a;
-		this.channels = new Array();
 		this.accessTokenValue = null;
-		this.accessToken = null;
 		this.apiKey = null;
+		this.channels = new Array();
+		this.endPoint = "";
 		this.httpEndpoint = "";
 		/** @deprecated headers cannot be set on websocket connections */
 		this.headers = {};
 		this.params = {};
+		this.timeout = DEFAULT_TIMEOUT;
+		this.transport = null;
+		this.heartbeatIntervalMs = CONNECTION_TIMEOUTS.HEARTBEAT_INTERVAL;
+		this.heartbeatTimer = void 0;
+		this.pendingHeartbeatRef = null;
+		this.heartbeatCallback = noop;
 		this.ref = 0;
+		this.reconnectTimer = null;
+		this.logger = noop;
+		this.conn = null;
+		this.sendBuffer = [];
 		this.serializer = new Serializer();
-		this._manuallySetToken = false;
+		this.stateChangeCallbacks = {
+			open: [],
+			close: [],
+			error: [],
+			message: []
+		};
+		this.accessToken = null;
+		this._connectionState = "disconnected";
+		this._wasManualDisconnect = false;
 		this._authPromise = null;
-		this._workerHeartbeatTimer = void 0;
-		this._pendingWorkerHeartbeatRef = null;
-		this._pendingDisconnectTimer = null;
-		this._disconnectOnEmptyChannelsAfterMs = 0;
 		/**
 		* Use either custom fetch, if provided, or default fetch to make HTTP requests
 		*
 		* @internal
 		*/
 		this._resolveFetch = (customFetch) => {
-			if (customFetch) return (...args) => customFetch(...args);
-			return (...args) => fetch(...args);
+			let _fetch;
+			if (customFetch) _fetch = customFetch;
+			else if (typeof fetch === "undefined") _fetch = (...args) => import("./@supabase/node-fetch+[...].mjs").then((n) => /* @__PURE__ */ __toESM(n.t())).then(({ default: fetch }) => fetch(...args)).catch((error) => {
+				throw new Error(`Failed to load @supabase/node-fetch: ${error.message}. This is required for HTTP requests in Node.js environments without native fetch.`);
+			});
+			else _fetch = fetch;
+			return (...args) => _fetch(...args);
 		};
 		if (!((_a = options === null || options === void 0 ? void 0 : options.params) === null || _a === void 0 ? void 0 : _a.apikey)) throw new Error("API key is required to connect to Realtime");
 		this.apiKey = options.params.apikey;
-		const socketAdapterOptions = this._initializeOptions(options);
-		this.socketAdapter = new SocketAdapter(endPoint, socketAdapterOptions);
+		this.endPoint = `${endPoint}/${TRANSPORTS.websocket}`;
 		this.httpEndpoint = httpEndpointURL(endPoint);
+		this._initializeOptions(options);
+		this._setupReconnectionTimer();
 		this.fetch = this._resolveFetch(options === null || options === void 0 ? void 0 : options.fetch);
 	}
 	/**
 	* Connects the socket, unless already connected.
-	*
-	* @category Realtime
 	*/
 	connect() {
-		if (this.isConnecting() || this.isDisconnecting() || this.isConnected()) return;
-		if (this.accessToken && !this._authPromise) this._setAuthSafely("connect");
-		this._setupConnectionHandlers();
-		try {
-			this.socketAdapter.connect();
+		if (this.isConnecting() || this.isDisconnecting() || this.conn !== null && this.isConnected()) return;
+		this._setConnectionState("connecting");
+		this._setAuthSafely("connect");
+		if (this.transport) this.conn = new this.transport(this.endpointURL());
+		else try {
+			this.conn = WebSocketFactory.createWebSocket(this.endpointURL());
 		} catch (error) {
+			this._setConnectionState("disconnected");
 			const errorMessage = error.message;
+			if (errorMessage.includes("Node.js")) throw new Error(`${errorMessage}\n\nTo use Realtime in Node.js, you need to provide a WebSocket implementation:
+
+Option 1: Use Node.js 22+ which has native WebSocket support
+Option 2: Install and provide the "ws" package:
+
+  npm install ws
+
+  import ws from "ws"
+  const client = new RealtimeClient(url, {
+    ...options,
+    transport: ws
+  })`);
 			throw new Error(`WebSocket not available: ${errorMessage}`);
 		}
-		this._handleNodeJsRaceCondition();
+		this._setupConnectionHandlers();
 	}
 	/**
 	* Returns the URL of the websocket.
 	* @returns string The URL of the websocket.
-	*
-	* @category Realtime
 	*/
 	endpointURL() {
-		return this.socketAdapter.endPointURL();
+		return this._appendParams(this.endPoint, Object.assign({}, this.params, { vsn: VSN }));
 	}
 	/**
 	* Disconnects the socket.
 	*
 	* @param code A numeric status code to send on disconnect.
 	* @param reason A custom reason for the disconnect.
-	*
-	* @category Realtime
 	*/
-	async disconnect(code, reason) {
-		this._cancelPendingDisconnect();
-		if (this.isDisconnecting()) return "ok";
-		return await this.socketAdapter.disconnect(() => {
-			clearInterval(this._workerHeartbeatTimer);
-			this._terminateWorker();
-		}, code, reason);
+	disconnect(code, reason) {
+		if (this.isDisconnecting()) return;
+		this._setConnectionState("disconnecting", true);
+		if (this.conn) {
+			const fallbackTimer = setTimeout(() => {
+				this._setConnectionState("disconnected");
+			}, 100);
+			this.conn.onclose = () => {
+				clearTimeout(fallbackTimer);
+				this._setConnectionState("disconnected");
+			};
+			if (code) this.conn.close(code, reason !== null && reason !== void 0 ? reason : "");
+			else this.conn.close();
+			this._teardownConnection();
+		} else this._setConnectionState("disconnected");
 	}
 	/**
 	* Returns all created channels
-	*
-	* @category Realtime
 	*/
 	getChannels() {
 		return this.channels;
 	}
 	/**
-	* Unsubscribes, removes and tears down a single channel
+	* Unsubscribes and removes a single channel
 	* @param channel A RealtimeChannel instance
-	*
-	* @category Realtime
 	*/
 	async removeChannel(channel) {
 		const status = await channel.unsubscribe();
-		if (status === "ok") channel.teardown();
+		if (this.channels.length === 0) this.disconnect();
 		return status;
 	}
 	/**
-	* Unsubscribes, removes and tears down all channels
-	*
-	* @category Realtime
+	* Unsubscribes and removes all channels
 	*/
 	async removeAllChannels() {
-		const promises = this.channels.map(async (channel) => {
-			const result = await channel.unsubscribe();
-			channel.teardown();
-			return result;
-		});
-		const result = await Promise.all(promises);
-		await this.disconnect();
-		return result;
+		const values_1 = await Promise.all(this.channels.map((channel) => channel.unsubscribe()));
+		this.channels = [];
+		this.disconnect();
+		return values_1;
 	}
 	/**
 	* Logs the message.
 	*
-	* For customized logging, `this.logger` can be overridden in Client constructor.
-	*
-	* @category Realtime
+	* For customized logging, `this.logger` can be overridden.
 	*/
 	log(kind, msg, data) {
-		this.socketAdapter.log(kind, msg, data);
+		this.logger(kind, msg, data);
 	}
 	/**
 	* Returns the current state of the socket.
-	*
-	* @category Realtime
 	*/
 	connectionState() {
-		return this.socketAdapter.connectionState() || CONNECTION_STATE.closed;
+		switch (this.conn && this.conn.readyState) {
+			case SOCKET_STATES.connecting: return CONNECTION_STATE.Connecting;
+			case SOCKET_STATES.open: return CONNECTION_STATE.Open;
+			case SOCKET_STATES.closing: return CONNECTION_STATE.Closing;
+			default: return CONNECTION_STATE.Closed;
+		}
 	}
 	/**
 	* Returns `true` is the connection is open.
-	*
-	* @category Realtime
 	*/
 	isConnected() {
-		return this.socketAdapter.isConnected();
+		return this.connectionState() === CONNECTION_STATE.Open;
 	}
 	/**
 	* Returns `true` if the connection is currently connecting.
-	*
-	* @category Realtime
 	*/
 	isConnecting() {
-		return this.socketAdapter.isConnecting();
+		return this._connectionState === "connecting";
 	}
 	/**
 	* Returns `true` if the connection is currently disconnecting.
-	*
-	* @category Realtime
 	*/
 	isDisconnecting() {
-		return this.socketAdapter.isDisconnecting();
+		return this._connectionState === "disconnecting";
 	}
-	/**
-	* Creates (or reuses) a {@link RealtimeChannel} for the provided topic.
-	*
-	* Topics are automatically prefixed with `realtime:` to match the Realtime service.
-	* If a channel with the same topic already exists it will be returned instead of creating
-	* a duplicate connection.
-	*
-	* @category Realtime
-	*/
 	channel(topic, params = { config: {} }) {
 		const realtimeTopic = `realtime:${topic}`;
 		const exists = this.getChannels().find((c) => c.topic === realtimeTopic);
 		if (!exists) {
 			const chan = new RealtimeChannel(`realtime:${topic}`, params, this);
-			this._cancelPendingDisconnect();
 			this.channels.push(chan);
 			return chan;
 		} else return exists;
@@ -1919,11 +1353,18 @@ var RealtimeClient = class {
 	* Push out a message if the socket is connected.
 	*
 	* If the socket is not connected, the message gets enqueued within a local buffer, and sent out when a connection is next established.
-	*
-	* @category Realtime
 	*/
 	push(data) {
-		this.socketAdapter.push(data);
+		const { topic, event, payload, ref } = data;
+		const callback = () => {
+			this.encode(data, (result) => {
+				var _a;
+				(_a = this.conn) === null || _a === void 0 || _a.send(result);
+			});
+		};
+		this.log("push", `${topic} ${event} (${ref})`, payload);
+		if (this.isConnected()) callback();
+		else this.sendBuffer.push(callback);
 	}
 	/**
 	* Sets the JWT access token used for channel subscription authorization and Realtime RLS.
@@ -1932,20 +1373,7 @@ var RealtimeClient = class {
 	*
 	* On callback used, it will set the value of the token internal to the client.
 	*
-	* When a token is explicitly provided, it will be preserved across channel operations
-	* (including removeChannel and resubscribe). The `accessToken` callback will not be
-	* invoked until `setAuth()` is called without arguments.
-	*
 	* @param token A JWT string to override the token set on the client.
-	*
-	* @example Setting the authorization header
-	* // Use a manual token (preserved across resubscribes, ignores accessToken callback)
-	* client.realtime.setAuth('my-custom-jwt')
-	*
-	* // Switch back to using the accessToken callback
-	* client.realtime.setAuth()
-	*
-	* @category Realtime
 	*/
 	async setAuth(token = null) {
 		this._authPromise = this._performAuth(token);
@@ -1956,29 +1384,59 @@ var RealtimeClient = class {
 		}
 	}
 	/**
-	* Returns true if the current access token was explicitly set via setAuth(token),
-	* false if it was obtained via the accessToken callback.
-	* @internal
-	*/
-	_isManualToken() {
-		return this._manuallySetToken;
-	}
-	/**
 	* Sends a heartbeat message if the socket is connected.
-	*
-	* @category Realtime
 	*/
 	async sendHeartbeat() {
-		this.socketAdapter.sendHeartbeat();
+		var _a;
+		if (!this.isConnected()) {
+			try {
+				this.heartbeatCallback("disconnected");
+			} catch (e) {
+				this.log("error", "error in heartbeat callback", e);
+			}
+			return;
+		}
+		if (this.pendingHeartbeatRef) {
+			this.pendingHeartbeatRef = null;
+			this.log("transport", "heartbeat timeout. Attempting to re-establish connection");
+			try {
+				this.heartbeatCallback("timeout");
+			} catch (e) {
+				this.log("error", "error in heartbeat callback", e);
+			}
+			this._wasManualDisconnect = false;
+			(_a = this.conn) === null || _a === void 0 || _a.close(1e3, "heartbeat timeout");
+			setTimeout(() => {
+				var _a;
+				if (!this.isConnected()) (_a = this.reconnectTimer) === null || _a === void 0 || _a.scheduleTimeout();
+			}, CONNECTION_TIMEOUTS.HEARTBEAT_TIMEOUT_FALLBACK);
+			return;
+		}
+		this.pendingHeartbeatRef = this._makeRef();
+		this.push({
+			topic: "phoenix",
+			event: "heartbeat",
+			payload: {},
+			ref: this.pendingHeartbeatRef
+		});
+		try {
+			this.heartbeatCallback("sent");
+		} catch (e) {
+			this.log("error", "error in heartbeat callback", e);
+		}
+		this._setAuthSafely("heartbeat");
+	}
+	onHeartbeat(callback) {
+		this.heartbeatCallback = callback;
 	}
 	/**
-	* Sets a callback that receives lifecycle events for internal heartbeat messages.
-	* Useful for instrumenting connection health (e.g. sent/ok/timeout).
-	*
-	* @category Realtime
+	* Flushes send buffer
 	*/
-	onHeartbeat(callback) {
-		this.socketAdapter.heartbeatCallback = this._wrapHeartbeatCallback(callback);
+	flushSendBuffer() {
+		if (this.isConnected() && this.sendBuffer.length > 0) {
+			this.sendBuffer.forEach((callback) => callback());
+			this.sendBuffer = [];
+		}
 	}
 	/**
 	* Return the next message ref, accounting for overflows
@@ -1986,10 +1444,25 @@ var RealtimeClient = class {
 	* @internal
 	*/
 	_makeRef() {
-		return this.socketAdapter.makeRef();
+		let newRef = this.ref + 1;
+		if (newRef === this.ref) this.ref = 0;
+		else this.ref = newRef;
+		return this.ref.toString();
 	}
 	/**
-	* Removes a channel from RealtimeClient
+	* Unsubscribe from channels with the specified topic.
+	*
+	* @internal
+	*/
+	_leaveOpenTopic(topic) {
+		let dupChannel = this.channels.find((c) => c.topic === topic && (c._isJoined() || c._isJoining()));
+		if (dupChannel) {
+			this.log("transport", `leaving duplicate topic "${topic}"`);
+			dupChannel.unsubscribe();
+		}
+	}
+	/**
+	* Removes a subscription from the socket.
 	*
 	* @param channel An open subscription.
 	*
@@ -1997,35 +1470,146 @@ var RealtimeClient = class {
 	*/
 	_remove(channel) {
 		this.channels = this.channels.filter((c) => c.topic !== channel.topic);
-		if (this.channels.length === 0) {
-			this.log("transport", "no channels remaining, scheduling disconnect");
-			this._schedulePendingDisconnect();
-		}
 	}
 	/** @internal */
-	_schedulePendingDisconnect() {
-		this._cancelPendingDisconnect();
-		if (this._disconnectOnEmptyChannelsAfterMs === 0) {
-			this.log("transport", "disconnecting immediately - no channels");
-			this.disconnect();
-			return;
-		}
-		this._pendingDisconnectTimer = setTimeout(() => {
-			this._pendingDisconnectTimer = null;
-			if (this.channels.length === 0) {
-				this.log("transport", "deferred disconnect fired - no channels, disconnecting");
-				this.disconnect();
+	_onConnMessage(rawMessage) {
+		this.decode(rawMessage.data, (msg) => {
+			if (msg.topic === "phoenix" && msg.event === "phx_reply") try {
+				this.heartbeatCallback(msg.payload.status === "ok" ? "ok" : "error");
+			} catch (e) {
+				this.log("error", "error in heartbeat callback", e);
 			}
-		}, this._disconnectOnEmptyChannelsAfterMs);
-		this.log("transport", `deferred disconnect scheduled in ${this._disconnectOnEmptyChannelsAfterMs}ms`);
+			if (msg.ref && msg.ref === this.pendingHeartbeatRef) this.pendingHeartbeatRef = null;
+			const { topic, event, payload, ref } = msg;
+			const refString = ref ? `(${ref})` : "";
+			const status = payload.status || "";
+			this.log("receive", `${status} ${topic} ${event} ${refString}`.trim(), payload);
+			this.channels.filter((channel) => channel._isMember(topic)).forEach((channel) => channel._trigger(event, payload, ref));
+			this._triggerStateCallbacks("message", msg);
+		});
+	}
+	/**
+	* Clear specific timer
+	* @internal
+	*/
+	_clearTimer(timer) {
+		var _a;
+		if (timer === "heartbeat" && this.heartbeatTimer) {
+			clearInterval(this.heartbeatTimer);
+			this.heartbeatTimer = void 0;
+		} else if (timer === "reconnect") (_a = this.reconnectTimer) === null || _a === void 0 || _a.reset();
+	}
+	/**
+	* Clear all timers
+	* @internal
+	*/
+	_clearAllTimers() {
+		this._clearTimer("heartbeat");
+		this._clearTimer("reconnect");
+	}
+	/**
+	* Setup connection handlers for WebSocket events
+	* @internal
+	*/
+	_setupConnectionHandlers() {
+		if (!this.conn) return;
+		if ("binaryType" in this.conn) this.conn.binaryType = "arraybuffer";
+		this.conn.onopen = () => this._onConnOpen();
+		this.conn.onerror = (error) => this._onConnError(error);
+		this.conn.onmessage = (event) => this._onConnMessage(event);
+		this.conn.onclose = (event) => this._onConnClose(event);
+	}
+	/**
+	* Teardown connection and cleanup resources
+	* @internal
+	*/
+	_teardownConnection() {
+		if (this.conn) {
+			this.conn.onopen = null;
+			this.conn.onerror = null;
+			this.conn.onmessage = null;
+			this.conn.onclose = null;
+			this.conn = null;
+		}
+		this._clearAllTimers();
+		this.channels.forEach((channel) => channel.teardown());
 	}
 	/** @internal */
-	_cancelPendingDisconnect() {
-		if (this._pendingDisconnectTimer !== null) {
-			this.log("transport", "pending disconnect cancelled - channel activity detected");
-			clearTimeout(this._pendingDisconnectTimer);
-			this._pendingDisconnectTimer = null;
+	_onConnOpen() {
+		this._setConnectionState("connected");
+		this.log("transport", `connected to ${this.endpointURL()}`);
+		this.flushSendBuffer();
+		this._clearTimer("reconnect");
+		if (!this.worker) this._startHeartbeat();
+		else if (!this.workerRef) this._startWorkerHeartbeat();
+		this._triggerStateCallbacks("open");
+	}
+	/** @internal */
+	_startHeartbeat() {
+		this.heartbeatTimer && clearInterval(this.heartbeatTimer);
+		this.heartbeatTimer = setInterval(() => this.sendHeartbeat(), this.heartbeatIntervalMs);
+	}
+	/** @internal */
+	_startWorkerHeartbeat() {
+		if (this.workerUrl) this.log("worker", `starting worker for from ${this.workerUrl}`);
+		else this.log("worker", `starting default worker`);
+		const objectUrl = this._workerObjectUrl(this.workerUrl);
+		this.workerRef = new Worker(objectUrl);
+		this.workerRef.onerror = (error) => {
+			this.log("worker", "worker error", error.message);
+			this.workerRef.terminate();
+		};
+		this.workerRef.onmessage = (event) => {
+			if (event.data.event === "keepAlive") this.sendHeartbeat();
+		};
+		this.workerRef.postMessage({
+			event: "start",
+			interval: this.heartbeatIntervalMs
+		});
+	}
+	/** @internal */
+	_onConnClose(event) {
+		var _a;
+		this._setConnectionState("disconnected");
+		this.log("transport", "close", event);
+		this._triggerChanError();
+		this._clearTimer("heartbeat");
+		if (!this._wasManualDisconnect) (_a = this.reconnectTimer) === null || _a === void 0 || _a.scheduleTimeout();
+		this._triggerStateCallbacks("close", event);
+	}
+	/** @internal */
+	_onConnError(error) {
+		this._setConnectionState("disconnected");
+		this.log("transport", `${error}`);
+		this._triggerChanError();
+		this._triggerStateCallbacks("error", error);
+	}
+	/** @internal */
+	_triggerChanError() {
+		this.channels.forEach((channel) => channel._trigger(CHANNEL_EVENTS.error));
+	}
+	/** @internal */
+	_appendParams(url, params) {
+		if (Object.keys(params).length === 0) return url;
+		return `${url}${url.match(/\?/) ? "&" : "?"}${new URLSearchParams(params)}`;
+	}
+	_workerObjectUrl(url) {
+		let result_url;
+		if (url) result_url = url;
+		else {
+			const blob = new Blob([WORKER_SCRIPT], { type: "application/javascript" });
+			result_url = URL.createObjectURL(blob);
 		}
+		return result_url;
+	}
+	/**
+	* Set connection state with proper state management
+	* @internal
+	*/
+	_setConnectionState(state, manual = false) {
+		this._connectionState = state;
+		if (state === "connecting") this._wasManualDisconnect = false;
+		else if (state === "disconnecting") this._wasManualDisconnect = manual;
 	}
 	/**
 	* Perform the actual auth operation
@@ -2033,19 +1617,9 @@ var RealtimeClient = class {
 	*/
 	async _performAuth(token = null) {
 		let tokenToSend;
-		let isManualToken = false;
-		if (token) {
-			tokenToSend = token;
-			isManualToken = true;
-		} else if (this.accessToken) try {
-			tokenToSend = await this.accessToken();
-		} catch (e) {
-			this.log("error", "Error fetching access token from callback", e);
-			tokenToSend = this.accessTokenValue;
-		}
+		if (token) tokenToSend = token;
+		else if (this.accessToken) tokenToSend = await this.accessToken();
 		else tokenToSend = this.accessTokenValue;
-		if (isManualToken) this._manuallySetToken = true;
-		else if (this.accessToken) this._manuallySetToken = false;
 		if (this.accessTokenValue != tokenToSend) {
 			this.accessTokenValue = tokenToSend;
 			this.channels.forEach((channel) => {
@@ -2054,7 +1628,7 @@ var RealtimeClient = class {
 					version: DEFAULT_VERSION
 				};
 				tokenToSend && channel.updateJoinPayload(payload);
-				if (channel.joinedOnce && channel.channelAdapter.isJoined()) channel.channelAdapter.push(CHANNEL_EVENTS.access_token, { access_token: tokenToSend });
+				if (channel.joinedOnce && channel._isJoined()) channel._push(CHANNEL_EVENTS.access_token, { access_token: tokenToSend });
 			});
 		}
 	}
@@ -2070,134 +1644,68 @@ var RealtimeClient = class {
 	* @internal
 	*/
 	_setAuthSafely(context = "general") {
-		if (!this._isManualToken()) this.setAuth().catch((e) => {
-			this.log("error", `Error setting auth in ${context}`, e);
-		});
-	}
-	/** @internal */
-	_setupConnectionHandlers() {
-		this.socketAdapter.onOpen(() => {
-			(this._authPromise || (this.accessToken && !this.accessTokenValue ? this.setAuth() : Promise.resolve())).catch((e) => {
-				this.log("error", "error waiting for auth on connect", e);
-			});
-			if (this.worker && !this.workerRef) this._startWorkerHeartbeat();
-		});
-		this.socketAdapter.onClose(() => {
-			if (this.worker && this.workerRef) this._terminateWorker();
-		});
-		this.socketAdapter.onMessage((message) => {
-			if (message.ref && message.ref === this._pendingWorkerHeartbeatRef) this._pendingWorkerHeartbeatRef = null;
-		});
-	}
-	/** @internal */
-	_handleNodeJsRaceCondition() {
-		if (this.socketAdapter.isConnected()) this.socketAdapter.getSocket().onConnOpen();
-	}
-	/** @internal */
-	_wrapHeartbeatCallback(heartbeatCallback) {
-		return (status, latency) => {
-			if (status === "disconnected") return;
-			if (status == "sent") this._setAuthSafely();
-			if (heartbeatCallback) heartbeatCallback(status, latency);
-		};
-	}
-	/** @internal */
-	_startWorkerHeartbeat() {
-		if (this.workerUrl) this.log("worker", `starting worker for from ${this.workerUrl}`);
-		else this.log("worker", `starting default worker`);
-		const objectUrl = this._workerObjectUrl(this.workerUrl);
-		this.workerRef = new Worker(objectUrl);
-		this.workerRef.onerror = (error) => {
-			this.log("worker", "worker error", error.message);
-			this._terminateWorker();
-			this.disconnect();
-		};
-		this.workerRef.onmessage = (event) => {
-			if (event.data.event === "keepAlive") this.sendHeartbeat();
-		};
-		this.workerRef.postMessage({
-			event: "start",
-			interval: this.heartbeatIntervalMs
+		this.setAuth().catch((e) => {
+			this.log("error", `error setting auth in ${context}`, e);
 		});
 	}
 	/**
-	* Terminate the Web Worker and clear the reference
+	* Trigger state change callbacks with proper error handling
 	* @internal
 	*/
-	_terminateWorker() {
-		if (this.workerRef) {
-			this.log("worker", "terminating worker");
-			this.workerRef.terminate();
-			this.workerRef = void 0;
+	_triggerStateCallbacks(event, data) {
+		try {
+			this.stateChangeCallbacks[event].forEach((callback) => {
+				try {
+					callback(data);
+				} catch (e) {
+					this.log("error", `error in ${event} callback`, e);
+				}
+			});
+		} catch (e) {
+			this.log("error", `error triggering ${event} callbacks`, e);
 		}
-	}
-	/** @internal */
-	_workerObjectUrl(url) {
-		let result_url;
-		if (url) result_url = url;
-		else {
-			const blob = new Blob([WORKER_SCRIPT], { type: "application/javascript" });
-			result_url = URL.createObjectURL(blob);
-		}
-		return result_url;
 	}
 	/**
-	* Initialize socket options with defaults
+	* Setup reconnection timer with proper configuration
+	* @internal
+	*/
+	_setupReconnectionTimer() {
+		this.reconnectTimer = new Timer(async () => {
+			setTimeout(async () => {
+				await this._waitForAuthIfNeeded();
+				if (!this.isConnected()) this.connect();
+			}, CONNECTION_TIMEOUTS.RECONNECT_DELAY);
+		}, this.reconnectAfterMs);
+	}
+	/**
+	* Initialize client options with defaults
 	* @internal
 	*/
 	_initializeOptions(options) {
-		var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-		this.worker = (_a = options === null || options === void 0 ? void 0 : options.worker) !== null && _a !== void 0 ? _a : false;
-		this.accessToken = (_b = options === null || options === void 0 ? void 0 : options.accessToken) !== null && _b !== void 0 ? _b : null;
-		const result = {};
-		result.timeout = (_c = options === null || options === void 0 ? void 0 : options.timeout) !== null && _c !== void 0 ? _c : DEFAULT_TIMEOUT;
-		result.heartbeatIntervalMs = (_d = options === null || options === void 0 ? void 0 : options.heartbeatIntervalMs) !== null && _d !== void 0 ? _d : CONNECTION_TIMEOUTS.HEARTBEAT_INTERVAL;
-		this._disconnectOnEmptyChannelsAfterMs = (_e = options === null || options === void 0 ? void 0 : options.disconnectOnEmptyChannelsAfterMs) !== null && _e !== void 0 ? _e : 2 * ((_f = options === null || options === void 0 ? void 0 : options.heartbeatIntervalMs) !== null && _f !== void 0 ? _f : CONNECTION_TIMEOUTS.HEARTBEAT_INTERVAL);
-		result.transport = (_g = options === null || options === void 0 ? void 0 : options.transport) !== null && _g !== void 0 ? _g : WebSocketFactory.getWebSocketConstructor();
-		result.params = options === null || options === void 0 ? void 0 : options.params;
-		result.logger = options === null || options === void 0 ? void 0 : options.logger;
-		result.heartbeatCallback = this._wrapHeartbeatCallback(options === null || options === void 0 ? void 0 : options.heartbeatCallback);
-		result.sessionStorage = (_h = options === null || options === void 0 ? void 0 : options.sessionStorage) !== null && _h !== void 0 ? _h : resolveSessionStorage();
-		result.reconnectAfterMs = (_j = options === null || options === void 0 ? void 0 : options.reconnectAfterMs) !== null && _j !== void 0 ? _j : ((tries) => {
-			return RECONNECT_INTERVALS[tries - 1] || DEFAULT_RECONNECT_FALLBACK;
-		});
-		let defaultEncode;
-		let defaultDecode;
-		const vsn = (_k = options === null || options === void 0 ? void 0 : options.vsn) !== null && _k !== void 0 ? _k : DEFAULT_VSN;
-		switch (vsn) {
-			case VSN_1_0_0:
-				defaultEncode = (payload, callback) => {
-					return callback(JSON.stringify(payload));
-				};
-				defaultDecode = (payload, callback) => {
-					return callback(JSON.parse(payload));
-				};
-				break;
-			case VSN_2_0_0:
-				defaultEncode = this.serializer.encode.bind(this.serializer);
-				defaultDecode = this.serializer.decode.bind(this.serializer);
-				break;
-			default: throw new Error(`Unsupported serializer version: ${result.vsn}`);
-		}
-		result.vsn = vsn;
-		result.encode = (_l = options === null || options === void 0 ? void 0 : options.encode) !== null && _l !== void 0 ? _l : defaultEncode;
-		result.decode = (_m = options === null || options === void 0 ? void 0 : options.decode) !== null && _m !== void 0 ? _m : defaultDecode;
-		result.beforeReconnect = this._reconnectAuth.bind(this);
+		var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+		this.transport = (_a = options === null || options === void 0 ? void 0 : options.transport) !== null && _a !== void 0 ? _a : null;
+		this.timeout = (_b = options === null || options === void 0 ? void 0 : options.timeout) !== null && _b !== void 0 ? _b : DEFAULT_TIMEOUT;
+		this.heartbeatIntervalMs = (_c = options === null || options === void 0 ? void 0 : options.heartbeatIntervalMs) !== null && _c !== void 0 ? _c : CONNECTION_TIMEOUTS.HEARTBEAT_INTERVAL;
+		this.worker = (_d = options === null || options === void 0 ? void 0 : options.worker) !== null && _d !== void 0 ? _d : false;
+		this.accessToken = (_e = options === null || options === void 0 ? void 0 : options.accessToken) !== null && _e !== void 0 ? _e : null;
+		this.heartbeatCallback = (_f = options === null || options === void 0 ? void 0 : options.heartbeatCallback) !== null && _f !== void 0 ? _f : noop;
+		if (options === null || options === void 0 ? void 0 : options.params) this.params = options.params;
+		if (options === null || options === void 0 ? void 0 : options.logger) this.logger = options.logger;
 		if ((options === null || options === void 0 ? void 0 : options.logLevel) || (options === null || options === void 0 ? void 0 : options.log_level)) {
 			this.logLevel = options.logLevel || options.log_level;
-			result.params = Object.assign(Object.assign({}, result.params), { log_level: this.logLevel });
+			this.params = Object.assign(Object.assign({}, this.params), { log_level: this.logLevel });
 		}
+		this.reconnectAfterMs = (_g = options === null || options === void 0 ? void 0 : options.reconnectAfterMs) !== null && _g !== void 0 ? _g : ((tries) => {
+			return RECONNECT_INTERVALS[tries - 1] || DEFAULT_RECONNECT_FALLBACK;
+		});
+		this.encode = (_h = options === null || options === void 0 ? void 0 : options.encode) !== null && _h !== void 0 ? _h : ((payload, callback) => {
+			return callback(JSON.stringify(payload));
+		});
+		this.decode = (_j = options === null || options === void 0 ? void 0 : options.decode) !== null && _j !== void 0 ? _j : this.serializer.decode.bind(this.serializer);
 		if (this.worker) {
 			if (typeof window !== "undefined" && !window.Worker) throw new Error("Web Worker is not supported");
 			this.workerUrl = options === null || options === void 0 ? void 0 : options.workerUrl;
-			result.autoSendHeartbeat = !this.worker;
 		}
-		return result;
-	}
-	/** @internal */
-	async _reconnectAuth() {
-		await this._waitForAuthIfNeeded();
-		if (!this.isConnected()) this.connect();
 	}
 };
 //#endregion

@@ -1,13 +1,17 @@
-import { i as __toESM } from "../../_runtime.mjs";
+import { o as __toESM, t as __commonJSMin } from "../../_runtime.mjs";
 import { l as require_react_dom, u as require_react } from "../@floating-ui/react-dom+[...].mjs";
 import { a as useComposedRefs, i as createSlot, n as createContextScope, o as require_jsx_runtime } from "./react-collection+[...].mjs";
 import { t as composeEventHandlers } from "../radix-ui__primitive.mjs";
-import { __assign, __rest, __spreadArray } from "tslib";
 //#region node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
 var useLayoutEffect2 = globalThis?.document ? import_react.useLayoutEffect : () => {};
 //#endregion
 //#region node_modules/@radix-ui/react-id/dist/index.mjs
+var __defProp$10 = Object.defineProperty;
+var __name$10 = (target, value) => __defProp$10(target, "name", {
+	value,
+	configurable: true
+});
 var useReactId = import_react[" useId ".trim().toString()] || (() => void 0);
 var count$1 = 0;
 function useId(deterministicId) {
@@ -17,8 +21,14 @@ function useId(deterministicId) {
 	}, [deterministicId]);
 	return deterministicId || (id ? `radix-${id}` : "");
 }
+__name$10(useId, "useId");
 //#endregion
-//#region node_modules/@radix-ui/react-use-effect-event/dist/index.mjs
+//#region node_modules/@radix-ui/react-use-controllable-state/node_modules/@radix-ui/react-use-effect-event/dist/index.mjs
+var __defProp$9 = Object.defineProperty;
+var __name$9 = (target, value) => __defProp$9(target, "name", {
+	value,
+	configurable: true
+});
 var useReactEffectEvent = import_react[" useEffectEvent ".trim().toString()];
 var useReactInsertionEffect = import_react[" useInsertionEffect ".trim().toString()];
 function useEffectEvent(callback) {
@@ -34,15 +44,16 @@ function useEffectEvent(callback) {
 	});
 	return import_react.useMemo(() => ((...args) => ref.current?.(...args)), []);
 }
+__name$9(useEffectEvent, "useEffectEvent");
 //#endregion
 //#region node_modules/@radix-ui/react-use-controllable-state/dist/index.mjs
-var __defProp$5 = Object.defineProperty;
-var __name$5 = (target, value) => __defProp$5(target, "name", {
+var __defProp$8 = Object.defineProperty;
+var __name$8 = (target, value) => __defProp$8(target, "name", {
 	value,
 	configurable: true
 });
 var useInsertionEffect = import_react[" useInsertionEffect ".trim().toString()] || useLayoutEffect2;
-function useControllableState({ prop, defaultProp, onChange = /* @__PURE__ */ __name$5(() => {}, "onChange"), caller }) {
+function useControllableState({ prop, defaultProp, onChange = /* @__PURE__ */ __name$8(() => {}, "onChange"), caller }) {
 	const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
 		defaultProp,
 		onChange
@@ -60,7 +71,7 @@ function useControllableState({ prop, defaultProp, onChange = /* @__PURE__ */ __
 		onChangeRef
 	])];
 }
-__name$5(useControllableState, "useControllableState");
+__name$8(useControllableState, "useControllableState");
 function useUncontrolledState({ defaultProp, onChange }) {
 	const [value, setValue] = import_react.useState(defaultProp);
 	const prevValueRef = import_react.useRef(value);
@@ -80,11 +91,11 @@ function useUncontrolledState({ defaultProp, onChange }) {
 		onChangeRef
 	];
 }
-__name$5(useUncontrolledState, "useUncontrolledState");
+__name$8(useUncontrolledState, "useUncontrolledState");
 function isFunction(value) {
 	return typeof value === "function";
 }
-__name$5(isFunction, "isFunction");
+__name$8(isFunction, "isFunction");
 var SYNC_STATE = Symbol("RADIX:SYNC_STATE");
 function useControllableStateReducer(reducer, userArgs, initialArg, init) {
 	const { prop: controlledState, defaultProp, onChange: onChangeProp, caller } = userArgs;
@@ -135,11 +146,16 @@ function useControllableStateReducer(reducer, userArgs, initialArg, init) {
 	]);
 	return [state, dispatch];
 }
-__name$5(useControllableStateReducer, "useControllableStateReducer");
+__name$8(useControllableStateReducer, "useControllableStateReducer");
 //#endregion
 //#region node_modules/@radix-ui/react-primitive/dist/index.mjs
 var import_react_dom = /* @__PURE__ */ __toESM(require_react_dom(), 1);
 var import_jsx_runtime = require_jsx_runtime();
+var __defProp$7 = Object.defineProperty;
+var __name$7 = (target, value) => __defProp$7(target, "name", {
+	value,
+	configurable: true
+});
 var Primitive = [
 	"a",
 	"button",
@@ -178,8 +194,14 @@ var Primitive = [
 function dispatchDiscreteCustomEvent(target, event) {
 	if (target) import_react_dom.flushSync(() => target.dispatchEvent(event));
 }
+__name$7(dispatchDiscreteCustomEvent, "dispatchDiscreteCustomEvent");
 //#endregion
 //#region node_modules/@radix-ui/react-use-callback-ref/dist/index.mjs
+var __defProp$6 = Object.defineProperty;
+var __name$6 = (target, value) => __defProp$6(target, "name", {
+	value,
+	configurable: true
+});
 function useCallbackRef$1(callback) {
 	const callbackRef = import_react.useRef(callback);
 	import_react.useEffect(() => {
@@ -187,10 +209,11 @@ function useCallbackRef$1(callback) {
 	});
 	return import_react.useMemo(() => ((...args) => callbackRef.current?.(...args)), []);
 }
+__name$6(useCallbackRef$1, "useCallbackRef");
 //#endregion
-//#region node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs
-var __defProp$4 = Object.defineProperty;
-var __name$4 = (target, value) => __defProp$4(target, "name", {
+//#region node_modules/@radix-ui/react-dialog/node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs
+var __defProp$5 = Object.defineProperty;
+var __name$5 = (target, value) => __defProp$5(target, "name", {
 	value,
 	configurable: true
 });
@@ -204,7 +227,7 @@ var DismissableLayerContext = import_react.createContext({
 	branches: /* @__PURE__ */ new Set(),
 	dismissableSurfaces: /* @__PURE__ */ new Set()
 });
-var DismissableLayer = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name$4(function DismissableLayer2(props, forwardedRef) {
+var DismissableLayer = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name$5(function DismissableLayer2(props, forwardedRef) {
 	const { disableOutsidePointerEvents = false, deferPointerDownOutside = false, onEscapeKeyDown, onPointerDownOutside, onFocusOutside, onInteractOutside, onDismiss, ...layerProps } = props;
 	const context = import_react.useContext(DismissableLayerContext);
 	const [node, setNode] = import_react.useState(null);
@@ -291,7 +314,7 @@ var DismissableLayer = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ _
 		};
 	}, [node, context]);
 	import_react.useEffect(() => {
-		const handleUpdate = /* @__PURE__ */ __name$4(() => force({}), "handleUpdate");
+		const handleUpdate = /* @__PURE__ */ __name$5(() => force({}), "handleUpdate");
 		document.addEventListener(CONTEXT_UPDATE, handleUpdate);
 		return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
 	}, []);
@@ -319,8 +342,8 @@ function useDismissableLayerSurface() {
 	}, [node, context.dismissableSurfaces]);
 	return setNode;
 }
-__name$4(useDismissableLayerSurface, "useDismissableLayerSurface");
-var IS_TRUE = /* @__PURE__ */ __name$4(() => true, "IS_TRUE");
+__name$5(useDismissableLayerSurface, "useDismissableLayerSurface");
+var IS_TRUE = /* @__PURE__ */ __name$5(() => true, "IS_TRUE");
 function usePointerDownOutside(onPointerDownOutside, args) {
 	const { ownerDocument = globalThis?.document, deferPointerDownOutside = false, isDeferredPointerDownOutsideRef, dismissableSurfaces, shouldHandlePointerDownOutside = IS_TRUE } = args;
 	const handlePointerDownOutside = useCallbackRef$1(onPointerDownOutside);
@@ -334,11 +357,11 @@ function usePointerDownOutside(onPointerDownOutside, args) {
 			isDeferredPointerDownOutsideRef.current = false;
 			interceptedOutsideInteractionEventsRef.current.clear();
 		}
-		__name$4(resetOutsideInteraction, "resetOutsideInteraction");
+		__name$5(resetOutsideInteraction, "resetOutsideInteraction");
 		function isOutsideInteractionIntercepted() {
 			return Array.from(interceptedOutsideInteractionEventsRef.current.values()).some(Boolean);
 		}
-		__name$4(isOutsideInteractionIntercepted, "isOutsideInteractionIntercepted");
+		__name$5(isOutsideInteractionIntercepted, "isOutsideInteractionIntercepted");
 		function handleInteractionCapture(event) {
 			if (!isPointerDownOutsideRef.current) return;
 			const target = event.target;
@@ -347,12 +370,12 @@ function usePointerDownOutside(onPointerDownOutside, args) {
 				if (isPointerDownOutsideRef.current) handleClickRef.current();
 			}, 0);
 		}
-		__name$4(handleInteractionCapture, "handleInteractionCapture");
+		__name$5(handleInteractionCapture, "handleInteractionCapture");
 		function handleInteractionBubble(event) {
 			if (isPointerDownOutsideRef.current) interceptedOutsideInteractionEventsRef.current.set(event.type, false);
 		}
-		__name$4(handleInteractionBubble, "handleInteractionBubble");
-		const handlePointerDown = /* @__PURE__ */ __name$4((event) => {
+		__name$5(handleInteractionBubble, "handleInteractionBubble");
+		const handlePointerDown = /* @__PURE__ */ __name$5((event) => {
 			if (event.target && !isPointerInsideReactTreeRef.current) {
 				let handleAndDispatchPointerDownOutsideEvent2 = function() {
 					ownerDocument.removeEventListener("click", handleClickRef.current);
@@ -360,7 +383,7 @@ function usePointerDownOutside(onPointerDownOutside, args) {
 					resetOutsideInteraction();
 					if (!wasOutsideInteractionIntercepted) handleAndDispatchCustomEvent(POINTER_DOWN_OUTSIDE, handlePointerDownOutside, eventDetail, { discrete: true });
 				};
-				__name$4(handleAndDispatchPointerDownOutsideEvent2, "handleAndDispatchPointerDownOutsideEvent");
+				__name$5(handleAndDispatchPointerDownOutsideEvent2, "handleAndDispatchPointerDownOutsideEvent");
 				if (!shouldHandlePointerDownOutside(event.target)) {
 					ownerDocument.removeEventListener("click", handleClickRef.current);
 					resetOutsideInteraction();
@@ -415,30 +438,30 @@ function usePointerDownOutside(onPointerDownOutside, args) {
 		dismissableSurfaces,
 		shouldHandlePointerDownOutside
 	]);
-	return { onPointerDownCapture: /* @__PURE__ */ __name$4(() => isPointerInsideReactTreeRef.current = true, "onPointerDownCapture") };
+	return { onPointerDownCapture: /* @__PURE__ */ __name$5(() => isPointerInsideReactTreeRef.current = true, "onPointerDownCapture") };
 }
-__name$4(usePointerDownOutside, "usePointerDownOutside");
+__name$5(usePointerDownOutside, "usePointerDownOutside");
 function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
 	const handleFocusOutside = useCallbackRef$1(onFocusOutside);
 	const isFocusInsideReactTreeRef = import_react.useRef(false);
 	import_react.useEffect(() => {
-		const handleFocus = /* @__PURE__ */ __name$4((event) => {
+		const handleFocus = /* @__PURE__ */ __name$5((event) => {
 			if (event.target && !isFocusInsideReactTreeRef.current) handleAndDispatchCustomEvent(FOCUS_OUTSIDE, handleFocusOutside, { originalEvent: event }, { discrete: false });
 		}, "handleFocus");
 		ownerDocument.addEventListener("focusin", handleFocus);
 		return () => ownerDocument.removeEventListener("focusin", handleFocus);
 	}, [ownerDocument, handleFocusOutside]);
 	return {
-		onFocusCapture: /* @__PURE__ */ __name$4(() => isFocusInsideReactTreeRef.current = true, "onFocusCapture"),
-		onBlurCapture: /* @__PURE__ */ __name$4(() => isFocusInsideReactTreeRef.current = false, "onBlurCapture")
+		onFocusCapture: /* @__PURE__ */ __name$5(() => isFocusInsideReactTreeRef.current = true, "onFocusCapture"),
+		onBlurCapture: /* @__PURE__ */ __name$5(() => isFocusInsideReactTreeRef.current = false, "onBlurCapture")
 	};
 }
-__name$4(useFocusOutside, "useFocusOutside");
+__name$5(useFocusOutside, "useFocusOutside");
 function dispatchUpdate() {
 	const event = new CustomEvent(CONTEXT_UPDATE);
 	document.dispatchEvent(event);
 }
-__name$4(dispatchUpdate, "dispatchUpdate");
+__name$5(dispatchUpdate, "dispatchUpdate");
 function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
 	const target = detail.originalEvent.target;
 	const event = new CustomEvent(name, {
@@ -450,11 +473,11 @@ function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
 	if (discrete) dispatchDiscreteCustomEvent(target, event);
 	else target.dispatchEvent(event);
 }
-__name$4(handleAndDispatchCustomEvent, "handleAndDispatchCustomEvent");
+__name$5(handleAndDispatchCustomEvent, "handleAndDispatchCustomEvent");
 //#endregion
 //#region node_modules/@radix-ui/react-focus-scope/dist/index.mjs
-var __defProp$3 = Object.defineProperty;
-var __name$3 = (target, value) => __defProp$3(target, "name", {
+var __defProp$4 = Object.defineProperty;
+var __name$4 = (target, value) => __defProp$4(target, "name", {
 	value,
 	configurable: true
 });
@@ -464,7 +487,7 @@ var EVENT_OPTIONS = {
 	bubbles: false,
 	cancelable: true
 };
-var FocusScope = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name$3(function FocusScope2(props, forwardedRef) {
+var FocusScope = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name$4(function FocusScope2(props, forwardedRef) {
 	const { loop = false, trapped = false, onMountAutoFocus: onMountAutoFocusProp, onUnmountAutoFocus: onUnmountAutoFocusProp, ...scopeProps } = props;
 	const [container, setContainer] = import_react.useState(null);
 	const onMountAutoFocus = useCallbackRef$1(onMountAutoFocusProp);
@@ -496,9 +519,9 @@ var FocusScope = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name$
 				if (document.activeElement !== document.body) return;
 				for (const mutation of mutations) if (mutation.removedNodes.length > 0) focus(container);
 			};
-			__name$3(handleFocusIn2, "handleFocusIn");
-			__name$3(handleFocusOut2, "handleFocusOut");
-			__name$3(handleMutations2, "handleMutations");
+			__name$4(handleFocusIn2, "handleFocusIn");
+			__name$4(handleFocusOut2, "handleFocusOut");
+			__name$4(handleMutations2, "handleMutations");
 			document.addEventListener("focusin", handleFocusIn2);
 			document.addEventListener("focusout", handleFocusOut2);
 			const mutationObserver = new MutationObserver(handleMutations2);
@@ -585,15 +608,15 @@ function focusFirst(candidates, { select = false } = {}) {
 		if (document.activeElement !== previouslyFocusedElement) return;
 	}
 }
-__name$3(focusFirst, "focusFirst");
+__name$4(focusFirst, "focusFirst");
 function getTabbableEdges(container) {
 	const candidates = getTabbableCandidates(container);
 	return [findVisible(candidates, container), findVisible(candidates.reverse(), container)];
 }
-__name$3(getTabbableEdges, "getTabbableEdges");
+__name$4(getTabbableEdges, "getTabbableEdges");
 function getTabbableCandidates(container) {
 	const nodes = [];
-	const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, { acceptNode: /* @__PURE__ */ __name$3((node) => {
+	const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, { acceptNode: /* @__PURE__ */ __name$4((node) => {
 		const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
 		if (node.disabled || node.hidden || isHiddenInput) return NodeFilter.FILTER_SKIP;
 		return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
@@ -601,12 +624,12 @@ function getTabbableCandidates(container) {
 	while (walker.nextNode()) nodes.push(walker.currentNode);
 	return nodes;
 }
-__name$3(getTabbableCandidates, "getTabbableCandidates");
+__name$4(getTabbableCandidates, "getTabbableCandidates");
 function findVisible(elements, container) {
 	const canUseCheckVisibility = typeof container.checkVisibility === "function" && container.checkVisibility({ checkVisibilityCSS: true });
 	for (const element of elements) if (!(canUseCheckVisibility ? !element.checkVisibility({ checkVisibilityCSS: true }) : isHidden(element, { upTo: container }))) return element;
 }
-__name$3(findVisible, "findVisible");
+__name$4(findVisible, "findVisible");
 function isHidden(node, { upTo }) {
 	if (getComputedStyle(node).visibility === "hidden") return true;
 	while (node) {
@@ -616,11 +639,11 @@ function isHidden(node, { upTo }) {
 	}
 	return false;
 }
-__name$3(isHidden, "isHidden");
+__name$4(isHidden, "isHidden");
 function isSelectableInput(element) {
 	return element instanceof HTMLInputElement && "select" in element;
 }
-__name$3(isSelectableInput, "isSelectableInput");
+__name$4(isSelectableInput, "isSelectableInput");
 function focus(element, { select = false } = {}) {
 	if (element && element.focus) {
 		const previouslyFocusedElement = document.activeElement;
@@ -628,7 +651,7 @@ function focus(element, { select = false } = {}) {
 		if (element !== previouslyFocusedElement && isSelectableInput(element) && select) element.select();
 	}
 }
-__name$3(focus, "focus");
+__name$4(focus, "focus");
 var focusScopesStack = createFocusScopesStack();
 function createFocusScopesStack() {
 	let stack = [];
@@ -645,26 +668,26 @@ function createFocusScopesStack() {
 		}
 	};
 }
-__name$3(createFocusScopesStack, "createFocusScopesStack");
+__name$4(createFocusScopesStack, "createFocusScopesStack");
 function arrayRemove(array, item) {
 	const updatedArray = [...array];
 	const index = updatedArray.indexOf(item);
 	if (index !== -1) updatedArray.splice(index, 1);
 	return updatedArray;
 }
-__name$3(arrayRemove, "arrayRemove");
+__name$4(arrayRemove, "arrayRemove");
 function removeLinks(items) {
 	return items.filter((item) => item.tagName !== "A");
 }
-__name$3(removeLinks, "removeLinks");
+__name$4(removeLinks, "removeLinks");
 //#endregion
 //#region node_modules/@radix-ui/react-portal/dist/index.mjs
-var __defProp$2 = Object.defineProperty;
-var __name$2 = (target, value) => __defProp$2(target, "name", {
+var __defProp$3 = Object.defineProperty;
+var __name$3 = (target, value) => __defProp$3(target, "name", {
 	value,
 	configurable: true
 });
-var Portal = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name$2(function Portal2(props, forwardedRef) {
+var Portal = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name$3(function Portal2(props, forwardedRef) {
 	const { container: containerProp, ...portalProps } = props;
 	const [mounted, setMounted] = import_react.useState(false);
 	useLayoutEffect2(() => setMounted(true), []);
@@ -676,8 +699,8 @@ var Portal = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name$2(fu
 }, "Portal"));
 //#endregion
 //#region node_modules/@radix-ui/react-presence/dist/index.mjs
-var __defProp$1 = Object.defineProperty;
-var __name$1 = (target, value) => __defProp$1(target, "name", {
+var __defProp$2 = Object.defineProperty;
+var __name$2 = (target, value) => __defProp$2(target, "name", {
 	value,
 	configurable: true
 });
@@ -686,8 +709,8 @@ function useStateMachine(initialState, machine) {
 		return machine[state][event] ?? state;
 	}, initialState);
 }
-__name$1(useStateMachine, "useStateMachine");
-var Presence = /* @__PURE__ */ __name$1((props) => {
+__name$2(useStateMachine, "useStateMachine");
+var Presence = /* @__PURE__ */ __name$2((props) => {
 	const { present, children } = props;
 	const presence = usePresence(present);
 	const child = typeof children === "function" ? children({ present: presence.isPresent }) : import_react.Children.only(children);
@@ -736,7 +759,7 @@ function usePresence(present) {
 		if (node) {
 			let timeoutId;
 			const ownerWindow = node.ownerDocument.defaultView ?? window;
-			const handleAnimationEnd = /* @__PURE__ */ __name$1((event) => {
+			const handleAnimationEnd = /* @__PURE__ */ __name$2((event) => {
 				const isCurrentAnimation = getAnimationName(stylesRef.current).includes(CSS.escape(event.animationName));
 				if (event.target === node && isCurrentAnimation) {
 					send("ANIMATION_END");
@@ -749,7 +772,7 @@ function usePresence(present) {
 					}
 				}
 			}, "handleAnimationEnd");
-			const handleAnimationStart = /* @__PURE__ */ __name$1((event) => {
+			const handleAnimationStart = /* @__PURE__ */ __name$2((event) => {
 				if (event.target === node) prevAnimationNameRef.current = getAnimationName(stylesRef.current);
 			}, "handleAnimationStart");
 			node.addEventListener("animationstart", handleAnimationStart);
@@ -775,12 +798,12 @@ function usePresence(present) {
 		}, [])
 	};
 }
-__name$1(usePresence, "usePresence");
+__name$2(usePresence, "usePresence");
 function setRef(ref, value) {
 	if (typeof ref === "function") return ref(value);
 	else if (ref !== null && ref !== void 0) ref.current = value;
 }
-__name$1(setRef, "setRef");
+__name$2(setRef, "setRef");
 function useStableComposedRefs(...refs) {
 	const refsRef = import_react.useRef(refs);
 	refsRef.current = refs;
@@ -801,11 +824,11 @@ function useStableComposedRefs(...refs) {
 		};
 	}, []);
 }
-__name$1(useStableComposedRefs, "useStableComposedRefs");
+__name$2(useStableComposedRefs, "useStableComposedRefs");
 function getAnimationName(styles) {
 	return styles?.animationName || "none";
 }
-__name$1(getAnimationName, "getAnimationName");
+__name$2(getAnimationName, "getAnimationName");
 function getElementRef(element) {
 	let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
 	let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
@@ -815,11 +838,21 @@ function getElementRef(element) {
 	if (mayWarn) return element.props.ref;
 	return element.props.ref || element.ref;
 }
-__name$1(getElementRef, "getElementRef");
+__name$2(getElementRef, "getElementRef");
 //#endregion
 //#region node_modules/@radix-ui/react-focus-guards/dist/index.mjs
+var __defProp$1 = Object.defineProperty;
+var __name$1 = (target, value) => __defProp$1(target, "name", {
+	value,
+	configurable: true
+});
 var count = 0;
 var guards = null;
+function FocusGuards(props) {
+	useFocusGuards();
+	return props.children;
+}
+__name$1(FocusGuards, "FocusGuards");
 function useFocusGuards() {
 	import_react.useEffect(() => {
 		if (!guards) guards = {
@@ -840,6 +873,7 @@ function useFocusGuards() {
 		};
 	}, []);
 }
+__name$1(useFocusGuards, "useFocusGuards");
 function createFocusGuard() {
 	const element = document.createElement("span");
 	element.setAttribute("data-radix-focus-guard", "");
@@ -850,6 +884,602 @@ function createFocusGuard() {
 	element.style.pointerEvents = "none";
 	return element;
 }
+__name$1(createFocusGuard, "createFocusGuard");
+var { __extends, __assign, __rest, __decorate, __param, __esDecorate, __runInitializers, __propKey, __setFunctionName, __metadata, __awaiter, __generator, __exportStar, __createBinding, __values, __read, __spread, __spreadArrays, __spreadArray, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault, __classPrivateFieldGet, __classPrivateFieldSet, __classPrivateFieldIn, __addDisposableResource, __disposeResources, __rewriteRelativeImportExtension } = (/* @__PURE__ */ __toESM((/* @__PURE__ */ __commonJSMin(((exports, module) => {
+	/******************************************************************************
+	Copyright (c) Microsoft Corporation.
+	
+	Permission to use, copy, modify, and/or distribute this software for any
+	purpose with or without fee is hereby granted.
+	
+	THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+	REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+	AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+	INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+	LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+	OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+	PERFORMANCE OF THIS SOFTWARE.
+	***************************************************************************** */
+	var __extends;
+	var __assign;
+	var __rest;
+	var __decorate;
+	var __param;
+	var __esDecorate;
+	var __runInitializers;
+	var __propKey;
+	var __setFunctionName;
+	var __metadata;
+	var __awaiter;
+	var __generator;
+	var __exportStar;
+	var __values;
+	var __read;
+	var __spread;
+	var __spreadArrays;
+	var __spreadArray;
+	var __await;
+	var __asyncGenerator;
+	var __asyncDelegator;
+	var __asyncValues;
+	var __makeTemplateObject;
+	var __importStar;
+	var __importDefault;
+	var __classPrivateFieldGet;
+	var __classPrivateFieldSet;
+	var __classPrivateFieldIn;
+	var __createBinding;
+	var __addDisposableResource;
+	var __disposeResources;
+	var __rewriteRelativeImportExtension;
+	(function(factory) {
+		var root = typeof global === "object" ? global : typeof self === "object" ? self : typeof this === "object" ? this : {};
+		if (typeof define === "function" && define.amd) define("tslib", ["exports"], function(exports$1) {
+			factory(createExporter(root, createExporter(exports$1)));
+		});
+		else if (typeof module === "object" && typeof module.exports === "object") factory(createExporter(root, createExporter(module.exports)));
+		else factory(createExporter(root));
+		function createExporter(exports$2, previous) {
+			if (exports$2 !== root) {
+				if (typeof Object.create === "function") Object.defineProperty(exports$2, "__esModule", { value: true });
+				else exports$2.__esModule = true;
+			}
+			return function(id, v) {
+				return exports$2[id] = previous ? previous(id, v) : v;
+			};
+		}
+	})(function(exporter) {
+		var extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d, b) {
+			d.__proto__ = b;
+		} || function(d, b) {
+			for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
+		};
+		__extends = function(d, b) {
+			if (typeof b !== "function" && b !== null) throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+			extendStatics(d, b);
+			function __() {
+				this.constructor = d;
+			}
+			d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+		};
+		__assign = Object.assign || function(t) {
+			for (var s, i = 1, n = arguments.length; i < n; i++) {
+				s = arguments[i];
+				for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+			}
+			return t;
+		};
+		__rest = function(s, e) {
+			var t = {};
+			for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
+			if (s != null && typeof Object.getOwnPropertySymbols === "function") {
+				for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
+			}
+			return t;
+		};
+		__decorate = function(decorators, target, key, desc) {
+			var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+			if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+			else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+			return c > 3 && r && Object.defineProperty(target, key, r), r;
+		};
+		__param = function(paramIndex, decorator) {
+			return function(target, key) {
+				decorator(target, key, paramIndex);
+			};
+		};
+		__esDecorate = function(ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+			function accept(f) {
+				if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected");
+				return f;
+			}
+			var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+			var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+			var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+			var _, done = false;
+			for (var i = decorators.length - 1; i >= 0; i--) {
+				var context = {};
+				for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+				for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+				context.addInitializer = function(f) {
+					if (done) throw new TypeError("Cannot add initializers after decoration has completed");
+					extraInitializers.push(accept(f || null));
+				};
+				var result = (0, decorators[i])(kind === "accessor" ? {
+					get: descriptor.get,
+					set: descriptor.set
+				} : descriptor[key], context);
+				if (kind === "accessor") {
+					if (result === void 0) continue;
+					if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+					if (_ = accept(result.get)) descriptor.get = _;
+					if (_ = accept(result.set)) descriptor.set = _;
+					if (_ = accept(result.init)) initializers.unshift(_);
+				} else if (_ = accept(result)) {
+					if (kind === "field") initializers.unshift(_);
+					else descriptor[key] = _;
+				}
+			}
+			if (target) Object.defineProperty(target, contextIn.name, descriptor);
+			done = true;
+		};
+		__runInitializers = function(thisArg, initializers, value) {
+			var useValue = arguments.length > 2;
+			for (var i = 0; i < initializers.length; i++) value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+			return useValue ? value : void 0;
+		};
+		__propKey = function(x) {
+			return typeof x === "symbol" ? x : "".concat(x);
+		};
+		__setFunctionName = function(f, name, prefix) {
+			if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
+			return Object.defineProperty(f, "name", {
+				configurable: true,
+				value: prefix ? "".concat(prefix, " ", name) : name
+			});
+		};
+		__metadata = function(metadataKey, metadataValue) {
+			if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(metadataKey, metadataValue);
+		};
+		__awaiter = function(thisArg, _arguments, P, generator) {
+			function adopt(value) {
+				return value instanceof P ? value : new P(function(resolve) {
+					resolve(value);
+				});
+			}
+			return new (P || (P = Promise))(function(resolve, reject) {
+				function fulfilled(value) {
+					try {
+						step(generator.next(value));
+					} catch (e) {
+						reject(e);
+					}
+				}
+				function rejected(value) {
+					try {
+						step(generator["throw"](value));
+					} catch (e) {
+						reject(e);
+					}
+				}
+				function step(result) {
+					result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+				}
+				step((generator = generator.apply(thisArg, _arguments || [])).next());
+			});
+		};
+		__generator = function(thisArg, body) {
+			var _ = {
+				label: 0,
+				sent: function() {
+					if (t[0] & 1) throw t[1];
+					return t[1];
+				},
+				trys: [],
+				ops: []
+			}, f, y, t, g = Object.create((typeof Iterator === "function" ? Iterator : Object).prototype);
+			return g.next = verb(0), g["throw"] = verb(1), g["return"] = verb(2), typeof Symbol === "function" && (g[Symbol.iterator] = function() {
+				return this;
+			}), g;
+			function verb(n) {
+				return function(v) {
+					return step([n, v]);
+				};
+			}
+			function step(op) {
+				if (f) throw new TypeError("Generator is already executing.");
+				while (g && (g = 0, op[0] && (_ = 0)), _) try {
+					if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+					if (y = 0, t) op = [op[0] & 2, t.value];
+					switch (op[0]) {
+						case 0:
+						case 1:
+							t = op;
+							break;
+						case 4:
+							_.label++;
+							return {
+								value: op[1],
+								done: false
+							};
+						case 5:
+							_.label++;
+							y = op[1];
+							op = [0];
+							continue;
+						case 7:
+							op = _.ops.pop();
+							_.trys.pop();
+							continue;
+						default:
+							if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+								_ = 0;
+								continue;
+							}
+							if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+								_.label = op[1];
+								break;
+							}
+							if (op[0] === 6 && _.label < t[1]) {
+								_.label = t[1];
+								t = op;
+								break;
+							}
+							if (t && _.label < t[2]) {
+								_.label = t[2];
+								_.ops.push(op);
+								break;
+							}
+							if (t[2]) _.ops.pop();
+							_.trys.pop();
+							continue;
+					}
+					op = body.call(thisArg, _);
+				} catch (e) {
+					op = [6, e];
+					y = 0;
+				} finally {
+					f = t = 0;
+				}
+				if (op[0] & 5) throw op[1];
+				return {
+					value: op[0] ? op[1] : void 0,
+					done: true
+				};
+			}
+		};
+		__exportStar = function(m, o) {
+			for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(o, p)) __createBinding(o, m, p);
+		};
+		__createBinding = Object.create ? (function(o, m, k, k2) {
+			if (k2 === void 0) k2 = k;
+			var desc = Object.getOwnPropertyDescriptor(m, k);
+			if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) desc = {
+				enumerable: true,
+				get: function() {
+					return m[k];
+				}
+			};
+			Object.defineProperty(o, k2, desc);
+		}) : (function(o, m, k, k2) {
+			if (k2 === void 0) k2 = k;
+			o[k2] = m[k];
+		});
+		__values = function(o) {
+			var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+			if (m) return m.call(o);
+			if (o && typeof o.length === "number") return { next: function() {
+				if (o && i >= o.length) o = void 0;
+				return {
+					value: o && o[i++],
+					done: !o
+				};
+			} };
+			throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+		};
+		__read = function(o, n) {
+			var m = typeof Symbol === "function" && o[Symbol.iterator];
+			if (!m) return o;
+			var i = m.call(o), r, ar = [], e;
+			try {
+				while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+			} catch (error) {
+				e = { error };
+			} finally {
+				try {
+					if (r && !r.done && (m = i["return"])) m.call(i);
+				} finally {
+					if (e) throw e.error;
+				}
+			}
+			return ar;
+		};
+		/** @deprecated */
+		__spread = function() {
+			for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+			return ar;
+		};
+		/** @deprecated */
+		__spreadArrays = function() {
+			for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+			for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+			return r;
+		};
+		__spreadArray = function(to, from, pack) {
+			if (pack || arguments.length === 2) {
+				for (var i = 0, l = from.length, ar; i < l; i++) if (ar || !(i in from)) {
+					if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+					ar[i] = from[i];
+				}
+			}
+			return to.concat(ar || Array.prototype.slice.call(from));
+		};
+		__await = function(v) {
+			return this instanceof __await ? (this.v = v, this) : new __await(v);
+		};
+		__asyncGenerator = function(thisArg, _arguments, generator) {
+			if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+			var g = generator.apply(thisArg, _arguments || []), i, q = [];
+			return i = Object.create((typeof AsyncIterator === "function" ? AsyncIterator : Object).prototype), verb("next"), verb("throw"), verb("return", awaitReturn), i[Symbol.asyncIterator] = function() {
+				return this;
+			}, i;
+			function awaitReturn(f) {
+				return function(v) {
+					return Promise.resolve(v).then(f, reject);
+				};
+			}
+			function verb(n, f) {
+				if (g[n]) {
+					i[n] = function(v) {
+						return new Promise(function(a, b) {
+							q.push([
+								n,
+								v,
+								a,
+								b
+							]) > 1 || resume(n, v);
+						});
+					};
+					if (f) i[n] = f(i[n]);
+				}
+			}
+			function resume(n, v) {
+				try {
+					step(g[n](v));
+				} catch (e) {
+					settle(q[0][3], e);
+				}
+			}
+			function step(r) {
+				r.value instanceof __await ? Promise.resolve(r.value.v).then(fulfill, reject) : settle(q[0][2], r);
+			}
+			function fulfill(value) {
+				resume("next", value);
+			}
+			function reject(value) {
+				resume("throw", value);
+			}
+			function settle(f, v) {
+				if (f(v), q.shift(), q.length) resume(q[0][0], q[0][1]);
+			}
+		};
+		__asyncDelegator = function(o) {
+			var i, p;
+			return i = {}, verb("next"), verb("throw", function(e) {
+				throw e;
+			}), verb("return"), i[Symbol.iterator] = function() {
+				return this;
+			}, i;
+			function verb(n, f) {
+				i[n] = o[n] ? function(v) {
+					return (p = !p) ? {
+						value: __await(o[n](v)),
+						done: false
+					} : f ? f(v) : v;
+				} : f;
+			}
+		};
+		__asyncValues = function(o) {
+			if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+			var m = o[Symbol.asyncIterator], i;
+			return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function() {
+				return this;
+			}, i);
+			function verb(n) {
+				i[n] = o[n] && function(v) {
+					return new Promise(function(resolve, reject) {
+						v = o[n](v), settle(resolve, reject, v.done, v.value);
+					});
+				};
+			}
+			function settle(resolve, reject, d, v) {
+				Promise.resolve(v).then(function(v) {
+					resolve({
+						value: v,
+						done: d
+					});
+				}, reject);
+			}
+		};
+		__makeTemplateObject = function(cooked, raw) {
+			if (Object.defineProperty) Object.defineProperty(cooked, "raw", { value: raw });
+			else cooked.raw = raw;
+			return cooked;
+		};
+		var __setModuleDefault = Object.create ? (function(o, v) {
+			Object.defineProperty(o, "default", {
+				enumerable: true,
+				value: v
+			});
+		}) : function(o, v) {
+			o["default"] = v;
+		};
+		var ownKeys = function(o) {
+			ownKeys = Object.getOwnPropertyNames || function(o) {
+				var ar = [];
+				for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+				return ar;
+			};
+			return ownKeys(o);
+		};
+		__importStar = function(mod) {
+			if (mod && mod.__esModule) return mod;
+			var result = {};
+			if (mod != null) {
+				for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+			}
+			__setModuleDefault(result, mod);
+			return result;
+		};
+		__importDefault = function(mod) {
+			return mod && mod.__esModule ? mod : { "default": mod };
+		};
+		__classPrivateFieldGet = function(receiver, state, kind, f) {
+			if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+			if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+			return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+		};
+		__classPrivateFieldSet = function(receiver, state, value, kind, f) {
+			if (kind === "m") throw new TypeError("Private method is not writable");
+			if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a setter");
+			if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
+			return kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value), value;
+		};
+		__classPrivateFieldIn = function(state, receiver) {
+			if (receiver === null || typeof receiver !== "object" && typeof receiver !== "function") throw new TypeError("Cannot use 'in' operator on non-object");
+			return typeof state === "function" ? receiver === state : state.has(receiver);
+		};
+		__addDisposableResource = function(env, value, async) {
+			if (value !== null && value !== void 0) {
+				if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
+				var dispose, inner;
+				if (async) {
+					if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
+					dispose = value[Symbol.asyncDispose];
+				}
+				if (dispose === void 0) {
+					if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
+					dispose = value[Symbol.dispose];
+					if (async) inner = dispose;
+				}
+				if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
+				if (inner) dispose = function() {
+					try {
+						inner.call(this);
+					} catch (e) {
+						return Promise.reject(e);
+					}
+				};
+				env.stack.push({
+					value,
+					dispose,
+					async
+				});
+			} else if (async) env.stack.push({ async: true });
+			return value;
+		};
+		var _SuppressedError = typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
+			var e = new Error(message);
+			return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+		};
+		__disposeResources = function(env) {
+			function fail(e) {
+				env.error = env.hasError ? new _SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
+				env.hasError = true;
+			}
+			var r, s = 0;
+			function next() {
+				while (r = env.stack.pop()) try {
+					if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
+					if (r.dispose) {
+						var result = r.dispose.call(r.value);
+						if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) {
+							fail(e);
+							return next();
+						});
+					} else s |= 1;
+				} catch (e) {
+					fail(e);
+				}
+				if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
+				if (env.hasError) throw env.error;
+			}
+			return next();
+		};
+		__rewriteRelativeImportExtension = function(path, preserveJsx) {
+			if (typeof path === "string" && /^\.\.?\//.test(path)) return path.replace(/\.(tsx)$|((?:\.d)?)((?:\.[^./]+?)?)\.([cm]?)ts$/i, function(m, tsx, d, ext, cm) {
+				return tsx ? preserveJsx ? ".jsx" : ".js" : d && (!ext || !cm) ? m : d + ext + "." + cm.toLowerCase() + "js";
+			});
+			return path;
+		};
+		exporter("__extends", __extends);
+		exporter("__assign", __assign);
+		exporter("__rest", __rest);
+		exporter("__decorate", __decorate);
+		exporter("__param", __param);
+		exporter("__esDecorate", __esDecorate);
+		exporter("__runInitializers", __runInitializers);
+		exporter("__propKey", __propKey);
+		exporter("__setFunctionName", __setFunctionName);
+		exporter("__metadata", __metadata);
+		exporter("__awaiter", __awaiter);
+		exporter("__generator", __generator);
+		exporter("__exportStar", __exportStar);
+		exporter("__createBinding", __createBinding);
+		exporter("__values", __values);
+		exporter("__read", __read);
+		exporter("__spread", __spread);
+		exporter("__spreadArrays", __spreadArrays);
+		exporter("__spreadArray", __spreadArray);
+		exporter("__await", __await);
+		exporter("__asyncGenerator", __asyncGenerator);
+		exporter("__asyncDelegator", __asyncDelegator);
+		exporter("__asyncValues", __asyncValues);
+		exporter("__makeTemplateObject", __makeTemplateObject);
+		exporter("__importStar", __importStar);
+		exporter("__importDefault", __importDefault);
+		exporter("__classPrivateFieldGet", __classPrivateFieldGet);
+		exporter("__classPrivateFieldSet", __classPrivateFieldSet);
+		exporter("__classPrivateFieldIn", __classPrivateFieldIn);
+		exporter("__addDisposableResource", __addDisposableResource);
+		exporter("__disposeResources", __disposeResources);
+		exporter("__rewriteRelativeImportExtension", __rewriteRelativeImportExtension);
+	});
+	0 && (module.exports = {
+		__extends,
+		__assign,
+		__rest,
+		__decorate,
+		__param,
+		__esDecorate,
+		__runInitializers,
+		__propKey,
+		__setFunctionName,
+		__metadata,
+		__awaiter,
+		__generator,
+		__exportStar,
+		__createBinding,
+		__values,
+		__read,
+		__spread,
+		__spreadArrays,
+		__spreadArray,
+		__await,
+		__asyncGenerator,
+		__asyncDelegator,
+		__asyncValues,
+		__makeTemplateObject,
+		__importStar,
+		__importDefault,
+		__classPrivateFieldGet,
+		__classPrivateFieldSet,
+		__classPrivateFieldIn,
+		__addDisposableResource,
+		__disposeResources,
+		__rewriteRelativeImportExtension
+	});
+})))())).default;
 //#endregion
 //#region node_modules/react-remove-scroll-bar/dist/es2015/constants.js
 var zeroRightClassName = "right-scroll-bar-position";
@@ -1731,7 +2361,8 @@ var Slot = createSlot("DialogOverlay.RemoveScroll");
 var DialogOverlayImpl = /* @__PURE__ */ import_react.forwardRef(/* @__PURE__ */ __name(function DialogOverlayImpl2(props, forwardedRef) {
 	const { __scopeDialog, ...overlayProps } = props;
 	const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
-	const composedRefs = useComposedRefs(forwardedRef, useDismissableLayerSurface());
+	const registerDismissableSurface = useDismissableLayerSurface();
+	const composedRefs = useComposedRefs(forwardedRef, registerDismissableSurface);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ReactRemoveScroll, {
 		as: Slot,
 		allowPinchZoom: true,
@@ -1887,4 +2518,4 @@ function getState(open) {
 }
 __name(getState, "getState");
 //#endregion
-export { Primitive as _, DialogOverlay as a, useLayoutEffect2 as b, DialogTrigger as c, useFocusGuards as d, Presence as f, useCallbackRef$1 as g, DismissableLayer as h, DialogDescription as i, hideOthers as l, FocusScope as m, DialogClose as n, DialogPortal as o, Portal as p, DialogContent as r, DialogTitle as s, Dialog as t, ReactRemoveScroll as u, useControllableState as v, useId as y };
+export { dispatchDiscreteCustomEvent as _, DialogOverlay as a, useLayoutEffect2 as b, DialogTrigger as c, useFocusGuards as d, Presence as f, Primitive as g, useCallbackRef$1 as h, DialogDescription as i, hideOthers as l, FocusScope as m, DialogClose as n, DialogPortal as o, Portal as p, DialogContent as r, DialogTitle as s, Dialog as t, ReactRemoveScroll as u, useControllableState as v, useId as y };

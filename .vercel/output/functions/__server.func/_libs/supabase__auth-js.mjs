@@ -1,19 +1,11 @@
-import { __rest } from "tslib";
+import { o as __toESM } from "../_runtime.mjs";
 //#region node_modules/@supabase/auth-js/dist/module/lib/version.js
-var version = "2.110.7";
+var version = "2.75.1";
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/lib/constants.js
 /** Current session will be checked for refresh at this interval. */
-var AUTO_REFRESH_TICK_DURATION_MS = 30 * 1e3;
+var AUTO_REFRESH_TICK_DURATION_MS = 3e4;
 var EXPIRY_MARGIN_MS = 3 * AUTO_REFRESH_TICK_DURATION_MS;
-/**
-* After a refresh fails, serial callers (including the next auto-refresh
-* tick) within this window receive the cached failure instead of firing
-* another /token request. Two ticks: each outage burns at most one /token
-* call per cooldown window. Cleared on any successful refresh (locally or
-* via BroadcastChannel from another tab) and on `_removeSession`.
-*/
-var REFRESH_FAILURE_COOLDOWN_MS = 2 * AUTO_REFRESH_TICK_DURATION_MS;
 var GOTRUE_URL = "http://localhost:9999";
 var STORAGE_KEY = "supabase.auth.token";
 var DEFAULT_HEADERS = { "X-Client-Info": `gotrue-js/${version}` };
@@ -25,16 +17,6 @@ var API_VERSIONS = { "2024-01-01": {
 var BASE64URL_REGEX = /^([a-z0-9_-]{4})*($|[a-z0-9_-]{3}$|[a-z0-9_-]{2}$)$/i;
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/lib/errors.js
-/**
-* Base error thrown by Supabase Auth helpers.
-*
-* @example
-* ```ts
-* import { AuthError } from '@supabase/auth-js'
-*
-* throw new AuthError('Unexpected auth error', 500, 'unexpected')
-* ```
-*/
 var AuthError = class extends Error {
 	constructor(message, status, code) {
 		super(message);
@@ -43,28 +25,10 @@ var AuthError = class extends Error {
 		this.status = status;
 		this.code = code;
 	}
-	toJSON() {
-		return {
-			name: this.name,
-			message: this.message,
-			status: this.status,
-			code: this.code
-		};
-	}
 };
 function isAuthError(error) {
 	return typeof error === "object" && error !== null && "__isAuthError" in error;
 }
-/**
-* Error returned directly from the GoTrue REST API.
-*
-* @example
-* ```ts
-* import { AuthApiError } from '@supabase/auth-js'
-*
-* throw new AuthApiError('Invalid credentials', 400, 'invalid_credentials')
-* ```
-*/
 var AuthApiError = class extends AuthError {
 	constructor(message, status, code) {
 		super(message, status, code);
@@ -76,20 +40,6 @@ var AuthApiError = class extends AuthError {
 function isAuthApiError(error) {
 	return isAuthError(error) && error.name === "AuthApiError";
 }
-/**
-* Wraps non-standard errors so callers can inspect the root cause.
-*
-* @example
-* ```ts
-* import { AuthUnknownError } from '@supabase/auth-js'
-*
-* try {
-*   await someAuthCall()
-* } catch (err) {
-*   throw new AuthUnknownError('Auth failed', err)
-* }
-* ```
-*/
 var AuthUnknownError = class extends AuthError {
 	constructor(message, originalError) {
 		super(message);
@@ -97,16 +47,6 @@ var AuthUnknownError = class extends AuthError {
 		this.originalError = originalError;
 	}
 };
-/**
-* Flexible error class used to create named auth errors at runtime.
-*
-* @example
-* ```ts
-* import { CustomAuthError } from '@supabase/auth-js'
-*
-* throw new CustomAuthError('My custom auth error', 'MyAuthError', 400, 'custom_code')
-* ```
-*/
 var CustomAuthError = class extends AuthError {
 	constructor(message, name, status, code) {
 		super(message, status, code);
@@ -114,16 +54,6 @@ var CustomAuthError = class extends AuthError {
 		this.status = status;
 	}
 };
-/**
-* Error thrown when an operation requires a session but none is present.
-*
-* @example
-* ```ts
-* import { AuthSessionMissingError } from '@supabase/auth-js'
-*
-* throw new AuthSessionMissingError()
-* ```
-*/
 var AuthSessionMissingError = class extends CustomAuthError {
 	constructor() {
 		super("Auth session missing!", "AuthSessionMissingError", 400, void 0);
@@ -132,49 +62,16 @@ var AuthSessionMissingError = class extends CustomAuthError {
 function isAuthSessionMissingError(error) {
 	return isAuthError(error) && error.name === "AuthSessionMissingError";
 }
-/**
-* Error thrown when the token response is malformed.
-*
-* @example
-* ```ts
-* import { AuthInvalidTokenResponseError } from '@supabase/auth-js'
-*
-* throw new AuthInvalidTokenResponseError()
-* ```
-*/
 var AuthInvalidTokenResponseError = class extends CustomAuthError {
 	constructor() {
 		super("Auth session or user missing", "AuthInvalidTokenResponseError", 500, void 0);
 	}
 };
-/**
-* Error thrown when email/password credentials are invalid.
-*
-* @example
-* ```ts
-* import { AuthInvalidCredentialsError } from '@supabase/auth-js'
-*
-* throw new AuthInvalidCredentialsError('Email or password is incorrect')
-* ```
-*/
 var AuthInvalidCredentialsError = class extends CustomAuthError {
 	constructor(message) {
 		super(message, "AuthInvalidCredentialsError", 400, void 0);
 	}
 };
-/**
-* Error thrown when implicit grant redirects contain an error.
-*
-* @example
-* ```ts
-* import { AuthImplicitGrantRedirectError } from '@supabase/auth-js'
-*
-* throw new AuthImplicitGrantRedirectError('OAuth redirect failed', {
-*   error: 'access_denied',
-*   code: 'oauth_error',
-* })
-* ```
-*/
 var AuthImplicitGrantRedirectError = class extends CustomAuthError {
 	constructor(message, details = null) {
 		super(message, "AuthImplicitGrantRedirectError", 500, void 0);
@@ -182,22 +79,17 @@ var AuthImplicitGrantRedirectError = class extends CustomAuthError {
 		this.details = details;
 	}
 	toJSON() {
-		return Object.assign(Object.assign({}, super.toJSON()), { details: this.details });
+		return {
+			name: this.name,
+			message: this.message,
+			status: this.status,
+			details: this.details
+		};
 	}
 };
 function isAuthImplicitGrantRedirectError(error) {
 	return isAuthError(error) && error.name === "AuthImplicitGrantRedirectError";
 }
-/**
-* Error thrown during PKCE code exchanges.
-*
-* @example
-* ```ts
-* import { AuthPKCEGrantCodeExchangeError } from '@supabase/auth-js'
-*
-* throw new AuthPKCEGrantCodeExchangeError('PKCE exchange failed')
-* ```
-*/
 var AuthPKCEGrantCodeExchangeError = class extends CustomAuthError {
 	constructor(message, details = null) {
 		super(message, "AuthPKCEGrantCodeExchangeError", 500, void 0);
@@ -205,36 +97,14 @@ var AuthPKCEGrantCodeExchangeError = class extends CustomAuthError {
 		this.details = details;
 	}
 	toJSON() {
-		return Object.assign(Object.assign({}, super.toJSON()), { details: this.details });
+		return {
+			name: this.name,
+			message: this.message,
+			status: this.status,
+			details: this.details
+		};
 	}
 };
-/**
-* Error thrown when the PKCE code verifier is not found in storage.
-* This typically happens when the auth flow was initiated in a different
-* browser, device, or the storage was cleared.
-*
-* @example
-* ```ts
-* import { AuthPKCECodeVerifierMissingError } from '@supabase/auth-js'
-*
-* throw new AuthPKCECodeVerifierMissingError()
-* ```
-*/
-var AuthPKCECodeVerifierMissingError = class extends CustomAuthError {
-	constructor() {
-		super("PKCE code verifier not found in storage. This can happen if the auth flow was initiated in a different browser or device, or if the storage was cleared. For SSR frameworks (Next.js, SvelteKit, etc.), use @supabase/ssr on both the server and client to store the code verifier in cookies.", "AuthPKCECodeVerifierMissingError", 400, "pkce_code_verifier_not_found");
-	}
-};
-/**
-* Error thrown when a transient fetch issue occurs.
-*
-* @example
-* ```ts
-* import { AuthRetryableFetchError } from '@supabase/auth-js'
-*
-* throw new AuthRetryableFetchError('Service temporarily unavailable', 503)
-* ```
-*/
 var AuthRetryableFetchError = class extends CustomAuthError {
 	constructor(message, status) {
 		super(message, "AuthRetryableFetchError", status, void 0);
@@ -244,67 +114,16 @@ function isAuthRetryableFetchError(error) {
 	return isAuthError(error) && error.name === "AuthRetryableFetchError";
 }
 /**
-* Returned when the server rotated a refresh token successfully but the
-* client chose not to persist the rotated tokens because the local session
-* changed mid-flight. Usually means a concurrent `signOut` cleared storage
-* between when the refresh started and when it came back.
-*
-* Set on the `error` field of the refresh result so callers can tell "we
-* got rotated tokens but threw them away" apart from "the refresh failed."
-* The rotated session on the server will be picked up on the next refresh
-* via GoTrue's parent-of-active path.
-*
-* @example
-* ```ts
-* import { isAuthRefreshDiscardedError } from '@supabase/auth-js'
-*
-* if (isAuthRefreshDiscardedError(error)) {
-*   // Concurrent signOut/sign-in raced our refresh. Treat as a no-op.
-* }
-* ```
-*/
-var AuthRefreshDiscardedError = class extends CustomAuthError {
-	constructor(message = "Refresh result discarded: session state changed mid-flight (e.g., concurrent signOut)") {
-		super(message, "AuthRefreshDiscardedError", 409, void 0);
-	}
-};
-function isAuthRefreshDiscardedError(error) {
-	return isAuthError(error) && error.name === "AuthRefreshDiscardedError";
-}
-/**
 * This error is thrown on certain methods when the password used is deemed
 * weak. Inspect the reasons to identify what password strength rules are
 * inadequate.
-*/
-/**
-* Error thrown when a supplied password is considered weak.
-*
-* @example
-* ```ts
-* import { AuthWeakPasswordError } from '@supabase/auth-js'
-*
-* throw new AuthWeakPasswordError('Password too short', 400, ['min_length'])
-* ```
 */
 var AuthWeakPasswordError = class extends CustomAuthError {
 	constructor(message, status, reasons) {
 		super(message, "AuthWeakPasswordError", status, "weak_password");
 		this.reasons = reasons;
 	}
-	toJSON() {
-		return Object.assign(Object.assign({}, super.toJSON()), { reasons: this.reasons });
-	}
 };
-/**
-* Error thrown when a JWT cannot be verified or parsed.
-*
-* @example
-* ```ts
-* import { AuthInvalidJwtError } from '@supabase/auth-js'
-*
-* throw new AuthInvalidJwtError('Token signature is invalid')
-* ```
-*/
 var AuthInvalidJwtError = class extends CustomAuthError {
 	constructor(message) {
 		super(message, "AuthInvalidJwtError", 400, "invalid_jwt");
@@ -519,21 +338,11 @@ function bytesToBase64URL(bytes) {
 function expiresAt(expiresIn) {
 	return Math.round(Date.now() / 1e3) + expiresIn;
 }
-/**
-* Generates a unique identifier for internal callback subscriptions.
-*
-* This function uses JavaScript Symbols to create guaranteed-unique identifiers
-* for auth state change callbacks. Symbols are ideal for this use case because:
-* - They are guaranteed unique by the JavaScript runtime
-* - They work in all environments (browser, SSR, Node.js)
-* - They avoid issues with Next.js 16 deterministic rendering requirements
-* - They are perfect for internal, non-serializable identifiers
-*
-* Note: This function is only used for internal subscription management,
-* not for security-critical operations like session tokens.
-*/
-function generateCallbackId() {
-	return Symbol("auth-callback");
+function uuid() {
+	return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+		const r = Math.random() * 16 | 0;
+		return (c == "x" ? r : r & 3 | 8).toString(16);
+	});
 }
 var isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
 var localStorageWriteTests = {
@@ -573,15 +382,18 @@ function parseParametersFromURL(href) {
 		new URLSearchParams(url.hash.substring(1)).forEach((value, key) => {
 			result[key] = value;
 		});
-	} catch (_e) {}
+	} catch (e) {}
 	url.searchParams.forEach((value, key) => {
 		result[key] = value;
 	});
 	return result;
 }
 var resolveFetch = (customFetch) => {
-	if (customFetch) return (...args) => customFetch(...args);
-	return (...args) => fetch(...args);
+	let _fetch;
+	if (customFetch) _fetch = customFetch;
+	else if (typeof fetch === "undefined") _fetch = (...args) => import("./@supabase/node-fetch+[...].mjs").then((n) => /* @__PURE__ */ __toESM(n.t())).then(({ default: fetch }) => fetch(...args));
+	else _fetch = fetch;
+	return (...args) => _fetch(...args);
 };
 var looksLikeFetchResponse = (maybeResponse) => {
 	return typeof maybeResponse === "object" && maybeResponse !== null && "status" in maybeResponse && "ok" in maybeResponse && "json" in maybeResponse && typeof maybeResponse.json === "function";
@@ -595,7 +407,7 @@ var getItemAsync = async (storage, key) => {
 	try {
 		return JSON.parse(value);
 	} catch (_a) {
-		return null;
+		return value;
 	}
 };
 var removeItemAsync = async (storage, key) => {
@@ -693,7 +505,7 @@ async function generatePKCEChallenge(verifier) {
 async function getCodeChallengeAndMethod(storage, storageKey, isPasswordRecovery = false) {
 	const codeVerifier = generatePKCEVerifier();
 	let storedCodeVerifier = codeVerifier;
-	if (isPasswordRecovery) storedCodeVerifier += "/recovery";
+	if (isPasswordRecovery) storedCodeVerifier += "/PASSWORD_RECOVERY";
 	await setItemAsync(storage, `${storageKey}-code-verifier`, storedCodeVerifier);
 	const codeChallenge = await generatePKCEChallenge(codeVerifier);
 	return [codeChallenge, codeVerifier === codeChallenge ? "plain" : "s256"];
@@ -706,7 +518,7 @@ function parseResponseAPIVersion(response) {
 	if (!apiVersion.match(API_VERSION_REGEX)) return null;
 	try {
 		return /* @__PURE__ */ new Date(`${apiVersion}T00:00:00.0Z`);
-	} catch (_e) {
+	} catch (e) {
 		return null;
 	}
 }
@@ -732,9 +544,6 @@ var UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
 function validateUUID(str) {
 	if (!UUID_REGEX.test(str)) throw new Error("@supabase/auth-js: Expected parameter to be UUID but is not");
 }
-function assertPasskeyExperimentalEnabled(experimental) {
-	if (!experimental.passkey) throw new Error("@supabase/auth-js: the passkey API is experimental and disabled by default. Enable it by passing `auth: { experimental: { passkey: true } }` to createClient (or to the GoTrueClient constructor).");
-}
 function userNotAvailableProxy() {
 	return new Proxy({}, {
 		get: (target, prop) => {
@@ -754,28 +563,6 @@ function userNotAvailableProxy() {
 	});
 }
 /**
-* Creates a proxy around a user object that warns when properties are accessed on the server.
-* This is used to alert developers that using user data from getSession() on the server is insecure.
-*
-* @param user The actual user object to wrap
-* @param suppressWarningRef An object with a 'value' property that controls warning suppression
-* @returns A proxied user object that warns on property access
-*/
-function insecureUserWarningProxy(user, suppressWarningRef) {
-	return new Proxy(user, { get: (target, prop, receiver) => {
-		if (prop === "__isInsecureUserWarningProxy") return true;
-		if (typeof prop === "symbol") {
-			const sProp = prop.toString();
-			if (sProp === "Symbol(Symbol.toPrimitive)" || sProp === "Symbol(Symbol.toStringTag)" || sProp === "Symbol(util.inspect.custom)" || sProp === "Symbol(nodejs.util.inspect.custom)") return Reflect.get(target, prop, receiver);
-		}
-		if (!suppressWarningRef.value && typeof prop === "string") {
-			console.warn("Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.");
-			suppressWarningRef.value = true;
-		}
-		return Reflect.get(target, prop, receiver);
-	} });
-}
-/**
 * Deep clones a JSON-serializable object using JSON.parse(JSON.stringify(obj)).
 * Note: Only works for JSON-safe data.
 */
@@ -784,33 +571,19 @@ function deepClone(obj) {
 }
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/lib/fetch.js
-var _getErrorMessage = (err) => {
-	if (typeof err === "object" && err !== null) {
-		const e = err;
-		if (typeof e.msg === "string") return e.msg;
-		if (typeof e.message === "string") return e.message;
-		if (typeof e.error_description === "string") return e.error_description;
-		if (typeof e.error === "string") return e.error;
+var __rest$2 = function(s, e) {
+	var t = {};
+	for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
+	if (s != null && typeof Object.getOwnPropertySymbols === "function") {
+		for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
 	}
-	return JSON.stringify(err);
+	return t;
 };
+var _getErrorMessage = (err) => err.msg || err.message || err.error_description || err.error || JSON.stringify(err);
 var NETWORK_ERROR_CODES = [
-	500,
-	501,
 	502,
 	503,
-	504,
-	520,
-	521,
-	522,
-	523,
-	524,
-	525,
-	526,
-	527,
-	528,
-	529,
-	530
+	504
 ];
 async function handleError(error) {
 	var _a;
@@ -882,7 +655,7 @@ function _sessionResponse(data) {
 		session = Object.assign({}, data);
 		if (!data.expires_at) session.expires_at = expiresAt(data.expires_in);
 	}
-	const user = (_a = data.user) !== null && _a !== void 0 ? _a : typeof (data === null || data === void 0 ? void 0 : data.id) === "string" ? data : null;
+	const user = (_a = data.user) !== null && _a !== void 0 ? _a : data;
 	return {
 		data: {
 			session,
@@ -910,7 +683,7 @@ function _ssoResponse(data) {
 	};
 }
 function _generateLinkResponse(data) {
-	const { action_link, email_otp, hashed_token, redirect_to, verification_type } = data, rest = __rest(data, [
+	const { action_link, email_otp, hashed_token, redirect_to, verification_type } = data, rest = __rest$2(data, [
 		"action_link",
 		"email_otp",
 		"hashed_token",
@@ -940,7 +713,7 @@ function _noResolveJsonResponse(data) {
 * @returns true if a session is in the response
 */
 function hasSession(data) {
-	return !!data.access_token && !!data.refresh_token && !!data.expires_in;
+	return data.access_token && data.refresh_token && data.expires_in;
 }
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/lib/types.js
@@ -951,33 +724,19 @@ var SIGN_OUT_SCOPES = [
 ];
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/GoTrueAdminApi.js
+var __rest$1 = function(s, e) {
+	var t = {};
+	for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
+	if (s != null && typeof Object.getOwnPropertySymbols === "function") {
+		for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
+	}
+	return t;
+};
 var GoTrueAdminApi = class {
-	/**
-	* Creates an admin API client that can be used to manage users and OAuth clients.
-	*
-	* @example Using supabase-js (recommended)
-	* ```ts
-	* import { createClient } from '@supabase/supabase-js'
-	*
-	* const supabase = createClient('https://xyzcompany.supabase.co', 'your-secret-key')
-	* const { data, error } = await supabase.auth.admin.listUsers()
-	* ```
-	*
-	* @example Standalone import for bundle-sensitive environments
-	* ```ts
-	* import { GoTrueAdminApi } from '@supabase/auth-js'
-	*
-	* const admin = new GoTrueAdminApi({
-	*   url: 'https://xyzcompany.supabase.co/auth/v1',
-	*   headers: { Authorization: `Bearer ${process.env.SUPABASE_SECRET_KEY}` },
-	* })
-	* ```
-	*/
-	constructor({ url = "", headers = {}, fetch, experimental }) {
+	constructor({ url = "", headers = {}, fetch }) {
 		this.url = url;
 		this.headers = headers;
 		this.fetch = resolveFetch(fetch);
-		this.experimental = experimental !== null && experimental !== void 0 ? experimental : {};
 		this.mfa = {
 			listFactors: this._listFactors.bind(this),
 			deleteFactor: this._deleteFactor.bind(this)
@@ -986,29 +745,14 @@ var GoTrueAdminApi = class {
 			listClients: this._listOAuthClients.bind(this),
 			createClient: this._createOAuthClient.bind(this),
 			getClient: this._getOAuthClient.bind(this),
-			updateClient: this._updateOAuthClient.bind(this),
 			deleteClient: this._deleteOAuthClient.bind(this),
 			regenerateClientSecret: this._regenerateOAuthClientSecret.bind(this)
-		};
-		this.customProviders = {
-			listProviders: this._listCustomProviders.bind(this),
-			createProvider: this._createCustomProvider.bind(this),
-			getProvider: this._getCustomProvider.bind(this),
-			updateProvider: this._updateCustomProvider.bind(this),
-			deleteProvider: this._deleteCustomProvider.bind(this)
-		};
-		this.passkey = {
-			listPasskeys: this._adminListPasskeys.bind(this),
-			deletePasskey: this._adminDeletePasskey.bind(this)
 		};
 	}
 	/**
 	* Removes a logged-in session.
 	* @param jwt A valid, logged-in JWT.
 	* @param scope The logout sope.
-	*
-	* @category Auth
-	* @subcategory Auth Admin
 	*/
 	async signOut(jwt, scope = SIGN_OUT_SCOPES[0]) {
 		if (SIGN_OUT_SCOPES.indexOf(scope) < 0) throw new Error(`@supabase/auth-js: Parameter scope must be one of ${SIGN_OUT_SCOPES.join(", ")}`);
@@ -1034,65 +778,6 @@ var GoTrueAdminApi = class {
 	* Sends an invite link to an email address.
 	* @param email The email address of the user.
 	* @param options Additional options to be included when inviting.
-	*
-	* @category Auth
-	* @subcategory Auth Admin
-	*
-	* @remarks
-	* - Sends an invite link to the user's email address.
-	* - The `inviteUserByEmail()` method is typically used by administrators to invite users to join the application.
-	* - Note that PKCE is not supported when using `inviteUserByEmail`. This is because the browser initiating the invite is often different from the browser accepting the invite which makes it difficult to provide the security guarantees required of the PKCE flow.
-	*
-	* @example Invite a user
-	* ```js
-	* const { data, error } = await supabase.auth.admin.inviteUserByEmail('email@example.com')
-	* ```
-	*
-	* @exampleResponse Invite a user
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "example@email.com",
-	*       "invited_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "confirmation_sent_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {},
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": false
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
 	*/
 	async inviteUserByEmail(email, options = {}) {
 		try {
@@ -1115,121 +800,14 @@ var GoTrueAdminApi = class {
 	}
 	/**
 	* Generates email links and OTPs to be sent via a custom email provider.
-	* @param params The parameters for generating the link, including the link `type`, the user's `email`, and type-specific options such as `password`, `data`, and `redirectTo`.
-	*
-	* @category Auth
-	* @subcategory Auth Admin
-	*
-	* @remarks
-	* - The following types can be passed into `generateLink()`: `signup`, `magiclink`, `invite`, `recovery`, `email_change_current`, `email_change_new`, `phone_change`.
-	* - `generateLink()` only generates the email link for `email_change_email` if the **Secure email change** is enabled in your project's [email auth provider settings](/dashboard/project/_/auth/providers).
-	* - `generateLink()` handles the creation of the user for `signup`, `invite` and `magiclink`.
-	*
-	* @example Generate a signup link
-	* ```js
-	* const { data, error } = await supabase.auth.admin.generateLink({
-	*   type: 'signup',
-	*   email: 'email@example.com',
-	*   password: 'secret'
-	* })
-	* ```
-	*
-	* @exampleResponse Generate a signup link
-	* ```json
-	* {
-	*   "data": {
-	*     "properties": {
-	*       "action_link": "<LINK_TO_SEND_TO_USER>",
-	*       "email_otp": "999999",
-	*       "hashed_token": "<HASHED_TOKEN",
-	*       "redirect_to": "<REDIRECT_URL>",
-	*       "verification_type": "signup"
-	*     },
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "email@example.com",
-	*       "phone": "",
-	*       "confirmation_sent_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {},
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "email@example.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "email@example.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": false
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @example Generate an invite link
-	* ```js
-	* const { data, error } = await supabase.auth.admin.generateLink({
-	*   type: 'invite',
-	*   email: 'email@example.com'
-	* })
-	* ```
-	*
-	* @example Generate a magic link
-	* ```js
-	* const { data, error } = await supabase.auth.admin.generateLink({
-	*   type: 'magiclink',
-	*   email: 'email@example.com'
-	* })
-	* ```
-	*
-	* @example Generate a recovery link
-	* ```js
-	* const { data, error } = await supabase.auth.admin.generateLink({
-	*   type: 'recovery',
-	*   email: 'email@example.com'
-	* })
-	* ```
-	*
-	* @example Generate links to change current email address
-	* ```js
-	* // generate an email change link to be sent to the current email address
-	* const { data, error } = await supabase.auth.admin.generateLink({
-	*   type: 'email_change_current',
-	*   email: 'current.email@example.com',
-	*   newEmail: 'new.email@example.com'
-	* })
-	*
-	* // generate an email change link to be sent to the new email address
-	* const { data, error } = await supabase.auth.admin.generateLink({
-	*   type: 'email_change_new',
-	*   email: 'current.email@example.com',
-	*   newEmail: 'new.email@example.com'
-	* })
-	* ```
+	* @param email The user's email.
+	* @param options.password User password. For signup only.
+	* @param options.data Optional user metadata. For signup only.
+	* @param options.redirectTo The redirect url which should be appended to the generated link
 	*/
 	async generateLink(params) {
 		try {
-			const { options } = params, rest = __rest(params, ["options"]);
+			const { options } = params, rest = __rest$1(params, ["options"]);
 			const body = Object.assign(Object.assign({}, rest), options);
 			if ("newEmail" in rest) {
 				body.new_email = rest === null || rest === void 0 ? void 0 : rest.newEmail;
@@ -1255,82 +833,6 @@ var GoTrueAdminApi = class {
 	/**
 	* Creates a new user.
 	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*
-	* @category Auth
-	* @subcategory Auth Admin
-	*
-	* @remarks
-	* - To confirm the user's email address or phone number, set `email_confirm` or `phone_confirm` to true. Both arguments default to false.
-	* - `createUser()` will not send a confirmation email to the user. You can use [`inviteUserByEmail()`](/docs/reference/javascript/auth-admin-inviteuserbyemail) if you want to send them an email invite instead.
-	* - If you are sure that the created user's email or phone number is legitimate and verified, you can set the `email_confirm` or `phone_confirm` param to `true`.
-	*
-	* @example With custom user metadata
-	* ```js
-	* const { data, error } = await supabase.auth.admin.createUser({
-	*   email: 'user@email.com',
-	*   password: 'password',
-	*   user_metadata: { name: 'Yoda' }
-	* })
-	* ```
-	*
-	* @exampleResponse With custom user metadata
-	* ```json
-	* {
-	*   data: {
-	*     user: {
-	*       id: '1',
-	*       aud: 'authenticated',
-	*       role: 'authenticated',
-	*       email: 'example@email.com',
-	*       email_confirmed_at: '2024-01-01T00:00:00Z',
-	*       phone: '',
-	*       confirmation_sent_at: '2024-01-01T00:00:00Z',
-	*       confirmed_at: '2024-01-01T00:00:00Z',
-	*       last_sign_in_at: '2024-01-01T00:00:00Z',
-	*       app_metadata: {},
-	*       user_metadata: {},
-	*       identities: [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "1",
-	*           "user_id": "1",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": true,
-	*             "phone_verified": false,
-	*             "sub": "1"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "email@example.com"
-	*         },
-	*       ],
-	*       created_at: '2024-01-01T00:00:00Z',
-	*       updated_at: '2024-01-01T00:00:00Z',
-	*       is_anonymous: false,
-	*     }
-	*   }
-	*   error: null
-	* }
-	* ```
-	*
-	* @example Auto-confirm the user's email
-	* ```js
-	* const { data, error } = await supabase.auth.admin.createUser({
-	*   email: 'user@email.com',
-	*   email_confirm: true
-	* })
-	* ```
-	*
-	* @example Auto-confirm the user's phone number
-	* ```js
-	* const { data, error } = await supabase.auth.admin.createUser({
-	*   phone: '1234567890',
-	*   phone_confirm: true
-	* })
-	* ```
 	*/
 	async createUser(attributes) {
 		try {
@@ -1352,25 +854,6 @@ var GoTrueAdminApi = class {
 	*
 	* This function should only be called on a server. Never expose your `service_role` key in the browser.
 	* @param params An object which supports `page` and `perPage` as numbers, to alter the paginated results.
-	*
-	* @category Auth
-	* @subcategory Auth Admin
-	*
-	* @remarks
-	* - Defaults to return 50 users per page.
-	*
-	* @example Get a page of users
-	* ```js
-	* const { data: { users }, error } = await supabase.auth.admin.listUsers()
-	* ```
-	*
-	* @example Paginated list of users
-	* ```js
-	* const { data: { users }, error } = await supabase.auth.admin.listUsers({
-	*   page: 1,
-	*   perPage: 1000
-	* })
-	* ```
 	*/
 	async listUsers(params) {
 		var _a, _b, _c, _d, _e, _f, _g;
@@ -1419,61 +902,6 @@ var GoTrueAdminApi = class {
 	* @param uid The user's unique identifier
 	*
 	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*
-	* @category Auth
-	* @subcategory Auth Admin
-	*
-	* @remarks
-	* - Fetches the user object from the database based on the user's id.
-	* - The `getUserById()` method requires the user's id which maps to the `auth.users.id` column.
-	*
-	* @example Fetch the user object using the access_token jwt
-	* ```js
-	* const { data, error } = await supabase.auth.admin.getUserById(1)
-	* ```
-	*
-	* @exampleResponse Fetch the user object using the access_token jwt
-	* ```json
-	* {
-	*   data: {
-	*     user: {
-	*       id: '1',
-	*       aud: 'authenticated',
-	*       role: 'authenticated',
-	*       email: 'example@email.com',
-	*       email_confirmed_at: '2024-01-01T00:00:00Z',
-	*       phone: '',
-	*       confirmation_sent_at: '2024-01-01T00:00:00Z',
-	*       confirmed_at: '2024-01-01T00:00:00Z',
-	*       last_sign_in_at: '2024-01-01T00:00:00Z',
-	*       app_metadata: {},
-	*       user_metadata: {},
-	*       identities: [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "1",
-	*           "user_id": "1",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": true,
-	*             "phone_verified": false,
-	*             "sub": "1"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "email@example.com"
-	*         },
-	*       ],
-	*       created_at: '2024-01-01T00:00:00Z',
-	*       updated_at: '2024-01-01T00:00:00Z',
-	*       is_anonymous: false,
-	*     }
-	*   }
-	*   error: null
-	* }
-	* ```
 	*/
 	async getUserById(uid) {
 		validateUUID(uid);
@@ -1491,148 +919,11 @@ var GoTrueAdminApi = class {
 		}
 	}
 	/**
-	* Updates the user data. Changes are applied directly without confirmation flows.
+	* Updates the user data.
 	*
-	* @param uid The user's unique identifier
 	* @param attributes The data you want to update.
 	*
 	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*
-	* @remarks
-	* **Important:** This is a server-side operation and does **not** trigger client-side
-	* `onAuthStateChange` listeners. The admin API has no connection to client state.
-	*
-	* To sync changes to the client after calling this method:
-	* 1. On the client, call `supabase.auth.refreshSession()` to fetch the updated user data
-	* 2. This will trigger the `TOKEN_REFRESHED` event and notify all listeners
-	*
-	* @example
-	* ```typescript
-	* // Server-side (Edge Function)
-	* const { data, error } = await supabase.auth.admin.updateUserById(
-	*   userId,
-	*   { user_metadata: { preferences: { theme: 'dark' } } }
-	* )
-	*
-	* // Client-side (to sync the changes)
-	* const { data, error } = await supabase.auth.refreshSession()
-	* // onAuthStateChange listeners will now be notified with updated user
-	* ```
-	*
-	* @see {@link GoTrueClient.refreshSession} for syncing admin changes to the client
-	* @see {@link GoTrueClient.updateUser} for client-side user updates (triggers listeners automatically)
-	*
-	* @category Auth
-	* @subcategory Auth Admin
-	*
-	* @example Updates a user's email
-	* ```js
-	* const { data: user, error } = await supabase.auth.admin.updateUserById(
-	*   '11111111-1111-1111-1111-111111111111',
-	*   { email: 'new@email.com' }
-	* )
-	* ```
-	*
-	* @exampleResponse Updates a user's email
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "new@email.com",
-	*       "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "confirmed_at": "2024-01-01T00:00:00Z",
-	*       "recovery_sent_at": "2024-01-01T00:00:00Z",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {
-	*         "email": "example@email.com",
-	*         "email_verified": false,
-	*         "phone_verified": false,
-	*         "sub": "11111111-1111-1111-1111-111111111111"
-	*       },
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": false
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @example Updates a user's password
-	* ```js
-	* const { data: user, error } = await supabase.auth.admin.updateUserById(
-	*   '6aa5d0d4-2a9f-4483-b6c8-0cf4c6c98ac4',
-	*   { password: 'new_password' }
-	* )
-	* ```
-	*
-	* @example Updates a user's metadata
-	* ```js
-	* const { data: user, error } = await supabase.auth.admin.updateUserById(
-	*   '6aa5d0d4-2a9f-4483-b6c8-0cf4c6c98ac4',
-	*   { user_metadata: { hello: 'world' } }
-	* )
-	* ```
-	*
-	* @example Updates a user's app_metadata
-	* ```js
-	* const { data: user, error } = await supabase.auth.admin.updateUserById(
-	*   '6aa5d0d4-2a9f-4483-b6c8-0cf4c6c98ac4',
-	*   { app_metadata: { plan: 'trial' } }
-	* )
-	* ```
-	*
-	* @example Confirms a user's email address
-	* ```js
-	* const { data: user, error } = await supabase.auth.admin.updateUserById(
-	*   '6aa5d0d4-2a9f-4483-b6c8-0cf4c6c98ac4',
-	*   { email_confirm: true }
-	* )
-	* ```
-	*
-	* @example Confirms a user's phone number
-	* ```js
-	* const { data: user, error } = await supabase.auth.admin.updateUserById(
-	*   '6aa5d0d4-2a9f-4483-b6c8-0cf4c6c98ac4',
-	*   { phone_confirm: true }
-	* )
-	* ```
-	*
-	* @example Ban a user for 100 years
-	* ```js
-	* const { data: user, error } = await supabase.auth.admin.updateUserById(
-	*   '6aa5d0d4-2a9f-4483-b6c8-0cf4c6c98ac4',
-	*   { ban_duration: '876000h' }
-	* )
-	* ```
 	*/
 	async updateUserById(uid, attributes) {
 		validateUUID(uid);
@@ -1658,29 +949,6 @@ var GoTrueAdminApi = class {
 	* Defaults to false for backward compatibility.
 	*
 	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*
-	* @category Auth
-	* @subcategory Auth Admin
-	*
-	* @remarks
-	* - The `deleteUser()` method requires the user's ID, which maps to the `auth.users.id` column.
-	*
-	* @example Removes a user
-	* ```js
-	* const { data, error } = await supabase.auth.admin.deleteUser(
-	*   '715ed5db-f090-4b8c-a067-640ecee36aa0'
-	* )
-	* ```
-	*
-	* @exampleResponse Removes a user
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {}
-	*   },
-	*   "error": null
-	* }
-	* ```
 	*/
 	async deleteUser(id, shouldSoftDelete = false) {
 		validateUUID(id);
@@ -1837,15 +1105,14 @@ var GoTrueAdminApi = class {
 		}
 	}
 	/**
-	* Updates an existing OAuth client.
+	* Deletes an OAuth client.
 	* Only relevant when the OAuth 2.1 server is enabled in Supabase Auth.
 	*
 	* This function should only be called on a server. Never expose your `service_role` key in the browser.
 	*/
-	async _updateOAuthClient(clientId, params) {
+	async _deleteOAuthClient(clientId) {
 		try {
-			return await _request(this.fetch, "PUT", `${this.url}/admin/oauth/clients/${clientId}`, {
-				body: params,
+			return await _request(this.fetch, "DELETE", `${this.url}/admin/oauth/clients/${clientId}`, {
 				headers: this.headers,
 				xform: (client) => {
 					return {
@@ -1854,30 +1121,6 @@ var GoTrueAdminApi = class {
 					};
 				}
 			});
-		} catch (error) {
-			if (isAuthError(error)) return {
-				data: null,
-				error
-			};
-			throw error;
-		}
-	}
-	/**
-	* Deletes an OAuth client.
-	* Only relevant when the OAuth 2.1 server is enabled in Supabase Auth.
-	*
-	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*/
-	async _deleteOAuthClient(clientId) {
-		try {
-			await _request(this.fetch, "DELETE", `${this.url}/admin/oauth/clients/${clientId}`, {
-				headers: this.headers,
-				noResolveJson: true
-			});
-			return {
-				data: null,
-				error: null
-			};
 		} catch (error) {
 			if (isAuthError(error)) return {
 				data: null,
@@ -1911,196 +1154,6 @@ var GoTrueAdminApi = class {
 			throw error;
 		}
 	}
-	/**
-	* Lists all custom providers with optional type filter.
-	*
-	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*/
-	async _listCustomProviders(params) {
-		try {
-			const query = {};
-			if (params === null || params === void 0 ? void 0 : params.type) query.type = params.type;
-			return await _request(this.fetch, "GET", `${this.url}/admin/custom-providers`, {
-				headers: this.headers,
-				query,
-				xform: (data) => {
-					var _a;
-					return {
-						data: { providers: (_a = data === null || data === void 0 ? void 0 : data.providers) !== null && _a !== void 0 ? _a : [] },
-						error: null
-					};
-				}
-			});
-		} catch (error) {
-			if (isAuthError(error)) return {
-				data: { providers: [] },
-				error
-			};
-			throw error;
-		}
-	}
-	/**
-	* Creates a new custom OIDC/OAuth provider.
-	*
-	* For OIDC providers, the server fetches and validates the OpenID Connect discovery document
-	* from the issuer's well-known endpoint (or the provided `discovery_url`) at creation time.
-	* This may return a validation error (`error_code: "validation_failed"`) if the discovery
-	* document is unreachable, not valid JSON, missing required fields, or if the issuer
-	* in the document does not match the expected issuer.
-	*
-	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*/
-	async _createCustomProvider(params) {
-		try {
-			return await _request(this.fetch, "POST", `${this.url}/admin/custom-providers`, {
-				body: params,
-				headers: this.headers,
-				xform: (provider) => {
-					return {
-						data: provider,
-						error: null
-					};
-				}
-			});
-		} catch (error) {
-			if (isAuthError(error)) return {
-				data: null,
-				error
-			};
-			throw error;
-		}
-	}
-	/**
-	* Gets details of a specific custom provider by identifier.
-	*
-	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*/
-	async _getCustomProvider(identifier) {
-		try {
-			return await _request(this.fetch, "GET", `${this.url}/admin/custom-providers/${identifier}`, {
-				headers: this.headers,
-				xform: (provider) => {
-					return {
-						data: provider,
-						error: null
-					};
-				}
-			});
-		} catch (error) {
-			if (isAuthError(error)) return {
-				data: null,
-				error
-			};
-			throw error;
-		}
-	}
-	/**
-	* Updates an existing custom provider.
-	*
-	* When `issuer` or `discovery_url` is changed on an OIDC provider, the server re-fetches and
-	* validates the discovery document before persisting. This may return a validation error
-	* (`error_code: "validation_failed"`) if the discovery document is unreachable, invalid, or
-	* the issuer does not match.
-	*
-	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*/
-	async _updateCustomProvider(identifier, params) {
-		try {
-			return await _request(this.fetch, "PUT", `${this.url}/admin/custom-providers/${identifier}`, {
-				body: params,
-				headers: this.headers,
-				xform: (provider) => {
-					return {
-						data: provider,
-						error: null
-					};
-				}
-			});
-		} catch (error) {
-			if (isAuthError(error)) return {
-				data: null,
-				error
-			};
-			throw error;
-		}
-	}
-	/**
-	* Deletes a custom provider.
-	*
-	* This function should only be called on a server. Never expose your `service_role` key in the browser.
-	*/
-	async _deleteCustomProvider(identifier) {
-		try {
-			await _request(this.fetch, "DELETE", `${this.url}/admin/custom-providers/${identifier}`, {
-				headers: this.headers,
-				noResolveJson: true
-			});
-			return {
-				data: null,
-				error: null
-			};
-		} catch (error) {
-			if (isAuthError(error)) return {
-				data: null,
-				error
-			};
-			throw error;
-		}
-	}
-	/**
-	* Lists all passkeys for a user.
-	*
-	* This function should only be called on a server. Never expose your secret key in the browser.
-	*
-	* Requires `auth.experimental.passkey: true`.
-	*/
-	async _adminListPasskeys(params) {
-		assertPasskeyExperimentalEnabled(this.experimental);
-		validateUUID(params.userId);
-		try {
-			return await _request(this.fetch, "GET", `${this.url}/admin/users/${params.userId}/passkeys`, {
-				headers: this.headers,
-				xform: (data) => ({
-					data,
-					error: null
-				})
-			});
-		} catch (error) {
-			if (isAuthError(error)) return {
-				data: null,
-				error
-			};
-			throw error;
-		}
-	}
-	/**
-	* Deletes a user's passkey.
-	*
-	* This function should only be called on a server. Never expose your secret key in the browser.
-	*
-	* Requires `auth.experimental.passkey: true`.
-	*/
-	async _adminDeletePasskey(params) {
-		assertPasskeyExperimentalEnabled(this.experimental);
-		validateUUID(params.userId);
-		validateUUID(params.passkeyId);
-		try {
-			await _request(this.fetch, "DELETE", `${this.url}/admin/users/${params.userId}/passkeys/${params.passkeyId}`, {
-				headers: this.headers,
-				noResolveJson: true
-			});
-			return {
-				data: null,
-				error: null
-			};
-		} catch (error) {
-			if (isAuthError(error)) return {
-				data: null,
-				error
-			};
-			throw error;
-		}
-	}
 };
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/lib/local-storage.js
@@ -2121,13 +1174,20 @@ function memoryLocalStorageAdapter(store = {}) {
 		}
 	};
 }
-globalThis && supportsLocalStorage() && globalThis.localStorage && globalThis.localStorage.getItem("supabase.gotrue-js.locks.debug");
+//#endregion
+//#region node_modules/@supabase/auth-js/dist/module/lib/locks.js
+/**
+* @experimental
+*/
+var internals = { 
+/**
+* @experimental
+*/
+debug: !!(globalThis && supportsLocalStorage() && globalThis.localStorage && globalThis.localStorage.getItem("supabase.gotrue-js.locks.debug") === "true") };
 /**
 * An error thrown when a lock cannot be acquired after some amount of time.
 *
-* @deprecated The auth client doesn't acquire locks around auth operations,
-* so this error never originates from `supabase.auth.*` calls. Direct callers
-* of `navigatorLock` / `processLock` still receive it on acquire timeout.
+* Use the {@link #isAcquireTimeout} property instead of checking with `instanceof`.
 */
 var LockAcquireTimeoutError = class extends Error {
 	constructor(message) {
@@ -2135,6 +1195,68 @@ var LockAcquireTimeoutError = class extends Error {
 		this.isAcquireTimeout = true;
 	}
 };
+var NavigatorLockAcquireTimeoutError = class extends LockAcquireTimeoutError {};
+/**
+* Implements a global exclusive lock using the Navigator LockManager API. It
+* is available on all browsers released after 2022-03-15 with Safari being the
+* last one to release support. If the API is not available, this function will
+* throw. Make sure you check availablility before configuring {@link
+* GoTrueClient}.
+*
+* You can turn on debugging by setting the `supabase.gotrue-js.locks.debug`
+* local storage item to `true`.
+*
+* Internals:
+*
+* Since the LockManager API does not preserve stack traces for the async
+* function passed in the `request` method, a trick is used where acquiring the
+* lock releases a previously started promise to run the operation in the `fn`
+* function. The lock waits for that promise to finish (with or without error),
+* while the function will finally wait for the result anyway.
+*
+* @param name Name of the lock to be acquired.
+* @param acquireTimeout If negative, no timeout. If 0 an error is thrown if
+*                       the lock can't be acquired without waiting. If positive, the lock acquire
+*                       will time out after so many milliseconds. An error is
+*                       a timeout if it has `isAcquireTimeout` set to true.
+* @param fn The operation to run once the lock is acquired.
+*/
+async function navigatorLock(name, acquireTimeout, fn) {
+	if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: acquire lock", name, acquireTimeout);
+	const abortController = new globalThis.AbortController();
+	if (acquireTimeout > 0) setTimeout(() => {
+		abortController.abort();
+		if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock acquire timed out", name);
+	}, acquireTimeout);
+	return await Promise.resolve().then(() => globalThis.navigator.locks.request(name, acquireTimeout === 0 ? {
+		mode: "exclusive",
+		ifAvailable: true
+	} : {
+		mode: "exclusive",
+		signal: abortController.signal
+	}, async (lock) => {
+		if (lock) {
+			if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: acquired", name, lock.name);
+			try {
+				return await fn();
+			} finally {
+				if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: released", name, lock.name);
+			}
+		} else if (acquireTimeout === 0) {
+			if (internals.debug) console.log("@supabase/gotrue-js: navigatorLock: not immediately available", name);
+			throw new NavigatorLockAcquireTimeoutError(`Acquiring an exclusive Navigator LockManager lock "${name}" immediately failed`);
+		} else {
+			if (internals.debug) try {
+				const result = await globalThis.navigator.locks.query();
+				console.log("@supabase/gotrue-js: Navigator LockManager state", JSON.stringify(result, null, "  "));
+			} catch (e) {
+				console.warn("@supabase/gotrue-js: Error when querying Navigator LockManager state", e);
+			}
+			console.warn("@supabase/gotrue-js: Navigator LockManager returned a null lock when using #request without ifAvailable set to true, it appears this browser is not following the LockManager spec https://developer.mozilla.org/en-US/docs/Web/API/LockManager/request");
+			return await fn();
+		}
+	}));
+}
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/lib/polyfills.js
 /**
@@ -2222,13 +1344,6 @@ var WebAuthnError = class extends Error {
 		this.__isWebAuthnError = true;
 		this.name = (_a = name !== null && name !== void 0 ? name : cause instanceof Error ? cause.name : void 0) !== null && _a !== void 0 ? _a : "Unknown Error";
 		this.code = code;
-	}
-	toJSON() {
-		return {
-			name: this.name,
-			message: this.message,
-			code: this.code
-		};
 	}
 };
 /**
@@ -2389,6 +1504,14 @@ function identifyAuthenticationError({ error, options }) {
 }
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/lib/webauthn.js
+var __rest = function(s, e) {
+	var t = {};
+	for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
+	if (s != null && typeof Object.getOwnPropertySymbols === "function") {
+		for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
+	}
+	return t;
+};
 /**
 * WebAuthn abort service to manage ceremony cancellation.
 * Ensures only one WebAuthn ceremony is active at a time to prevent "operation already in progress" errors.
@@ -2667,13 +1790,12 @@ var DEFAULT_CREATION_OPTIONS = {
 		userVerification: "preferred",
 		residentKey: "discouraged"
 	},
-	attestation: "direct"
+	attestation: "none"
 };
 var DEFAULT_REQUEST_OPTIONS = {
 	/** set to preferred because older yubikeys don't have PIN/Biometric */
 	userVerification: "preferred",
-	hints: ["security-key"],
-	attestation: "direct"
+	hints: ["security-key"]
 };
 function deepMerge(...sources) {
 	const isObject = (val) => val !== null && typeof val === "object" && !Array.isArray(val);
@@ -2764,7 +1886,6 @@ var WebAuthnApi = class {
 	* @see {@link https://w3c.github.io/webauthn/#sctn-verifying-assertion W3C WebAuthn Spec - Verifying Assertion}
 	*/
 	async _challenge({ factorId, webauthn, friendlyName, signal }, overrides) {
-		var _a;
 		try {
 			const { data: challengeResponse, error: challengeError } = await this.client.mfa.challenge({
 				factorId,
@@ -2778,14 +1899,7 @@ var WebAuthnApi = class {
 			/** webauthn will fail if either of the name/displayname are blank */
 			if (challengeResponse.webauthn.type === "create") {
 				const { user } = challengeResponse.webauthn.credential_options.publicKey;
-				if (!user.name) {
-					const nameToUse = friendlyName;
-					if (!nameToUse) {
-						const userData = (await this.client.getUser()).data.user;
-						const fallbackName = ((_a = userData === null || userData === void 0 ? void 0 : userData.user_metadata) === null || _a === void 0 ? void 0 : _a.name) || (userData === null || userData === void 0 ? void 0 : userData.email) || (userData === null || userData === void 0 ? void 0 : userData.id) || "User";
-						user.name = `${user.id}:${fallbackName}`;
-					} else user.name = `${user.id}:${nameToUse}`;
-				}
+				if (!user.name) user.name = `${user.id}:${friendlyName}`;
 				if (!user.displayName) user.displayName = user.name;
 			}
 			switch (challengeResponse.webauthn.type) {
@@ -2879,7 +1993,7 @@ var WebAuthnApi = class {
 	* @see {@link https://w3c.github.io/webauthn/#sctn-authentication W3C WebAuthn Spec - Authentication Ceremony}
 	* @see {@link https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredentialRequestOptions MDN - PublicKeyCredentialRequestOptions}
 	*/
-	async _authenticate({ factorId, webauthn: { rpId = typeof window !== "undefined" ? window.location.hostname : void 0, rpOrigins = typeof window !== "undefined" ? [window.location.origin] : void 0, signal } = {} }, overrides) {
+	async _authenticate({ factorId, webauthn: { rpId = typeof window !== "undefined" ? window.location.hostname : void 0, rpOrigins = typeof window !== "undefined" ? [window.location.origin] : void 0, signal } }, overrides) {
 		if (!rpId) return {
 			data: null,
 			error: new AuthError("rpId is required for WebAuthn authentication")
@@ -2938,7 +2052,7 @@ var WebAuthnApi = class {
 	* @see {@link https://w3c.github.io/webauthn/#sctn-registering-a-new-credential W3C WebAuthn Spec - Registration Ceremony}
 	* @see {@link https://developer.mozilla.org/en-US/docs/Web/API/PublicKeyCredentialCreationOptions MDN - PublicKeyCredentialCreationOptions}
 	*/
-	async _register({ friendlyName, webauthn: { rpId = typeof window !== "undefined" ? window.location.hostname : void 0, rpOrigins = typeof window !== "undefined" ? [window.location.origin] : void 0, signal } = {} }, overrides) {
+	async _register({ friendlyName, rpId = typeof window !== "undefined" ? window.location.hostname : void 0, rpOrigins = typeof window !== "undefined" ? [window.location.origin] : void 0, signal }, overrides) {
 		if (!rpId) return {
 			data: null,
 			error: new AuthError("rpId is required for WebAuthn registration")
@@ -3006,12 +2120,11 @@ var DEFAULT_OPTIONS = {
 	headers: DEFAULT_HEADERS,
 	flowType: "implicit",
 	debug: false,
-	hasCustomAuthorizationHeader: false,
-	throwOnError: false,
-	lockAcquireTimeout: 5e3,
-	skipAutoInitialize: false,
-	experimental: {}
+	hasCustomAuthorizationHeader: false
 };
+async function lockNoOp(name, acquireTimeout, fn) {
+	return await fn();
+}
 /**
 * Caches JWKS values for all clients created in the same environment. This is
 * especially useful for shared-memory execution environments such as Vercel's
@@ -3041,28 +2154,9 @@ var GoTrueClient = class GoTrueClient {
 	}
 	/**
 	* Create a new client for use in the browser.
-	*
-	* @example Using supabase-js (recommended)
-	* ```ts
-	* import { createClient } from '@supabase/supabase-js'
-	*
-	* const supabase = createClient('https://xyzcompany.supabase.co', 'your-publishable-key')
-	* const { data, error } = await supabase.auth.getUser()
-	* ```
-	*
-	* @example Standalone import for bundle-sensitive environments
-	* ```ts
-	* import { GoTrueClient } from '@supabase/auth-js'
-	*
-	* const auth = new GoTrueClient({
-	*   url: 'https://xyzcompany.supabase.co/auth/v1',
-	*   headers: { apikey: 'your-publishable-key' },
-	*   storageKey: 'supabase-auth',
-	* })
-	* ```
 	*/
 	constructor(options) {
-		var _a, _b, _c;
+		var _a, _b;
 		/**
 		* @experimental
 		*/
@@ -3070,32 +2164,8 @@ var GoTrueClient = class GoTrueClient {
 		this.memoryStorage = null;
 		this.stateChangeEmitters = /* @__PURE__ */ new Map();
 		this.autoRefreshTicker = null;
-		this.autoRefreshTickTimeout = null;
 		this.visibilityChangedCallback = null;
 		this.refreshingDeferred = null;
-		/**
-		* Cache of the most recent refresh failure, keyed by the refresh token
-		* that failed. Serial callers passing the *same* token within
-		* `REFRESH_FAILURE_COOLDOWN_MS` (including subsequent auto-refresh ticks)
-		* receive this cached result instead of firing another `/token` request.
-		* Callers passing a *different* token (token rotation pickup, explicit
-		* `setSession`/`refreshSession({ refresh_token })`, multi-account switch)
-		* bypass the cache and attempt a fresh refresh as they should.
-		* Cleared on any successful refresh (locally or via BroadcastChannel from
-		* another tab) and on `_removeSession`.
-		*
-		* Pairs with `refreshingDeferred`: concurrent callers share the in-flight
-		* promise, serial callers within the cooldown share the failure result.
-		*/
-		this.lastRefreshFailure = null;
-		/**
-		* Monotonic counter incremented at the top of `_removeSession`, before any
-		* `await`. The commit guard inside `_callRefreshToken` captures this value
-		* before `_saveSession` and re-checks it after, so a `signOut` that
-		* interleaves inside `_saveSession`'s storage-write awaits is still caught
-		* (the post-fetch storage snapshot alone misses that window).
-		*/
-		this._sessionRemovalEpoch = 0;
 		/**
 		* Keeps track of the async client initialization.
 		* When null or not yet resolved the auth state is `unknown`
@@ -3103,29 +2173,9 @@ var GoTrueClient = class GoTrueClient {
 		* Keep extra care to never reject or throw uncaught errors
 		*/
 		this.initializePromise = null;
-		/**
-		* Non-null only while `initialize()` is running. While open,
-		* `_notifyAllSubscribers` enqueues init-chain notifications (those fired with
-		* `broadcast = true`, i.e. from `_recoverAndRefresh`) into this array instead
-		* of firing directly, so that `initializePromise` is guaranteed to be
-		* resolved before any subscriber callback runs. Callbacks that call
-		* `getSession()` / `getUser()` etc. would otherwise deadlock because those
-		* methods await `initializePromise`. Notifications from the incoming
-		* BroadcastChannel handler (`broadcast = false`) are not enqueued — they fire
-		* immediately. Flushed (in order) by `initialize()` after `initializePromise`
-		* settles.
-		*/
-		this._pendingInitNotifications = null;
 		this.detectSessionInUrl = true;
 		this.hasCustomAuthorizationHeader = false;
 		this.suppressGetSessionWarning = false;
-		/**
-		* Custom lock function passed via `settings.lock`. When non-null, every auth
-		* operation runs inside `_acquireLock`. When null (the default), the client
-		* uses its lockless coordination (refresh single-flight + commit guard).
-		* TODO(v3): remove along with the legacy lock path.
-		*/
-		this.lock = null;
 		this.lockAcquired = false;
 		this.pendingInLock = [];
 		/**
@@ -3133,35 +2183,30 @@ var GoTrueClient = class GoTrueClient {
 		*/
 		this.broadcastChannel = null;
 		this.logger = console.log;
+		this.instanceID = GoTrueClient.nextInstanceID;
+		GoTrueClient.nextInstanceID += 1;
+		if (this.instanceID > 0 && isBrowser()) console.warn("Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.");
 		const settings = Object.assign(Object.assign({}, DEFAULT_OPTIONS), options);
-		this.storageKey = settings.storageKey;
-		this.instanceID = (_a = GoTrueClient.nextInstanceID[this.storageKey]) !== null && _a !== void 0 ? _a : 0;
-		GoTrueClient.nextInstanceID[this.storageKey] = this.instanceID + 1;
 		this.logDebugMessages = !!settings.debug;
 		if (typeof settings.debug === "function") this.logger = settings.debug;
-		if (this.instanceID > 0 && isBrowser()) {
-			const message = `${this._logPrefix()} Multiple GoTrueClient instances detected in the same browser context. It is not an error, but this should be avoided as it may produce undefined behavior when used concurrently under the same storage key.`;
-			console.warn(message);
-			if (this.logDebugMessages) console.trace(message);
-		}
 		this.persistSession = settings.persistSession;
+		this.storageKey = settings.storageKey;
 		this.autoRefreshToken = settings.autoRefreshToken;
-		this.experimental = (_b = settings.experimental) !== null && _b !== void 0 ? _b : {};
 		this.admin = new GoTrueAdminApi({
 			url: settings.url,
 			headers: settings.headers,
-			fetch: settings.fetch,
-			experimental: this.experimental
+			fetch: settings.fetch
 		});
 		this.url = settings.url;
 		this.headers = settings.headers;
 		this.fetch = resolveFetch(settings.fetch);
+		this.lock = settings.lock || lockNoOp;
 		this.detectSessionInUrl = settings.detectSessionInUrl;
 		this.flowType = settings.flowType;
 		this.hasCustomAuthorizationHeader = settings.hasCustomAuthorizationHeader;
-		this.throwOnError = settings.throwOnError;
-		this.lockAcquireTimeout = settings.lockAcquireTimeout;
-		if (settings.lock != null) this.lock = settings.lock;
+		if (settings.lock) this.lock = settings.lock;
+		else if (isBrowser() && ((_a = globalThis === null || globalThis === void 0 ? void 0 : globalThis.navigator) === null || _a === void 0 ? void 0 : _a.locks)) this.lock = navigatorLock;
+		else this.lock = lockNoOp;
 		if (!this.jwks) {
 			this.jwks = { keys: [] };
 			this.jwks_cached_at = Number.MIN_SAFE_INTEGER;
@@ -3175,22 +2220,6 @@ var GoTrueClient = class GoTrueClient {
 			challengeAndVerify: this._challengeAndVerify.bind(this),
 			getAuthenticatorAssuranceLevel: this._getAuthenticatorAssuranceLevel.bind(this),
 			webauthn: new WebAuthnApi(this)
-		};
-		this.oauth = {
-			getAuthorizationDetails: this._getAuthorizationDetails.bind(this),
-			approveAuthorization: this._approveAuthorization.bind(this),
-			denyAuthorization: this._denyAuthorization.bind(this),
-			listGrants: this._listOAuthGrants.bind(this),
-			revokeGrant: this._revokeOAuthGrant.bind(this)
-		};
-		this.passkey = {
-			startRegistration: this._startPasskeyRegistration.bind(this),
-			verifyRegistration: this._verifyPasskeyRegistration.bind(this),
-			startAuthentication: this._startPasskeyAuthentication.bind(this),
-			verifyAuthentication: this._verifyPasskeyAuthentication.bind(this),
-			list: this._listPasskeys.bind(this),
-			update: this._updatePasskey.bind(this),
-			delete: this._deletePasskey.bind(this)
 		};
 		if (this.persistSession) {
 			if (settings.storage) this.storage = settings.storage;
@@ -3210,75 +2239,30 @@ var GoTrueClient = class GoTrueClient {
 			} catch (e) {
 				console.error("Failed to create a new BroadcastChannel, multi-tab state changes will not be available", e);
 			}
-			(_c = this.broadcastChannel) === null || _c === void 0 || _c.addEventListener("message", async (event) => {
+			(_b = this.broadcastChannel) === null || _b === void 0 || _b.addEventListener("message", async (event) => {
 				this._debug("received broadcast notification from other tab or client", event);
-				if (event.data.event === "TOKEN_REFRESHED" || event.data.event === "SIGNED_IN") this.lastRefreshFailure = null;
-				try {
-					await this._notifyAllSubscribers(event.data.event, event.data.session, false);
-				} catch (error) {
-					this._debug("#broadcastChannel", "error", error);
-				}
+				await this._notifyAllSubscribers(event.data.event, event.data.session, false);
 			});
 		}
-		if (!settings.skipAutoInitialize) this.initialize().catch((error) => {
-			this._debug("#initialize()", "error", error);
-		});
-	}
-	/**
-	* Returns whether error throwing mode is enabled for this client.
-	*/
-	isThrowOnErrorEnabled() {
-		return this.throwOnError;
-	}
-	/**
-	* Centralizes return handling with optional error throwing. When `throwOnError` is enabled
-	* and the provided result contains a non-nullish error, the error is thrown instead of
-	* being returned. This ensures consistent behavior across all public API methods.
-	*/
-	_returnResult(result) {
-		if (this.throwOnError && result && result.error) throw result.error;
-		return result;
-	}
-	_logPrefix() {
-		return `GoTrueClient@${this.storageKey}:${this.instanceID} (${version}) ${(/* @__PURE__ */ new Date()).toISOString()}`;
+		this.initialize();
 	}
 	_debug(...args) {
-		if (this.logDebugMessages) this.logger(this._logPrefix(), ...args);
+		if (this.logDebugMessages) this.logger(`GoTrueClient@${this.instanceID} (${version}) ${(/* @__PURE__ */ new Date()).toISOString()}`, ...args);
 		return this;
 	}
 	/**
-	* Initialize the auth client by loading the session from storage or
-	* detecting it from the URL after an OAuth, magic-link, or password-recovery
-	* redirect.
-	*
-	* **Most callers do not need to invoke this directly.** The client calls it
-	* automatically during construction, and to react to sign-in events (including
-	* post-redirect events) you should subscribe to `onAuthStateChange` rather
-	* than awaiting `initialize()`.
-	*
-	* You only need to call it manually when you have opted out of the automatic
-	* call by passing `skipAutoInitialize: true` — for example, in an SSR context
-	* where you need to control initialization timing. In that case, awaiting
-	* `initialize()` returns the resolved session result (or any error encountered
-	* while detecting it from the URL).
-	*
-	* @category Auth
+	* Initializes the client session either from the url or from storage.
+	* This method is automatically called when instantiating the client, but should also be called
+	* manually when checking for an error from an auth redirect (oauth, magiclink, password recovery, etc).
 	*/
 	async initialize() {
-		var _a;
 		if (this.initializePromise) return await this.initializePromise;
-		this._pendingInitNotifications = [];
 		this.initializePromise = (async () => {
-			if (this.lock != null) return await this._acquireLock(this.lockAcquireTimeout, async () => {
+			return await this._acquireLock(-1, async () => {
 				return await this._initialize();
 			});
-			return await this._initialize();
 		})();
-		const result = await this.initializePromise;
-		const queue = (_a = this._pendingInitNotifications) !== null && _a !== void 0 ? _a : [];
-		this._pendingInitNotifications = null;
-		for (const n of queue) await this._notifyAllSubscribers(n.event, n.session, n.broadcast);
-		return result;
+		return await this.initializePromise;
 	}
 	/**
 	* IMPORTANT:
@@ -3289,13 +2273,10 @@ var GoTrueClient = class GoTrueClient {
 	async _initialize() {
 		var _a;
 		try {
-			let params = {};
+			const params = parseParametersFromURL(window.location.href);
 			let callbackUrlType = "none";
-			if (isBrowser()) {
-				params = parseParametersFromURL(window.location.href);
-				if (this._isImplicitGrantCallback(params)) callbackUrlType = "implicit";
-				else if (await this._isPKCECallback(params)) callbackUrlType = "pkce";
-			}
+			if (this._isImplicitGrantCallback(params)) callbackUrlType = "implicit";
+			else if (await this._isPKCECallback(params)) callbackUrlType = "pkce";
 			/**
 			* Attempt to get the session from the URL only if these conditions are fulfilled
 			*
@@ -3310,6 +2291,7 @@ var GoTrueClient = class GoTrueClient {
 						const errorCode = (_a = error.details) === null || _a === void 0 ? void 0 : _a.code;
 						if (errorCode === "identity_already_exists" || errorCode === "identity_not_found" || errorCode === "single_identity_not_deletable") return { error };
 					}
+					await this._removeSession();
 					return { error };
 				}
 				const { session, redirectType } = data;
@@ -3324,8 +2306,8 @@ var GoTrueClient = class GoTrueClient {
 			await this._recoverAndRefresh();
 			return { error: null };
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({ error });
-			return this._returnResult({ error: new AuthUnknownError("Unexpected error during initialization", error) });
+			if (isAuthError(error)) return { error };
+			return { error: new AuthUnknownError("Unexpected error during initialization", error) };
 		} finally {
 			await this._handleVisibilityChange();
 			this._debug("#_initialize()", "end");
@@ -3335,74 +2317,6 @@ var GoTrueClient = class GoTrueClient {
 	* Creates a new anonymous user.
 	*
 	* @returns A session where the is_anonymous claim in the access token JWT set to true
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Returns an anonymous user
-	* - It is recommended to set up captcha for anonymous sign-ins to prevent abuse. You can pass in the captcha token in the `options` param.
-	*
-	* @example Create an anonymous user
-	* ```js
-	* const { data, error } = await supabase.auth.signInAnonymously({
-	*   options: {
-	*     captchaToken
-	*   }
-	* });
-	* ```
-	*
-	* @exampleResponse Create an anonymous user
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "",
-	*       "phone": "",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {},
-	*       "user_metadata": {},
-	*       "identities": [],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": true
-	*     },
-	*     "session": {
-	*       "access_token": "<ACCESS_TOKEN>",
-	*       "token_type": "bearer",
-	*       "expires_in": 3600,
-	*       "expires_at": 1700000000,
-	*       "refresh_token": "<REFRESH_TOKEN>",
-	*       "user": {
-	*         "id": "11111111-1111-1111-1111-111111111111",
-	*         "aud": "authenticated",
-	*         "role": "authenticated",
-	*         "email": "",
-	*         "phone": "",
-	*         "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*         "app_metadata": {},
-	*         "user_metadata": {},
-	*         "identities": [],
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z",
-	*         "is_anonymous": true
-	*       }
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @example Create an anonymous user with custom user metadata
-	* ```js
-	* const { data, error } = await supabase.auth.signInAnonymously({
-	*   options: {
-	*     data
-	*   }
-	* })
-	* ```
 	*/
 	async signInAnonymously(credentials) {
 		var _a, _b, _c;
@@ -3415,34 +2329,34 @@ var GoTrueClient = class GoTrueClient {
 				},
 				xform: _sessionResponse
 			});
-			if (error || !data) return this._returnResult({
+			if (error || !data) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			const session = data.session;
 			const user = data.user;
 			if (data.session) {
 				await this._saveSession(data.session);
 				await this._notifyAllSubscribers("SIGNED_IN", session);
 			}
-			return this._returnResult({
+			return {
 				data: {
 					user,
 					session
 				},
 				error: null
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -3455,173 +2369,6 @@ var GoTrueClient = class GoTrueClient {
 	*
 	* @returns A logged-in session if the server has "autoconfirm" ON
 	* @returns A user if the server has "autoconfirm" OFF
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - By default, the user needs to verify their email address before logging in. To turn this off, disable **Confirm email** in [your project](/dashboard/project/_/auth/providers).
-	* - **Confirm email** determines if users need to confirm their email address after signing up.
-	*   - If **Confirm email** is enabled, a `user` is returned but `session` is null.
-	*   - If **Confirm email** is disabled, both a `user` and a `session` are returned.
-	* - When the user confirms their email address, they are redirected to the [`SITE_URL`](/docs/guides/auth/redirect-urls#use-wildcards-in-redirect-urls) by default. You can modify your `SITE_URL` or add additional redirect URLs in [your project](/dashboard/project/_/auth/url-configuration).
-	* - If signUp() is called for an existing confirmed user:
-	*   - When both **Confirm email** and **Confirm phone** (even when phone provider is disabled) are enabled in [your project](/dashboard/project/_/auth/providers), an obfuscated/fake user object is returned.
-	*   - When either **Confirm email** or **Confirm phone** (even when phone provider is disabled) is disabled, the error message, `User already registered` is returned.
-	* - To fetch the currently logged-in user, refer to [`getUser()`](/docs/reference/javascript/auth-getuser).
-	*
-	* @example Sign up with an email and password
-	* ```js
-	* const { data, error } = await supabase.auth.signUp({
-	*   email: 'example@email.com',
-	*   password: 'example-password',
-	* })
-	* ```
-	*
-	* @exampleResponse Sign up with an email and password
-	* ```json
-	* // Some fields may be null if "confirm email" is enabled.
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "example@email.com",
-	*       "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {},
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z"
-	*     },
-	*     "session": {
-	*       "access_token": "<ACCESS_TOKEN>",
-	*       "token_type": "bearer",
-	*       "expires_in": 3600,
-	*       "expires_at": 1700000000,
-	*       "refresh_token": "<REFRESH_TOKEN>",
-	*       "user": {
-	*         "id": "11111111-1111-1111-1111-111111111111",
-	*         "aud": "authenticated",
-	*         "role": "authenticated",
-	*         "email": "example@email.com",
-	*         "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*         "phone": "",
-	*         "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*         "app_metadata": {
-	*           "provider": "email",
-	*           "providers": [
-	*             "email"
-	*           ]
-	*         },
-	*         "user_metadata": {},
-	*         "identities": [
-	*           {
-	*             "identity_id": "22222222-2222-2222-2222-222222222222",
-	*             "id": "11111111-1111-1111-1111-111111111111",
-	*             "user_id": "11111111-1111-1111-1111-111111111111",
-	*             "identity_data": {
-	*               "email": "example@email.com",
-	*               "email_verified": false,
-	*               "phone_verified": false,
-	*               "sub": "11111111-1111-1111-1111-111111111111"
-	*             },
-	*             "provider": "email",
-	*             "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*             "created_at": "2024-01-01T00:00:00Z",
-	*             "updated_at": "2024-01-01T00:00:00Z",
-	*             "email": "example@email.com"
-	*           }
-	*         ],
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z"
-	*       }
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @example Sign up with a phone number and password (SMS)
-	* ```js
-	* const { data, error } = await supabase.auth.signUp({
-	*   phone: '123456789',
-	*   password: 'example-password',
-	*   options: {
-	*     channel: 'sms'
-	*   }
-	* })
-	* ```
-	*
-	* @exampleDescription Sign up with a phone number and password (whatsapp)
-	* The user will be sent a WhatsApp message which contains a OTP. By default, a given user can only request a OTP once every 60 seconds. Note that a user will need to have a valid WhatsApp account that is linked to Twilio in order to use this feature.
-	*
-	* @example Sign up with a phone number and password (whatsapp)
-	* ```js
-	* const { data, error } = await supabase.auth.signUp({
-	*   phone: '123456789',
-	*   password: 'example-password',
-	*   options: {
-	*     channel: 'whatsapp'
-	*   }
-	* })
-	* ```
-	*
-	* @example Sign up with additional user metadata
-	* ```js
-	* const { data, error } = await supabase.auth.signUp(
-	*   {
-	*     email: 'example@email.com',
-	*     password: 'example-password',
-	*     options: {
-	*       data: {
-	*         first_name: 'John',
-	*         age: 27,
-	*       }
-	*     }
-	*   }
-	* )
-	* ```
-	*
-	* @exampleDescription Sign up with a redirect URL
-	* - See [redirect URLs and wildcards](/docs/guides/auth/redirect-urls#use-wildcards-in-redirect-urls) to add additional redirect URLs to your project.
-	*
-	* @example Sign up with a redirect URL
-	* ```js
-	* const { data, error } = await supabase.auth.signUp(
-	*   {
-	*     email: 'example@email.com',
-	*     password: 'example-password',
-	*     options: {
-	*       emailRedirectTo: 'https://example.com/welcome'
-	*     }
-	*   }
-	* )
-	* ```
 	*/
 	async signUp(credentials) {
 		var _a, _b, _c;
@@ -3660,38 +2407,34 @@ var GoTrueClient = class GoTrueClient {
 				});
 			} else throw new AuthInvalidCredentialsError("You must provide either an email or phone number and a password");
 			const { data, error } = res;
-			if (error || !data) {
-				await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-				return this._returnResult({
-					data: {
-						user: null,
-						session: null
-					},
-					error
-				});
-			}
+			if (error || !data) return {
+				data: {
+					user: null,
+					session: null
+				},
+				error
+			};
 			const session = data.session;
 			const user = data.user;
 			if (data.session) {
 				await this._saveSession(data.session);
 				await this._notifyAllSubscribers("SIGNED_IN", session);
 			}
-			return this._returnResult({
+			return {
 				data: {
 					user,
 					session
 				},
 				error: null
-			});
+			};
 		} catch (error) {
-			await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -3702,130 +2445,6 @@ var GoTrueClient = class GoTrueClient {
 	* between the cases where the account does not exist or that the
 	* email/phone and password combination is wrong or that the account can only
 	* be accessed via social login.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Requires either an email and password or a phone number and password.
-	*
-	* @example Sign in with email and password
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithPassword({
-	*   email: 'example@email.com',
-	*   password: 'example-password',
-	* })
-	* ```
-	*
-	* @exampleResponse Sign in with email and password
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "example@email.com",
-	*       "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {},
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z"
-	*     },
-	*     "session": {
-	*       "access_token": "<ACCESS_TOKEN>",
-	*       "token_type": "bearer",
-	*       "expires_in": 3600,
-	*       "expires_at": 1700000000,
-	*       "refresh_token": "<REFRESH_TOKEN>",
-	*       "user": {
-	*         "id": "11111111-1111-1111-1111-111111111111",
-	*         "aud": "authenticated",
-	*         "role": "authenticated",
-	*         "email": "example@email.com",
-	*         "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*         "phone": "",
-	*         "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*         "app_metadata": {
-	*           "provider": "email",
-	*           "providers": [
-	*             "email"
-	*           ]
-	*         },
-	*         "user_metadata": {},
-	*         "identities": [
-	*           {
-	*             "identity_id": "22222222-2222-2222-2222-222222222222",
-	*             "id": "11111111-1111-1111-1111-111111111111",
-	*             "user_id": "11111111-1111-1111-1111-111111111111",
-	*             "identity_data": {
-	*               "email": "example@email.com",
-	*               "email_verified": false,
-	*               "phone_verified": false,
-	*               "sub": "11111111-1111-1111-1111-111111111111"
-	*             },
-	*             "provider": "email",
-	*             "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*             "created_at": "2024-01-01T00:00:00Z",
-	*             "updated_at": "2024-01-01T00:00:00Z",
-	*             "email": "example@email.com"
-	*           }
-	*         ],
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z"
-	*       }
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @example Sign in with phone and password
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithPassword({
-	*   phone: '+13334445555',
-	*   password: 'some-password',
-	* })
-	* ```
-	*
-	* @exampleDescription Handling errors
-	* Log the full `error` object so fields like `code`, `status`, and `name` aren't hidden. The `error.code` (e.g. `'invalid_credentials'`, `'email_not_confirmed'`) is often more useful for branching than `error.message`, and the full object surfaces both.
-	*
-	* @example Handling errors
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithPassword({
-	*   email: 'example@email.com',
-	*   password: 'example-password',
-	* })
-	* if (error) {
-	*   console.error(error)
-	*   return
-	* }
-	* ```
 	*/
 	async signInWithPassword(credentials) {
 		try {
@@ -3854,123 +2473,45 @@ var GoTrueClient = class GoTrueClient {
 				});
 			} else throw new AuthInvalidCredentialsError("You must provide either an email or phone number and a password");
 			const { data, error } = res;
-			if (error) return this._returnResult({
+			if (error) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
-			else if (!data || !data.session || !data.user) {
-				const invalidTokenError = new AuthInvalidTokenResponseError();
-				return this._returnResult({
-					data: {
-						user: null,
-						session: null
-					},
-					error: invalidTokenError
-				});
-			}
+			};
+			else if (!data || !data.session || !data.user) return {
+				data: {
+					user: null,
+					session: null
+				},
+				error: new AuthInvalidTokenResponseError()
+			};
 			if (data.session) {
 				await this._saveSession(data.session);
 				await this._notifyAllSubscribers("SIGNED_IN", data.session);
 			}
-			return this._returnResult({
+			return {
 				data: Object.assign({
 					user: data.user,
 					session: data.session
 				}, data.weak_password ? { weakPassword: data.weak_password } : null),
 				error
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	/**
 	* Log in an existing user via a third-party provider.
 	* This method supports the PKCE flow.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - This method is used for signing in using [Social Login (OAuth) providers](/docs/guides/auth#configure-third-party-providers).
-	* - It works by redirecting your application to the provider's authorization screen, before bringing back the user to your app.
-	*
-	* @example Sign in using a third-party provider
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithOAuth({
-	*   provider: 'github'
-	* })
-	* ```
-	*
-	* @exampleResponse Sign in using a third-party provider
-	* ```json
-	* {
-	*   data: {
-	*     provider: 'github',
-	*     url: <PROVIDER_URL_TO_REDIRECT_TO>
-	*   },
-	*   error: null
-	* }
-	* ```
-	*
-	* @exampleDescription Sign in using a third-party provider with redirect
-	* - When the OAuth provider successfully authenticates the user, they are redirected to the URL specified in the `redirectTo` parameter. This parameter defaults to the [`SITE_URL`](/docs/guides/auth/redirect-urls#use-wildcards-in-redirect-urls). It does not redirect the user immediately after invoking this method.
-	* - See [redirect URLs and wildcards](/docs/guides/auth/redirect-urls#use-wildcards-in-redirect-urls) to add additional redirect URLs to your project.
-	*
-	* @example Sign in using a third-party provider with redirect
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithOAuth({
-	*   provider: 'github',
-	*   options: {
-	*     redirectTo: 'https://example.com/welcome'
-	*   }
-	* })
-	* ```
-	*
-	* @exampleDescription Sign in with scopes and access provider tokens
-	* If you need additional access from an OAuth provider, in order to access provider specific APIs in the name of the user, you can do this by passing in the scopes the user should authorize for your application. Note that the `scopes` option takes in **a space-separated list** of scopes.
-	*
-	* Because OAuth sign-in often includes redirects, you should register an `onAuthStateChange` callback immediately after you create the Supabase client. This callback will listen for the presence of `provider_token` and `provider_refresh_token` properties on the `session` object and store them in local storage. The client library will emit these values **only once** immediately after the user signs in. You can then access them by looking them up in local storage, or send them to your backend servers for further processing.
-	*
-	* Finally, make sure you remove them from local storage on the `SIGNED_OUT` event. If the OAuth provider supports token revocation, make sure you call those APIs either from the frontend or schedule them to be called on the backend.
-	*
-	* @example Sign in with scopes and access provider tokens
-	* ```js
-	* // Register this immediately after calling createClient!
-	* // Because signInWithOAuth causes a redirect, you need to fetch the
-	* // provider tokens from the callback.
-	* supabase.auth.onAuthStateChange((event, session) => {
-	*   if (session && session.provider_token) {
-	*     window.localStorage.setItem('oauth_provider_token', session.provider_token)
-	*   }
-	*
-	*   if (session && session.provider_refresh_token) {
-	*     window.localStorage.setItem('oauth_provider_refresh_token', session.provider_refresh_token)
-	*   }
-	*
-	*   if (event === 'SIGNED_OUT') {
-	*     window.localStorage.removeItem('oauth_provider_token')
-	*     window.localStorage.removeItem('oauth_provider_refresh_token')
-	*   }
-	* })
-	*
-	* // Call this on your Sign in with GitHub button to initiate OAuth
-	* // with GitHub with the requested elevated scopes.
-	* await supabase.auth.signInWithOAuth({
-	*   provider: 'github',
-	*   options: {
-	*     scopes: 'repo gist notifications'
-	*   }
-	* })
-	* ```
 	*/
 	async signInWithOAuth(credentials) {
 		var _a, _b, _c, _d;
@@ -3983,180 +2524,12 @@ var GoTrueClient = class GoTrueClient {
 	}
 	/**
 	* Log in an existing user by exchanging an Auth Code issued during the PKCE flow.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Used when `flowType` is set to `pkce` in client options.
-	*
-	* @example Exchange Auth Code
-	* ```js
-	* supabase.auth.exchangeCodeForSession('34e770dd-9ff9-416c-87fa-43b31d7ef225')
-	* ```
-	*
-	* @exampleResponse Exchange Auth Code
-	* ```json
-	* {
-	*   "data": {
-	*     session: {
-	*       access_token: '<ACCESS_TOKEN>',
-	*       token_type: 'bearer',
-	*       expires_in: 3600,
-	*       expires_at: 1700000000,
-	*       refresh_token: '<REFRESH_TOKEN>',
-	*       user: {
-	*         id: '11111111-1111-1111-1111-111111111111',
-	*         aud: 'authenticated',
-	*         role: 'authenticated',
-	*         email: 'example@email.com'
-	*         email_confirmed_at: '2024-01-01T00:00:00Z',
-	*         phone: '',
-	*         confirmation_sent_at: '2024-01-01T00:00:00Z',
-	*         confirmed_at: '2024-01-01T00:00:00Z',
-	*         last_sign_in_at: '2024-01-01T00:00:00Z',
-	*         app_metadata: {
-	*           "provider": "email",
-	*           "providers": [
-	*             "email",
-	*             "<OTHER_PROVIDER>"
-	*           ]
-	*         },
-	*         user_metadata: {
-	*           email: 'email@email.com',
-	*           email_verified: true,
-	*           full_name: 'User Name',
-	*           iss: '<ISS>',
-	*           name: 'User Name',
-	*           phone_verified: false,
-	*           provider_id: '<PROVIDER_ID>',
-	*           sub: '<SUB>'
-	*         },
-	*         identities: [
-	*           {
-	*             "identity_id": "22222222-2222-2222-2222-222222222222",
-	*             "id": "11111111-1111-1111-1111-111111111111",
-	*             "user_id": "11111111-1111-1111-1111-111111111111",
-	*             "identity_data": {
-	*               "email": "example@email.com",
-	*               "email_verified": false,
-	*               "phone_verified": false,
-	*               "sub": "11111111-1111-1111-1111-111111111111"
-	*             },
-	*             "provider": "email",
-	*             "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*             "created_at": "2024-01-01T00:00:00Z",
-	*             "updated_at": "2024-01-01T00:00:00Z",
-	*             "email": "email@example.com"
-	*           },
-	*           {
-	*             "identity_id": "33333333-3333-3333-3333-333333333333",
-	*             "id": "<ID>",
-	*             "user_id": "<USER_ID>",
-	*             "identity_data": {
-	*               "email": "example@email.com",
-	*               "email_verified": true,
-	*               "full_name": "User Name",
-	*               "iss": "<ISS>",
-	*               "name": "User Name",
-	*               "phone_verified": false,
-	*               "provider_id": "<PROVIDER_ID>",
-	*               "sub": "<SUB>"
-	*             },
-	*             "provider": "<PROVIDER>",
-	*             "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*             "created_at": "2024-01-01T00:00:00Z",
-	*             "updated_at": "2024-01-01T00:00:00Z",
-	*             "email": "example@email.com"
-	*           }
-	*         ],
-	*         created_at: '2024-01-01T00:00:00Z',
-	*         updated_at: '2024-01-01T00:00:00Z',
-	*         is_anonymous: false
-	*       },
-	*       provider_token: '<PROVIDER_TOKEN>',
-	*       provider_refresh_token: '<PROVIDER_REFRESH_TOKEN>'
-	*     },
-	*     user: {
-	*       id: '11111111-1111-1111-1111-111111111111',
-	*       aud: 'authenticated',
-	*       role: 'authenticated',
-	*       email: 'example@email.com',
-	*       email_confirmed_at: '2024-01-01T00:00:00Z',
-	*       phone: '',
-	*       confirmation_sent_at: '2024-01-01T00:00:00Z',
-	*       confirmed_at: '2024-01-01T00:00:00Z',
-	*       last_sign_in_at: '2024-01-01T00:00:00Z',
-	*       app_metadata: {
-	*         provider: 'email',
-	*         providers: [
-	*           "email",
-	*           "<OTHER_PROVIDER>"
-	*         ]
-	*       },
-	*       user_metadata: {
-	*         email: 'email@email.com',
-	*         email_verified: true,
-	*         full_name: 'User Name',
-	*         iss: '<ISS>',
-	*         name: 'User Name',
-	*         phone_verified: false,
-	*         provider_id: '<PROVIDER_ID>',
-	*         sub: '<SUB>'
-	*       },
-	*       identities: [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "email@example.com"
-	*         },
-	*         {
-	*           "identity_id": "33333333-3333-3333-3333-333333333333",
-	*           "id": "<ID>",
-	*           "user_id": "<USER_ID>",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": true,
-	*             "full_name": "User Name",
-	*             "iss": "<ISS>",
-	*             "name": "User Name",
-	*             "phone_verified": false,
-	*             "provider_id": "<PROVIDER_ID>",
-	*             "sub": "<SUB>"
-	*           },
-	*           "provider": "<PROVIDER>",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       created_at: '2024-01-01T00:00:00Z',
-	*       updated_at: '2024-01-01T00:00:00Z',
-	*       is_anonymous: false
-	*     },
-	*     redirectType: null
-	*   },
-	*   "error": null
-	* }
-	* ```
 	*/
 	async exchangeCodeForSession(authCode) {
 		await this.initializePromise;
-		if (this.lock != null) return this._acquireLock(this.lockAcquireTimeout, async () => {
+		return this._acquireLock(-1, async () => {
 			return this._exchangeCodeForSession(authCode);
 		});
-		return this._exchangeCodeForSession(authCode);
 	}
 	/**
 	* Signs in a user by verifying a message signed by the user's private key.
@@ -4164,87 +2537,6 @@ var GoTrueClient = class GoTrueClient {
 	* both of which derive from the EIP-4361 standard
 	* With slight variation on Solana's side.
 	* @reference https://eips.ethereum.org/EIPS/eip-4361
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Uses a Web3 (Ethereum, Solana) wallet to sign a user in.
-	* - Read up on the [potential for abuse](/docs/guides/auth/auth-web3#potential-for-abuse) before using it.
-	*
-	* @example Sign in with Solana or Ethereum (Window API)
-	* ```js
-	*   // uses window.ethereum for the wallet
-	*   const { data, error } = await supabase.auth.signInWithWeb3({
-	*     chain: 'ethereum',
-	*     statement: 'I accept the Terms of Service at https://example.com/tos'
-	*   })
-	*
-	*   // uses window.solana for the wallet
-	*   const { data, error } = await supabase.auth.signInWithWeb3({
-	*     chain: 'solana',
-	*     statement: 'I accept the Terms of Service at https://example.com/tos'
-	*   })
-	* ```
-	*
-	* @example Sign in with Ethereum (Message and Signature)
-	* ```js
-	*   const { data, error } = await supabase.auth.signInWithWeb3({
-	*     chain: 'ethereum',
-	*     message: '<sign in with ethereum message>',
-	*     signature: '<hex of the ethereum signature over the message>',
-	*   })
-	* ```
-	*
-	* @example Sign in with Solana (Brave)
-	* ```js
-	*   const { data, error } = await supabase.auth.signInWithWeb3({
-	*     chain: 'solana',
-	*     statement: 'I accept the Terms of Service at https://example.com/tos',
-	*     wallet: window.braveSolana
-	*   })
-	* ```
-	*
-	* @example Sign in with Solana (Wallet Adapter)
-	* ```jsx
-	*   function SignInButton() {
-	*   const wallet = useWallet()
-	*
-	*   return (
-	*     <>
-	*       {wallet.connected ? (
-	*         <button
-	*           onClick={() => {
-	*             supabase.auth.signInWithWeb3({
-	*               chain: 'solana',
-	*               statement: 'I accept the Terms of Service at https://example.com/tos',
-	*               wallet,
-	*             })
-	*           }}
-	*         >
-	*           Sign in with Solana
-	*         </button>
-	*       ) : (
-	*         <WalletMultiButton />
-	*       )}
-	*     </>
-	*   )
-	* }
-	*
-	* function App() {
-	*   const endpoint = clusterApiUrl('devnet')
-	*   const wallets = useMemo(() => [], [])
-	*
-	*   return (
-	*     <ConnectionProvider endpoint={endpoint}>
-	*       <WalletProvider wallets={wallets}>
-	*         <WalletModalProvider>
-	*           <SignInButton />
-	*         </WalletModalProvider>
-	*       </WalletProvider>
-	*     </ConnectionProvider>
-	*   )
-	* }
-	* ```
 	*/
 	async signInWithWeb3(credentials) {
 		const { chain } = credentials;
@@ -4255,7 +2547,7 @@ var GoTrueClient = class GoTrueClient {
 		}
 	}
 	async signInWithEthereum(credentials) {
-		var _a, _b, _c, _d, _f, _g, _h, _j, _k, _l, _m;
+		var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
 		let message;
 		let signature;
 		if ("message" in credentials) {
@@ -4289,11 +2581,11 @@ var GoTrueClient = class GoTrueClient {
 				version: "1",
 				chainId,
 				nonce: (_c = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _c === void 0 ? void 0 : _c.nonce,
-				issuedAt: (_f = (_d = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _d === void 0 ? void 0 : _d.issuedAt) !== null && _f !== void 0 ? _f : /* @__PURE__ */ new Date(),
-				expirationTime: (_g = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _g === void 0 ? void 0 : _g.expirationTime,
-				notBefore: (_h = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _h === void 0 ? void 0 : _h.notBefore,
-				requestId: (_j = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _j === void 0 ? void 0 : _j.requestId,
-				resources: (_k = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _k === void 0 ? void 0 : _k.resources
+				issuedAt: (_e = (_d = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _d === void 0 ? void 0 : _d.issuedAt) !== null && _e !== void 0 ? _e : /* @__PURE__ */ new Date(),
+				expirationTime: (_f = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _f === void 0 ? void 0 : _f.expirationTime,
+				notBefore: (_g = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _g === void 0 ? void 0 : _g.notBefore,
+				requestId: (_h = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _h === void 0 ? void 0 : _h.requestId,
+				resources: (_j = options === null || options === void 0 ? void 0 : options.signInWithEthereum) === null || _j === void 0 ? void 0 : _j.resources
 			});
 			signature = await resolvedWallet.request({
 				method: "personal_sign",
@@ -4307,41 +2599,38 @@ var GoTrueClient = class GoTrueClient {
 					chain: "ethereum",
 					message,
 					signature
-				}, ((_l = credentials.options) === null || _l === void 0 ? void 0 : _l.captchaToken) ? { gotrue_meta_security: { captcha_token: (_m = credentials.options) === null || _m === void 0 ? void 0 : _m.captchaToken } } : null),
+				}, ((_k = credentials.options) === null || _k === void 0 ? void 0 : _k.captchaToken) ? { gotrue_meta_security: { captcha_token: (_l = credentials.options) === null || _l === void 0 ? void 0 : _l.captchaToken } } : null),
 				xform: _sessionResponse
 			});
 			if (error) throw error;
-			if (!data || !data.session || !data.user) {
-				const invalidTokenError = new AuthInvalidTokenResponseError();
-				return this._returnResult({
-					data: {
-						user: null,
-						session: null
-					},
-					error: invalidTokenError
-				});
-			}
+			if (!data || !data.session || !data.user) return {
+				data: {
+					user: null,
+					session: null
+				},
+				error: new AuthInvalidTokenResponseError()
+			};
 			if (data.session) {
 				await this._saveSession(data.session);
 				await this._notifyAllSubscribers("SIGNED_IN", data.session);
 			}
-			return this._returnResult({
+			return {
 				data: Object.assign({}, data),
 				error
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	async signInWithSolana(credentials) {
-		var _a, _b, _c, _d, _f, _g, _h, _j, _k, _l, _m, _o;
+		var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
 		let message;
 		let signature;
 		if ("message" in credentials) {
@@ -4388,11 +2677,11 @@ var GoTrueClient = class GoTrueClient {
 					`URI: ${url.href}`,
 					`Issued At: ${(_c = (_b = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _b === void 0 ? void 0 : _b.issuedAt) !== null && _c !== void 0 ? _c : (/* @__PURE__ */ new Date()).toISOString()}`,
 					...((_d = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _d === void 0 ? void 0 : _d.notBefore) ? [`Not Before: ${options.signInWithSolana.notBefore}`] : [],
-					...((_f = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _f === void 0 ? void 0 : _f.expirationTime) ? [`Expiration Time: ${options.signInWithSolana.expirationTime}`] : [],
-					...((_g = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _g === void 0 ? void 0 : _g.chainId) ? [`Chain ID: ${options.signInWithSolana.chainId}`] : [],
-					...((_h = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _h === void 0 ? void 0 : _h.nonce) ? [`Nonce: ${options.signInWithSolana.nonce}`] : [],
-					...((_j = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _j === void 0 ? void 0 : _j.requestId) ? [`Request ID: ${options.signInWithSolana.requestId}`] : [],
-					...((_l = (_k = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _k === void 0 ? void 0 : _k.resources) === null || _l === void 0 ? void 0 : _l.length) ? ["Resources", ...options.signInWithSolana.resources.map((resource) => `- ${resource}`)] : []
+					...((_e = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _e === void 0 ? void 0 : _e.expirationTime) ? [`Expiration Time: ${options.signInWithSolana.expirationTime}`] : [],
+					...((_f = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _f === void 0 ? void 0 : _f.chainId) ? [`Chain ID: ${options.signInWithSolana.chainId}`] : [],
+					...((_g = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _g === void 0 ? void 0 : _g.nonce) ? [`Nonce: ${options.signInWithSolana.nonce}`] : [],
+					...((_h = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _h === void 0 ? void 0 : _h.requestId) ? [`Request ID: ${options.signInWithSolana.requestId}`] : [],
+					...((_k = (_j = options === null || options === void 0 ? void 0 : options.signInWithSolana) === null || _j === void 0 ? void 0 : _j.resources) === null || _k === void 0 ? void 0 : _k.length) ? ["Resources", ...options.signInWithSolana.resources.map((resource) => `- ${resource}`)] : []
 				].join("\n");
 				const maybeSignature = await resolvedWallet.signMessage(new TextEncoder().encode(message), "utf8");
 				if (!maybeSignature || !(maybeSignature instanceof Uint8Array)) throw new Error("@supabase/auth-js: Wallet signMessage() API returned an recognized value");
@@ -4406,36 +2695,33 @@ var GoTrueClient = class GoTrueClient {
 					chain: "solana",
 					message,
 					signature: bytesToBase64URL(signature)
-				}, ((_m = credentials.options) === null || _m === void 0 ? void 0 : _m.captchaToken) ? { gotrue_meta_security: { captcha_token: (_o = credentials.options) === null || _o === void 0 ? void 0 : _o.captchaToken } } : null),
+				}, ((_l = credentials.options) === null || _l === void 0 ? void 0 : _l.captchaToken) ? { gotrue_meta_security: { captcha_token: (_m = credentials.options) === null || _m === void 0 ? void 0 : _m.captchaToken } } : null),
 				xform: _sessionResponse
 			});
 			if (error) throw error;
-			if (!data || !data.session || !data.user) {
-				const invalidTokenError = new AuthInvalidTokenResponseError();
-				return this._returnResult({
-					data: {
-						user: null,
-						session: null
-					},
-					error: invalidTokenError
-				});
-			}
+			if (!data || !data.session || !data.user) return {
+				data: {
+					user: null,
+					session: null
+				},
+				error: new AuthInvalidTokenResponseError()
+			};
 			if (data.session) {
 				await this._saveSession(data.session);
 				await this._notifyAllSubscribers("SIGNED_IN", data.session);
 			}
-			return this._returnResult({
+			return {
 				data: Object.assign({}, data),
 				error
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -4443,7 +2729,6 @@ var GoTrueClient = class GoTrueClient {
 		const storageItem = await getItemAsync(this.storage, `${this.storageKey}-code-verifier`);
 		const [codeVerifier, redirectType] = (storageItem !== null && storageItem !== void 0 ? storageItem : "").split("/");
 		try {
-			if (!codeVerifier && this.flowType === "pkce") throw new AuthPKCECodeVerifierMissingError();
 			const { data, error } = await _request(this.fetch, "POST", `${this.url}/token?grant_type=pkce`, {
 				headers: this.headers,
 				body: {
@@ -4454,112 +2739,37 @@ var GoTrueClient = class GoTrueClient {
 			});
 			await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
 			if (error) throw error;
-			if (!data || !data.session || !data.user) {
-				const invalidTokenError = new AuthInvalidTokenResponseError();
-				return this._returnResult({
-					data: {
-						user: null,
-						session: null,
-						redirectType: null
-					},
-					error: invalidTokenError
-				});
-			}
+			if (!data || !data.session || !data.user) return {
+				data: {
+					user: null,
+					session: null,
+					redirectType: null
+				},
+				error: new AuthInvalidTokenResponseError()
+			};
 			if (data.session) {
 				await this._saveSession(data.session);
-				await this._notifyAllSubscribers(redirectType === "recovery" ? "PASSWORD_RECOVERY" : "SIGNED_IN", data.session);
+				await this._notifyAllSubscribers("SIGNED_IN", data.session);
 			}
-			return this._returnResult({
+			return {
 				data: Object.assign(Object.assign({}, data), { redirectType: redirectType !== null && redirectType !== void 0 ? redirectType : null }),
 				error
-			});
+			};
 		} catch (error) {
-			await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null,
 					redirectType: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	/**
 	* Allows signing in with an OIDC ID token. The authentication provider used
 	* should be enabled and configured.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Use an ID token to sign in.
-	* - Especially useful when implementing sign in using native platform dialogs in mobile or desktop apps using Sign in with Apple or Sign in with Google on iOS and Android.
-	* - You can also use Google's [One Tap](https://developers.google.com/identity/gsi/web/guides/display-google-one-tap) and [Automatic sign-in](https://developers.google.com/identity/gsi/web/guides/automatic-sign-in-sign-out) via this API.
-	*
-	* @example Sign In using ID Token
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithIdToken({
-	*   provider: 'google',
-	*   token: 'your-id-token'
-	* })
-	* ```
-	*
-	* @exampleResponse Sign In using ID Token
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         ...
-	*       },
-	*       "user_metadata": {
-	*         ...
-	*       },
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "provider": "google",
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*     },
-	*     "session": {
-	*       "access_token": "<ACCESS_TOKEN>",
-	*       "token_type": "bearer",
-	*       "expires_in": 3600,
-	*       "expires_at": 1700000000,
-	*       "refresh_token": "<REFRESH_TOKEN>",
-	*       "user": {
-	*         "id": "11111111-1111-1111-1111-111111111111",
-	*         "aud": "authenticated",
-	*         "role": "authenticated",
-	*         "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*         "app_metadata": {
-	*           ...
-	*         },
-	*         "user_metadata": {
-	*           ...
-	*         },
-	*         "identities": [
-	*           {
-	*             "identity_id": "22222222-2222-2222-2222-222222222222",
-	*             "provider": "google",
-	*           }
-	*         ],
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z",
-	*       }
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
 	*/
 	async signInWithIdToken(credentials) {
 		try {
@@ -4575,39 +2785,36 @@ var GoTrueClient = class GoTrueClient {
 				},
 				xform: _sessionResponse
 			});
-			if (error) return this._returnResult({
+			if (error) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
-			else if (!data || !data.session || !data.user) {
-				const invalidTokenError = new AuthInvalidTokenResponseError();
-				return this._returnResult({
-					data: {
-						user: null,
-						session: null
-					},
-					error: invalidTokenError
-				});
-			}
+			};
+			else if (!data || !data.session || !data.user) return {
+				data: {
+					user: null,
+					session: null
+				},
+				error: new AuthInvalidTokenResponseError()
+			};
 			if (data.session) {
 				await this._saveSession(data.session);
 				await this._notifyAllSubscribers("SIGNED_IN", data.session);
 			}
-			return this._returnResult({
+			return {
 				data,
 				error
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -4627,69 +2834,9 @@ var GoTrueClient = class GoTrueClient {
 	* channel is not supported on other providers
 	* at this time.
 	* This method supports PKCE when an email is passed.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Requires either an email or phone number.
-	* - This method is used for passwordless sign-ins where a OTP is sent to the user's email or phone number.
-	* - If the user doesn't exist, `signInWithOtp()` will signup the user instead. To restrict this behavior, you can set `shouldCreateUser` in `SignInWithPasswordlessCredentials.options` to `false`.
-	* - If you're using an email, you can configure whether you want the user to receive a magiclink or a OTP.
-	* - If you're using phone, you can configure whether you want the user to receive a OTP.
-	* - The magic link's destination URL is determined by the [`SITE_URL`](/docs/guides/auth/redirect-urls#use-wildcards-in-redirect-urls).
-	* - See [redirect URLs and wildcards](/docs/guides/auth/redirect-urls#use-wildcards-in-redirect-urls) to add additional redirect URLs to your project.
-	* - Magic links and OTPs share the same implementation. To send users a one-time code instead of a magic link, [modify the magic link email template](/dashboard/project/_/auth/templates) to include `{{ .Token }}` instead of `{{ .ConfirmationURL }}`.
-	* - See our [Twilio Phone Auth Guide](/docs/guides/auth/phone-login?showSMSProvider=Twilio) for details about configuring WhatsApp sign in.
-	*
-	* @exampleDescription Sign in with email
-	* The user will be sent an email which contains either a magiclink or a OTP or both. By default, a given user can only request a OTP once every 60 seconds.
-	*
-	* @example Sign in with email
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithOtp({
-	*   email: 'example@email.com',
-	*   options: {
-	*     emailRedirectTo: 'https://example.com/welcome'
-	*   }
-	* })
-	* ```
-	*
-	* @exampleResponse Sign in with email
-	* ```json
-	* {
-	*   "data": {
-	*     "user": null,
-	*     "session": null
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @exampleDescription Sign in with SMS OTP
-	* The user will be sent a SMS which contains a OTP. By default, a given user can only request a OTP once every 60 seconds.
-	*
-	* @example Sign in with SMS OTP
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithOtp({
-	*   phone: '+13334445555',
-	* })
-	* ```
-	*
-	* @exampleDescription Sign in with WhatsApp OTP
-	* The user will be sent a WhatsApp message which contains a OTP. By default, a given user can only request a OTP once every 60 seconds. Note that a user will need to have a valid WhatsApp account that is linked to Twilio in order to use this feature.
-	*
-	* @example Sign in with WhatsApp OTP
-	* ```js
-	* const { data, error } = await supabase.auth.signInWithOtp({
-	*   phone: '+13334445555',
-	*   options: {
-	*     channel:'whatsapp',
-	*   }
-	* })
-	* ```
 	*/
 	async signInWithOtp(credentials) {
-		var _a, _b, _c, _d, _f;
+		var _a, _b, _c, _d, _e;
 		try {
 			if ("email" in credentials) {
 				const { email, options } = credentials;
@@ -4708,13 +2855,13 @@ var GoTrueClient = class GoTrueClient {
 					},
 					redirectTo: options === null || options === void 0 ? void 0 : options.emailRedirectTo
 				});
-				return this._returnResult({
+				return {
 					data: {
 						user: null,
 						session: null
 					},
 					error
-				});
+				};
 			}
 			if ("phone" in credentials) {
 				const { phone, options } = credentials;
@@ -4725,167 +2872,32 @@ var GoTrueClient = class GoTrueClient {
 						data: (_c = options === null || options === void 0 ? void 0 : options.data) !== null && _c !== void 0 ? _c : {},
 						create_user: (_d = options === null || options === void 0 ? void 0 : options.shouldCreateUser) !== null && _d !== void 0 ? _d : true,
 						gotrue_meta_security: { captcha_token: options === null || options === void 0 ? void 0 : options.captchaToken },
-						channel: (_f = options === null || options === void 0 ? void 0 : options.channel) !== null && _f !== void 0 ? _f : "sms"
+						channel: (_e = options === null || options === void 0 ? void 0 : options.channel) !== null && _e !== void 0 ? _e : "sms"
 					}
 				});
-				return this._returnResult({
+				return {
 					data: {
 						user: null,
 						session: null,
 						messageId: data === null || data === void 0 ? void 0 : data.message_id
 					},
 					error
-				});
+				};
 			}
 			throw new AuthInvalidCredentialsError("You must provide either an email or phone number.");
 		} catch (error) {
-			await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	/**
 	* Log in a user given a User supplied OTP or TokenHash received through mobile or email.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - The `verifyOtp` method takes in different verification types.
-	* - If a phone number is used, the type can either be:
-	*   1. `sms` – Used when verifying a one-time password (OTP) sent via SMS during sign-up or sign-in.
-	*   2. `phone_change` – Used when verifying an OTP sent to a new phone number during a phone number update process.
-	* - If an email address is used, the type can be one of the following (note: `signup` and `magiclink` types are deprecated):
-	*   1. `email` – Used when verifying an OTP sent to the user's email during sign-up or sign-in.
-	*   2. `recovery` – Used when verifying an OTP sent for account recovery, typically after a password reset request.
-	*   3. `invite` – Used when verifying an OTP sent as part of an invitation to join a project or organization.
-	*   4. `email_change` – Used when verifying an OTP sent to a new email address during an email update process.
-	* - The verification type used should be determined based on the corresponding auth method called before `verifyOtp` to sign up / sign-in a user.
-	* - The `TokenHash` is contained in the [email templates](/docs/guides/auth/auth-email-templates) and can be used to sign in.  You may wish to use the hash for the PKCE flow for Server Side Auth. Read [the Password-based Auth guide](/docs/guides/auth/passwords) for more details.
-	*
-	* @example Verify Signup One-Time Password (OTP)
-	* ```js
-	* const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email'})
-	* ```
-	*
-	* @exampleResponse Verify Signup One-Time Password (OTP)
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "example@email.com",
-	*       "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "confirmed_at": "2024-01-01T00:00:00Z",
-	*       "recovery_sent_at": "2024-01-01T00:00:00Z",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {
-	*         "email": "example@email.com",
-	*         "email_verified": false,
-	*         "phone_verified": false,
-	*         "sub": "11111111-1111-1111-1111-111111111111"
-	*       },
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": false
-	*     },
-	*     "session": {
-	*       "access_token": "<ACCESS_TOKEN>",
-	*       "token_type": "bearer",
-	*       "expires_in": 3600,
-	*       "expires_at": 1700000000,
-	*       "refresh_token": "<REFRESH_TOKEN>",
-	*       "user": {
-	*         "id": "11111111-1111-1111-1111-111111111111",
-	*         "aud": "authenticated",
-	*         "role": "authenticated",
-	*         "email": "example@email.com",
-	*         "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*         "phone": "",
-	*         "confirmed_at": "2024-01-01T00:00:00Z",
-	*         "recovery_sent_at": "2024-01-01T00:00:00Z",
-	*         "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*         "app_metadata": {
-	*           "provider": "email",
-	*           "providers": [
-	*             "email"
-	*           ]
-	*         },
-	*         "user_metadata": {
-	*           "email": "example@email.com",
-	*           "email_verified": false,
-	*           "phone_verified": false,
-	*           "sub": "11111111-1111-1111-1111-111111111111"
-	*         },
-	*         "identities": [
-	*           {
-	*             "identity_id": "22222222-2222-2222-2222-222222222222",
-	*             "id": "11111111-1111-1111-1111-111111111111",
-	*             "user_id": "11111111-1111-1111-1111-111111111111",
-	*             "identity_data": {
-	*               "email": "example@email.com",
-	*               "email_verified": false,
-	*               "phone_verified": false,
-	*               "sub": "11111111-1111-1111-1111-111111111111"
-	*             },
-	*             "provider": "email",
-	*             "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*             "created_at": "2024-01-01T00:00:00Z",
-	*             "updated_at": "2024-01-01T00:00:00Z",
-	*             "email": "example@email.com"
-	*           }
-	*         ],
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z",
-	*         "is_anonymous": false
-	*       }
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @example Verify SMS One-Time Password (OTP)
-	* ```js
-	* const { data, error } = await supabase.auth.verifyOtp({ phone, token, type: 'sms'})
-	* ```
-	*
-	* @example Verify Email Auth (Token Hash)
-	* ```js
-	* const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: 'email'})
-	* ```
 	*/
 	async verifyOtp(params) {
 		var _a, _b;
@@ -4903,28 +2915,28 @@ var GoTrueClient = class GoTrueClient {
 				xform: _sessionResponse
 			});
 			if (error) throw error;
-			if (!data) throw /* @__PURE__ */ new Error("An error occurred on token verification.");
+			if (!data) throw new Error("An error occurred on token verification.");
 			const session = data.session;
 			const user = data.user;
 			if (session === null || session === void 0 ? void 0 : session.access_token) {
 				await this._saveSession(session);
 				await this._notifyAllSubscribers(params.type == "recovery" ? "PASSWORD_RECOVERY" : "SIGNED_IN", session);
 			}
-			return this._returnResult({
+			return {
 				data: {
 					user,
 					session
 				},
 				error: null
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -4941,53 +2953,14 @@ var GoTrueClient = class GoTrueClient {
 	*
 	* If you have built an organization-specific login page, you can use the
 	* organization's SSO Identity Provider UUID directly instead.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Before you can call this method you need to [establish a connection](/docs/guides/auth/sso/auth-sso-saml#managing-saml-20-connections) to an identity provider. Use the [CLI commands](/docs/reference/cli/supabase-sso) to do this.
-	* - If you've associated an email domain to the identity provider, you can use the `domain` property to start a sign-in flow.
-	* - In case you need to use a different way to start the authentication flow with an identity provider, you can use the `providerId` property. For example:
-	*     - Mapping specific user email addresses with an identity provider.
-	*     - Using different hints to identity the identity provider to be used by the user, like a company-specific page, IP address or other tracking information.
-	*
-	* @example Sign in with email domain
-	* ```js
-	*   // You can extract the user's email domain and use it to trigger the
-	*   // authentication flow with the correct identity provider.
-	*
-	*   const { data, error } = await supabase.auth.signInWithSSO({
-	*     domain: 'company.com'
-	*   })
-	*
-	*   if (data?.url) {
-	*     // redirect the user to the identity provider's authentication flow
-	*     window.location.href = data.url
-	*   }
-	* ```
-	*
-	* @example Sign in with provider UUID
-	* ```js
-	*   // Useful when you need to map a user's sign in request according
-	*   // to different rules that can't use email domains.
-	*
-	*   const { data, error } = await supabase.auth.signInWithSSO({
-	*     providerId: '21648a9d-8d5a-4555-a9d1-d6375dc14e92'
-	*   })
-	*
-	*   if (data?.url) {
-	*     // redirect the user to the identity provider's authentication flow
-	*     window.location.href = data.url
-	*   }
-	* ```
 	*/
 	async signInWithSSO(params) {
-		var _a, _b, _c, _d, _f;
+		var _a, _b, _c;
 		try {
 			let codeChallenge = null;
 			let codeChallengeMethod = null;
 			if (this.flowType === "pkce") [codeChallenge, codeChallengeMethod] = await getCodeChallengeAndMethod(this.storage, this.storageKey);
-			const result = await _request(this.fetch, "POST", `${this.url}/sso`, {
+			return await _request(this.fetch, "POST", `${this.url}/sso`, {
 				body: Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, "providerId" in params ? { provider_id: params.providerId } : null), "domain" in params ? { domain: params.domain } : null), { redirect_to: (_b = (_a = params.options) === null || _a === void 0 ? void 0 : _a.redirectTo) !== null && _b !== void 0 ? _b : void 0 }), ((_c = params === null || params === void 0 ? void 0 : params.options) === null || _c === void 0 ? void 0 : _c.captchaToken) ? { gotrue_meta_security: { captcha_token: params.options.captchaToken } } : null), {
 					skip_http_redirect: true,
 					code_challenge: codeChallenge,
@@ -4996,44 +2969,23 @@ var GoTrueClient = class GoTrueClient {
 				headers: this.headers,
 				xform: _ssoResponse
 			});
-			if (((_d = result.data) === null || _d === void 0 ? void 0 : _d.url) && isBrowser() && !((_f = params.options) === null || _f === void 0 ? void 0 : _f.skipBrowserRedirect)) window.location.assign(result.data.url);
-			return this._returnResult(result);
 		} catch (error) {
-			await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: null,
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	/**
 	* Sends a reauthentication OTP to the user's email or phone number.
 	* Requires the user to be signed-in.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - This method is used together with `updateUser()` when a user's password needs to be updated.
-	* - If you require your user to reauthenticate before updating their password, you need to enable the **Secure password change** option in your [project's email provider settings](/dashboard/project/_/auth/providers).
-	* - A user is only require to reauthenticate before updating their password if **Secure password change** is enabled and the user **hasn't recently signed in**. A user is deemed recently signed in if the session was created in the last 24 hours.
-	* - This method will send a nonce to the user's email. If the user doesn't have a confirmed email address, the method will send the nonce to the user's confirmed phone number instead.
-	* - After receiving the OTP, include it as the `nonce` in your `updateUser()` call to finalize the password change.
-	*
-	* @exampleDescription Send reauthentication nonce
-	* Sends a reauthentication nonce to the user's email or phone number.
-	*
-	* @example Send reauthentication nonce
-	* ```js
-	* const { error } = await supabase.auth.reauthenticate()
-	* ```
 	*/
 	async reauthenticate() {
 		await this.initializePromise;
-		if (this.lock != null) return await this._acquireLock(this.lockAcquireTimeout, async () => {
+		return await this._acquireLock(-1, async () => {
 			return await this._reauthenticate();
 		});
-		return await this._reauthenticate();
 	}
 	async _reauthenticate() {
 		try {
@@ -5045,111 +2997,49 @@ var GoTrueClient = class GoTrueClient {
 					headers: this.headers,
 					jwt: session.access_token
 				});
-				return this._returnResult({
+				return {
 					data: {
 						user: null,
 						session: null
 					},
 					error
-				});
+				};
 			});
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	/**
 	* Resends an existing signup confirmation email, email change email, SMS OTP or phone change OTP.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Resends a signup confirmation, email change or phone change email to the user.
-	* - Passwordless sign-ins can be resent by calling the `signInWithOtp()` method again.
-	* - Password recovery emails can be resent by calling the `resetPasswordForEmail()` method again.
-	* - This method will only resend an email or phone OTP to the user if there was an initial signup, email change or phone change request being made(note: For existing users signing in with OTP, you should use `signInWithOtp()` again to resend the OTP).
-	* - You can specify a redirect url when you resend an email link using the `emailRedirectTo` option.
-	*
-	* @exampleDescription Resend an email signup confirmation
-	* Resends the email signup confirmation to the user
-	*
-	* @example Resend an email signup confirmation
-	* ```js
-	* const { error } = await supabase.auth.resend({
-	*   type: 'signup',
-	*   email: 'email@example.com',
-	*   options: {
-	*     emailRedirectTo: 'https://example.com/welcome'
-	*   }
-	* })
-	* ```
-	*
-	* @exampleDescription Resend a phone signup confirmation
-	* Resends the phone signup confirmation email to the user
-	*
-	* @example Resend a phone signup confirmation
-	* ```js
-	* const { error } = await supabase.auth.resend({
-	*   type: 'sms',
-	*   phone: '1234567890'
-	* })
-	* ```
-	*
-	* @exampleDescription Resend email change email
-	* Resends the email change email to the user
-	*
-	* @example Resend email change email
-	* ```js
-	* const { error } = await supabase.auth.resend({
-	*   type: 'email_change',
-	*   email: 'email@example.com'
-	* })
-	* ```
-	*
-	* @exampleDescription Resend phone change OTP
-	* Resends the phone change OTP to the user
-	*
-	* @example Resend phone change OTP
-	* ```js
-	* const { error } = await supabase.auth.resend({
-	*   type: 'phone_change',
-	*   phone: '1234567890'
-	* })
-	* ```
 	*/
 	async resend(credentials) {
 		try {
 			const endpoint = `${this.url}/resend`;
 			if ("email" in credentials) {
 				const { email, type, options } = credentials;
-				let codeChallenge = null;
-				let codeChallengeMethod = null;
-				if (this.flowType === "pkce") [codeChallenge, codeChallengeMethod] = await getCodeChallengeAndMethod(this.storage, this.storageKey);
 				const { error } = await _request(this.fetch, "POST", endpoint, {
 					headers: this.headers,
 					body: {
 						email,
 						type,
-						gotrue_meta_security: { captcha_token: options === null || options === void 0 ? void 0 : options.captchaToken },
-						code_challenge: codeChallenge,
-						code_challenge_method: codeChallengeMethod
+						gotrue_meta_security: { captcha_token: options === null || options === void 0 ? void 0 : options.captchaToken }
 					},
 					redirectTo: options === null || options === void 0 ? void 0 : options.emailRedirectTo
 				});
-				if (error) await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-				return this._returnResult({
+				return {
 					data: {
 						user: null,
 						session: null
 					},
 					error
-				});
+				};
 			} else if ("phone" in credentials) {
 				const { phone, type, options } = credentials;
 				const { data, error } = await _request(this.fetch, "POST", endpoint, {
@@ -5160,25 +3050,24 @@ var GoTrueClient = class GoTrueClient {
 						gotrue_meta_security: { captcha_token: options === null || options === void 0 ? void 0 : options.captchaToken }
 					}
 				});
-				return this._returnResult({
+				return {
 					data: {
 						user: null,
 						session: null,
 						messageId: data === null || data === void 0 ? void 0 : data.message_id
 					},
 					error
-				});
+				};
 			}
 			throw new AuthInvalidCredentialsError("You must provide either an email or phone number and a type");
 		} catch (error) {
-			await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -5191,99 +3080,18 @@ var GoTrueClient = class GoTrueClient {
 	* to the client. If that storage is based on request cookies for example,
 	* the values in it may not be authentic and therefore it's strongly advised
 	* against using this method and its results in such circumstances. A warning
-	* will be emitted if this is detected. Use {@link GoTrueClient.getUser} instead.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Since the introduction of [asymmetric JWT signing keys](/docs/guides/auth/signing-keys), this method is considered low-level and we encourage you to use `getClaims()` or `getUser()` instead.
-	* - Retrieves the current [user session](/docs/guides/auth/sessions) from the storage medium (local storage, cookies).
-	* - The session contains an access token (signed JWT), a refresh token and the user object.
-	* - If the session's access token is expired or is about to expire, this method will use the refresh token to refresh the session.
-	* - When using in a browser, or you've called `startAutoRefresh()` in your environment (React Native, etc.) this function always returns a valid access token without refreshing the session itself, as this is done in the background. This function returns very fast.
-	* - **IMPORTANT SECURITY NOTICE:** If using an insecure storage medium, such as cookies or request headers, the user object returned by this function **must not be trusted**. Always verify the JWT using `getClaims()` or your own JWT verification library to securely establish the user's identity and access. You can also use `getUser()` to fetch the user object directly from the Auth server for this purpose.
-	* - Cross-tab refresh races are handled by the GoTrue server (the rotated token from the first tab is returned to subsequent tabs via the parent-of-active mechanism), so no client-side serialization is needed.
-	*
-	* @example Get the session data
-	* ```js
-	* const { data, error } = await supabase.auth.getSession()
-	* ```
-	*
-	* @exampleResponse Get the session data
-	* ```json
-	* {
-	*   "data": {
-	*     "session": {
-	*       "access_token": "<ACCESS_TOKEN>",
-	*       "token_type": "bearer",
-	*       "expires_in": 3600,
-	*       "expires_at": 1700000000,
-	*       "refresh_token": "<REFRESH_TOKEN>",
-	*       "user": {
-	*         "id": "11111111-1111-1111-1111-111111111111",
-	*         "aud": "authenticated",
-	*         "role": "authenticated",
-	*         "email": "example@email.com",
-	*         "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*         "phone": "",
-	*         "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*         "app_metadata": {
-	*           "provider": "email",
-	*           "providers": [
-	*             "email"
-	*           ]
-	*         },
-	*         "user_metadata": {
-	*           "email": "example@email.com",
-	*           "email_verified": false,
-	*           "phone_verified": false,
-	*           "sub": "11111111-1111-1111-1111-111111111111"
-	*         },
-	*         "identities": [
-	*           {
-	*             "identity_id": "22222222-2222-2222-2222-222222222222",
-	*             "id": "11111111-1111-1111-1111-111111111111",
-	*             "user_id": "11111111-1111-1111-1111-111111111111",
-	*             "identity_data": {
-	*               "email": "example@email.com",
-	*               "email_verified": false,
-	*               "phone_verified": false,
-	*               "sub": "11111111-1111-1111-1111-111111111111"
-	*             },
-	*             "provider": "email",
-	*             "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*             "created_at": "2024-01-01T00:00:00Z",
-	*             "updated_at": "2024-01-01T00:00:00Z",
-	*             "email": "example@email.com"
-	*           }
-	*         ],
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z",
-	*         "is_anonymous": false
-	*       }
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
+	* will be emitted if this is detected. Use {@link #getUser()} instead.
 	*/
 	async getSession() {
 		await this.initializePromise;
-		if (this.lock != null) return await this._acquireLock(this.lockAcquireTimeout, async () => {
+		return await this._acquireLock(-1, async () => {
 			return this._useSession(async (result) => {
 				return result;
 			});
 		});
-		return await this._useSession(async (result) => {
-			return result;
-		});
 	}
 	/**
 	* Acquires a global lock based on the storage key.
-	*
-	* TODO(v3): remove along with the legacy lock path. Only called when
-	* `this.lock` is non-null (custom lock supplied via constructor). The
-	* default lockless path bypasses this entirely.
 	*/
 	async _acquireLock(acquireTimeout, fn) {
 		this._debug("#_acquireLock", "begin", acquireTimeout);
@@ -5297,7 +3105,7 @@ var GoTrueClient = class GoTrueClient {
 				this.pendingInLock.push((async () => {
 					try {
 						await result;
-					} catch (_e) {}
+					} catch (e) {}
 				})());
 				return result;
 			}
@@ -5328,9 +3136,10 @@ var GoTrueClient = class GoTrueClient {
 		}
 	}
 	/**
-	* Use instead of {@link GoTrueClient.getSession} inside the library. Loads the session
-	* via `__loadSession` (which may trigger a refresh if the access token is
-	* within the expiry margin) and runs `fn` with the result.
+	* Use instead of {@link #getSession} inside the library. It is
+	* semantically usually what you want, as getting a session involves some
+	* processing afterwards that requires only one client operating on the
+	* session at once across multiple tabs or processes.
 	*/
 	async _useSession(fn) {
 		this._debug("#_useSession", "begin");
@@ -5343,19 +3152,21 @@ var GoTrueClient = class GoTrueClient {
 	/**
 	* NEVER USE DIRECTLY!
 	*
-	* Always use `_useSession`.
+	* Always use {@link #_useSession}.
 	*/
 	async __loadSession() {
 		this._debug("#__loadSession()", "begin");
-		if (this.lock != null && !this.lockAcquired) this._debug("#__loadSession()", "used outside of an acquired lock!", (/* @__PURE__ */ new Error()).stack);
+		if (!this.lockAcquired) this._debug("#__loadSession()", "used outside of an acquired lock!", (/* @__PURE__ */ new Error()).stack);
 		try {
 			let currentSession = null;
 			const maybeSession = await getItemAsync(this.storage, this.storageKey);
 			this._debug("#getSession()", "session from storage", maybeSession);
-			if (maybeSession !== null) if (this._isValidSession(maybeSession)) currentSession = maybeSession;
-			else {
-				this._debug("#getSession()", "session from storage is not valid");
-				await this._removeSession();
+			if (maybeSession !== null) {
+				if (this._isValidSession(maybeSession)) currentSession = maybeSession;
+				else {
+					this._debug("#getSession()", "session from storage is not valid");
+					await this._removeSession();
+				}
 			}
 			if (!currentSession) return {
 				data: { session: null },
@@ -5369,10 +3180,16 @@ var GoTrueClient = class GoTrueClient {
 					if (maybeUser === null || maybeUser === void 0 ? void 0 : maybeUser.user) currentSession.user = maybeUser.user;
 					else currentSession.user = userNotAvailableProxy();
 				}
-				if (this.storage.isServer && currentSession.user && !currentSession.user.__isUserNotAvailableProxy) {
-					const suppressWarningRef = { value: this.suppressGetSessionWarning };
-					currentSession.user = insecureUserWarningProxy(currentSession.user, suppressWarningRef);
-					if (suppressWarningRef.value) this.suppressGetSessionWarning = true;
+				if (this.storage.isServer && currentSession.user) {
+					let suppressWarning = this.suppressGetSessionWarning;
+					currentSession = new Proxy(currentSession, { get: (target, prop, receiver) => {
+						if (!suppressWarning && prop === "user") {
+							console.warn("Using the user object as returned from supabase.auth.getSession() or from some supabase.auth.onAuthStateChange() events could be insecure! This value comes directly from the storage medium (usually cookies on the server) and may not be authentic. Use supabase.auth.getUser() instead which authenticates the data by contacting the Supabase Auth server.");
+							suppressWarning = true;
+							this.suppressGetSessionWarning = true;
+						}
+						return Reflect.get(target, prop, receiver);
+					} });
 				}
 				return {
 					data: { session: currentSession },
@@ -5380,23 +3197,14 @@ var GoTrueClient = class GoTrueClient {
 				};
 			}
 			const { data: session, error } = await this._callRefreshToken(currentSession.refresh_token);
-			if (error) {
-				if (!!(currentSession.expires_at && currentSession.expires_at * 1e3 > Date.now())) {
-					const stillStored = await getItemAsync(this.storage, this.storageKey);
-					if (stillStored && stillStored.refresh_token === currentSession.refresh_token) return this._returnResult({
-						data: { session: currentSession },
-						error: null
-					});
-				}
-				return this._returnResult({
-					data: { session: null },
-					error
-				});
-			}
-			return this._returnResult({
+			if (error) return {
+				data: { session: null },
+				error
+			};
+			return {
 				data: { session },
 				error: null
-			});
+			};
 		} finally {
 			this._debug("#__loadSession()", "end");
 		}
@@ -5407,86 +3215,13 @@ var GoTrueClient = class GoTrueClient {
 	* value is authentic and can be used to base authorization rules on.
 	*
 	* @param jwt Takes in an optional access token JWT. If no JWT is provided, the JWT from the current session is used.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - This method fetches the user object from the database instead of local session.
-	* - This method is useful for checking if the user is authorized because it validates the user's access token JWT on the server.
-	* - Should always be used when checking for user authorization on the server. On the client, you can instead use `getSession().session.user` for faster results. `getSession` is insecure on the server.
-	*
-	* @example Get the logged in user with the current existing session
-	* ```js
-	* const { data: { user } } = await supabase.auth.getUser()
-	* ```
-	*
-	* @exampleResponse Get the logged in user with the current existing session
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "example@email.com",
-	*       "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "confirmed_at": "2024-01-01T00:00:00Z",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {
-	*         "email": "example@email.com",
-	*         "email_verified": false,
-	*         "phone_verified": false,
-	*         "sub": "11111111-1111-1111-1111-111111111111"
-	*       },
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": false
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @example Get the logged in user with a custom access token jwt
-	* ```js
-	* const { data: { user } } = await supabase.auth.getUser(jwt)
-	* ```
 	*/
 	async getUser(jwt) {
 		if (jwt) return await this._getUser(jwt);
 		await this.initializePromise;
-		let result;
-		if (this.lock != null) result = await this._acquireLock(this.lockAcquireTimeout, async () => {
+		return await this._acquireLock(-1, async () => {
 			return await this._getUser();
 		});
-		else result = await this._getUser();
-		if (result.data.user) this.suppressGetSessionWarning = true;
-		return result;
 	}
 	async _getUser(jwt) {
 		try {
@@ -5515,134 +3250,22 @@ var GoTrueClient = class GoTrueClient {
 					await this._removeSession();
 					await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
 				}
-				return this._returnResult({
+				return {
 					data: { user: null },
 					error
-				});
+				};
 			}
 			throw error;
 		}
 	}
 	/**
 	* Updates user data for a logged in user.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - In order to use the `updateUser()` method, the user needs to be signed in first.
-	* - By default, email updates sends a confirmation link to both the user's current and new email.
-	* To only send a confirmation link to the user's new email, disable **Secure email change** in your project's [email auth provider settings](/dashboard/project/_/auth/providers).
-	*
-	* @exampleDescription Update the email for an authenticated user
-	* Sends a "Confirm Email Change" email to the new address. If **Secure Email Change** is enabled (default), confirmation is also required from the **old email** before the change is applied. To skip dual confirmation and apply the change after only the new email is verified, disable **Secure Email Change** in the [Email Auth Provider settings](/dashboard/project/_/auth/providers?provider=Email).
-	*
-	* @example Update the email for an authenticated user
-	* ```js
-	* const { data, error } = await supabase.auth.updateUser({
-	*   email: 'new@email.com'
-	* })
-	* ```
-	*
-	* @exampleResponse Update the email for an authenticated user
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "example@email.com",
-	*       "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "confirmed_at": "2024-01-01T00:00:00Z",
-	*       "new_email": "new@email.com",
-	*       "email_change_sent_at": "2024-01-01T00:00:00Z",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {
-	*         "email": "example@email.com",
-	*         "email_verified": false,
-	*         "phone_verified": false,
-	*         "sub": "11111111-1111-1111-1111-111111111111"
-	*       },
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": false
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @exampleDescription Update the phone number for an authenticated user
-	* Sends a one-time password (OTP) to the new phone number.
-	*
-	* @example Update the phone number for an authenticated user
-	* ```js
-	* const { data, error } = await supabase.auth.updateUser({
-	*   phone: '123456789'
-	* })
-	* ```
-	*
-	* @example Update the password for an authenticated user
-	* ```js
-	* const { data, error } = await supabase.auth.updateUser({
-	*   password: 'new password'
-	* })
-	* ```
-	*
-	* @exampleDescription Update the user's metadata
-	* Updates the user's custom metadata.
-	*
-	* **Note**: The `data` field maps to the `auth.users.raw_user_meta_data` column in your Supabase database. When calling `getUser()`, the data will be available as `user.user_metadata`.
-	*
-	* @example Update the user's metadata
-	* ```js
-	* const { data, error } = await supabase.auth.updateUser({
-	*   data: { hello: 'world' }
-	* })
-	* ```
-	*
-	* @exampleDescription Update the user's password with a nonce
-	* If **Secure password change** is enabled in your [project's email provider settings](/dashboard/project/_/auth/providers), updating the user's password would require a nonce if the user **hasn't recently signed in**. The nonce is sent to the user's email or phone number. A user is deemed recently signed in if the session was created in the last 24 hours.
-	*
-	* @example Update the user's password with a nonce
-	* ```js
-	* const { data, error } = await supabase.auth.updateUser({
-	*   password: 'new password',
-	*   nonce: '123456'
-	* })
-	* ```
 	*/
 	async updateUser(attributes, options = {}) {
 		await this.initializePromise;
-		if (this.lock != null) return await this._acquireLock(this.lockAcquireTimeout, async () => {
+		return await this._acquireLock(-1, async () => {
 			return await this._updateUser(attributes, options);
 		});
-		return await this._updateUser(attributes, options);
 	}
 	async _updateUser(attributes, options = {}) {
 		try {
@@ -5668,17 +3291,16 @@ var GoTrueClient = class GoTrueClient {
 				session.user = data.user;
 				await this._saveSession(session);
 				await this._notifyAllSubscribers("USER_UPDATED", session);
-				return this._returnResult({
+				return {
 					data: { user: session.user },
 					error: null
-				});
+				};
 			});
 		} catch (error) {
-			await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: { user: null },
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -5686,132 +3308,12 @@ var GoTrueClient = class GoTrueClient {
 	* Sets the session data from the current session. If the current session is expired, setSession will take care of refreshing it to obtain a new session.
 	* If the refresh token or access token in the current session is invalid, an error will be thrown.
 	* @param currentSession The current session that minimally contains an access token and refresh token.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - This method sets the session using an `access_token` and `refresh_token`.
-	* - If successful, a `SIGNED_IN` event is emitted.
-	*
-	* @exampleDescription Set the session
-	* Sets the session data from an access_token and refresh_token, then returns an auth response or error.
-	*
-	* @example Set the session
-	* ```js
-	*   const { data, error } = await supabase.auth.setSession({
-	*     access_token,
-	*     refresh_token
-	*   })
-	* ```
-	*
-	* @exampleResponse Set the session
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "example@email.com",
-	*       "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "confirmed_at": "2024-01-01T00:00:00Z",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {
-	*         "email": "example@email.com",
-	*         "email_verified": false,
-	*         "phone_verified": false,
-	*         "sub": "11111111-1111-1111-1111-111111111111"
-	*       },
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": false
-	*     },
-	*     "session": {
-	*       "access_token": "<ACCESS_TOKEN>",
-	*       "refresh_token": "<REFRESH_TOKEN>",
-	*       "user": {
-	*         "id": "11111111-1111-1111-1111-111111111111",
-	*         "aud": "authenticated",
-	*         "role": "authenticated",
-	*         "email": "example@email.com",
-	*         "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*         "phone": "",
-	*         "confirmed_at": "2024-01-01T00:00:00Z",
-	*         "last_sign_in_at": "11111111-1111-1111-1111-111111111111",
-	*         "app_metadata": {
-	*           "provider": "email",
-	*           "providers": [
-	*             "email"
-	*           ]
-	*         },
-	*         "user_metadata": {
-	*           "email": "example@email.com",
-	*           "email_verified": false,
-	*           "phone_verified": false,
-	*           "sub": "11111111-1111-1111-1111-111111111111"
-	*         },
-	*         "identities": [
-	*           {
-	*             "identity_id": "2024-01-01T00:00:00Z",
-	*             "id": "11111111-1111-1111-1111-111111111111",
-	*             "user_id": "11111111-1111-1111-1111-111111111111",
-	*             "identity_data": {
-	*               "email": "example@email.com",
-	*               "email_verified": false,
-	*               "phone_verified": false,
-	*               "sub": "11111111-1111-1111-1111-111111111111"
-	*             },
-	*             "provider": "email",
-	*             "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*             "created_at": "2024-01-01T00:00:00Z",
-	*             "updated_at": "2024-01-01T00:00:00Z",
-	*             "email": "example@email.com"
-	*           }
-	*         ],
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z",
-	*         "is_anonymous": false
-	*       },
-	*       "token_type": "bearer",
-	*       "expires_in": 3500,
-	*       "expires_at": 1700000000
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
 	*/
 	async setSession(currentSession) {
 		await this.initializePromise;
-		if (this.lock != null) return await this._acquireLock(this.lockAcquireTimeout, async () => {
+		return await this._acquireLock(-1, async () => {
 			return await this._setSession(currentSession);
 		});
-		return await this._setSession(currentSession);
 	}
 	async _setSession(currentSession) {
 		try {
@@ -5827,13 +3329,13 @@ var GoTrueClient = class GoTrueClient {
 			}
 			if (hasExpired) {
 				const { data: refreshedSession, error } = await this._callRefreshToken(currentSession.refresh_token);
-				if (error) return this._returnResult({
+				if (error) return {
 					data: {
 						user: null,
 						session: null
 					},
 					error
-				});
+				};
 				if (!refreshedSession) return {
 					data: {
 						user: null,
@@ -5844,13 +3346,7 @@ var GoTrueClient = class GoTrueClient {
 				session = refreshedSession;
 			} else {
 				const { data, error } = await this._getUser(currentSession.access_token);
-				if (error) return this._returnResult({
-					data: {
-						user: null,
-						session: null
-					},
-					error
-				});
+				if (error) throw error;
 				session = {
 					access_token: currentSession.access_token,
 					refresh_token: currentSession.refresh_token,
@@ -5862,21 +3358,21 @@ var GoTrueClient = class GoTrueClient {
 				await this._saveSession(session);
 				await this._notifyAllSubscribers("SIGNED_IN", session);
 			}
-			return this._returnResult({
+			return {
 				data: {
 					user: session.user,
 					session
 				},
 				error: null
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					session: null,
 					user: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -5885,132 +3381,12 @@ var GoTrueClient = class GoTrueClient {
 	* Takes in an optional current session. If not passed in, then refreshSession() will attempt to retrieve it from getSession().
 	* If the current session's refresh token is invalid, an error will be thrown.
 	* @param currentSession The current session. If passed in, it must contain a refresh token.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - This method will refresh and return a new session whether the current one is expired or not.
-	*
-	* @example Refresh session using the current session
-	* ```js
-	* const { data, error } = await supabase.auth.refreshSession()
-	* const { session, user } = data
-	* ```
-	*
-	* @exampleResponse Refresh session using the current session
-	* ```json
-	* {
-	*   "data": {
-	*     "user": {
-	*       "id": "11111111-1111-1111-1111-111111111111",
-	*       "aud": "authenticated",
-	*       "role": "authenticated",
-	*       "email": "example@email.com",
-	*       "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*       "phone": "",
-	*       "confirmed_at": "2024-01-01T00:00:00Z",
-	*       "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*       "app_metadata": {
-	*         "provider": "email",
-	*         "providers": [
-	*           "email"
-	*         ]
-	*       },
-	*       "user_metadata": {
-	*         "email": "example@email.com",
-	*         "email_verified": false,
-	*         "phone_verified": false,
-	*         "sub": "11111111-1111-1111-1111-111111111111"
-	*       },
-	*       "identities": [
-	*         {
-	*           "identity_id": "22222222-2222-2222-2222-222222222222",
-	*           "id": "11111111-1111-1111-1111-111111111111",
-	*           "user_id": "11111111-1111-1111-1111-111111111111",
-	*           "identity_data": {
-	*             "email": "example@email.com",
-	*             "email_verified": false,
-	*             "phone_verified": false,
-	*             "sub": "11111111-1111-1111-1111-111111111111"
-	*           },
-	*           "provider": "email",
-	*           "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*           "created_at": "2024-01-01T00:00:00Z",
-	*           "updated_at": "2024-01-01T00:00:00Z",
-	*           "email": "example@email.com"
-	*         }
-	*       ],
-	*       "created_at": "2024-01-01T00:00:00Z",
-	*       "updated_at": "2024-01-01T00:00:00Z",
-	*       "is_anonymous": false
-	*     },
-	*     "session": {
-	*       "access_token": "<ACCESS_TOKEN>",
-	*       "token_type": "bearer",
-	*       "expires_in": 3600,
-	*       "expires_at": 1700000000,
-	*       "refresh_token": "<REFRESH_TOKEN>",
-	*       "user": {
-	*         "id": "11111111-1111-1111-1111-111111111111",
-	*         "aud": "authenticated",
-	*         "role": "authenticated",
-	*         "email": "example@email.com",
-	*         "email_confirmed_at": "2024-01-01T00:00:00Z",
-	*         "phone": "",
-	*         "confirmed_at": "2024-01-01T00:00:00Z",
-	*         "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*         "app_metadata": {
-	*           "provider": "email",
-	*           "providers": [
-	*             "email"
-	*           ]
-	*         },
-	*         "user_metadata": {
-	*           "email": "example@email.com",
-	*           "email_verified": false,
-	*           "phone_verified": false,
-	*           "sub": "11111111-1111-1111-1111-111111111111"
-	*         },
-	*         "identities": [
-	*           {
-	*             "identity_id": "22222222-2222-2222-2222-222222222222",
-	*             "id": "11111111-1111-1111-1111-111111111111",
-	*             "user_id": "11111111-1111-1111-1111-111111111111",
-	*             "identity_data": {
-	*               "email": "example@email.com",
-	*               "email_verified": false,
-	*               "phone_verified": false,
-	*               "sub": "11111111-1111-1111-1111-111111111111"
-	*             },
-	*             "provider": "email",
-	*             "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*             "created_at": "2024-01-01T00:00:00Z",
-	*             "updated_at": "2024-01-01T00:00:00Z",
-	*             "email": "example@email.com"
-	*           }
-	*         ],
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z",
-	*         "is_anonymous": false
-	*       }
-	*     }
-	*   },
-	*   "error": null
-	* }
-	* ```
-	*
-	* @example Refresh session using a refresh token
-	* ```js
-	* const { data, error } = await supabase.auth.refreshSession({ refresh_token })
-	* const { session, user } = data
-	* ```
 	*/
 	async refreshSession(currentSession) {
 		await this.initializePromise;
-		if (this.lock != null) return await this._acquireLock(this.lockAcquireTimeout, async () => {
+		return await this._acquireLock(-1, async () => {
 			return await this._refreshSession(currentSession);
 		});
-		return await this._refreshSession(currentSession);
 	}
 	async _refreshSession(currentSession) {
 		try {
@@ -6023,36 +3399,36 @@ var GoTrueClient = class GoTrueClient {
 				}
 				if (!(currentSession === null || currentSession === void 0 ? void 0 : currentSession.refresh_token)) throw new AuthSessionMissingError();
 				const { data: session, error } = await this._callRefreshToken(currentSession.refresh_token);
-				if (error) return this._returnResult({
+				if (error) return {
 					data: {
 						user: null,
 						session: null
 					},
 					error
-				});
-				if (!session) return this._returnResult({
+				};
+				if (!session) return {
 					data: {
 						user: null,
 						session: null
 					},
 					error: null
-				});
-				return this._returnResult({
+				};
+				return {
 					data: {
 						user: session.user,
 						session
 					},
 					error: null
-				});
+				};
 			});
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					user: null,
 					session: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -6060,7 +3436,6 @@ var GoTrueClient = class GoTrueClient {
 	* Gets the session data from a URL string
 	*/
 	async _getSessionFromURL(params, callbackUrlType) {
-		var _a;
 		try {
 			if (!isBrowser()) throw new AuthImplicitGrantRedirectError("No browser detected.");
 			if (params.error || params.error_description || params.error_code) throw new AuthImplicitGrantRedirectError(params.error_description || "Error in URL with unspecified error_description", {
@@ -6071,10 +3446,7 @@ var GoTrueClient = class GoTrueClient {
 				case "implicit":
 					if (this.flowType === "pkce") throw new AuthPKCEGrantCodeExchangeError("Not a valid PKCE flow url.");
 					break;
-				case "pkce":
-					if (this.flowType === "implicit") throw new AuthImplicitGrantRedirectError("Not a valid implicit grant flow url.");
-					break;
-				default:
+				case "pkce": if (this.flowType === "implicit") throw new AuthImplicitGrantRedirectError("Not a valid implicit grant flow url.");
 			}
 			if (callbackUrlType === "pkce") {
 				this._debug("#_initialize()", "begin", "is PKCE flow", true);
@@ -6087,7 +3459,7 @@ var GoTrueClient = class GoTrueClient {
 				return {
 					data: {
 						session: data.session,
-						redirectType: (_a = data.redirectType) !== null && _a !== void 0 ? _a : null
+						redirectType: null
 					},
 					error: null
 				};
@@ -6117,34 +3489,29 @@ var GoTrueClient = class GoTrueClient {
 			};
 			window.location.hash = "";
 			this._debug("#_getSessionFromURL()", "clearing window.location.hash");
-			return this._returnResult({
+			return {
 				data: {
 					session,
 					redirectType: params.type
 				},
 				error: null
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					session: null,
 					redirectType: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	/**
 	* Checks if the current URL contains parameters given by an implicit oauth grant flow (https://www.rfc-editor.org/rfc/rfc6749.html#section-4.2)
-	*
-	* If `detectSessionInUrl` is a function, it will be called with the URL and params to determine
-	* if the URL should be processed as a Supabase auth callback. This allows users to exclude
-	* URLs from other OAuth providers (e.g., Facebook Login) that also return access_token in the fragment.
 	*/
 	_isImplicitGrantCallback(params) {
-		if (typeof this.detectSessionInUrl === "function") return this.detectSessionInUrl(new URL(window.location.href), params);
-		return Boolean(params.access_token || params.error || params.error_description || params.error_code);
+		return Boolean(params.access_token || params.error_description);
 	}
 	/**
 	* Checks if the current URL and backing storage contain parameters given by a PKCE flow
@@ -6160,249 +3527,34 @@ var GoTrueClient = class GoTrueClient {
 	* There is no way to revoke a user's access token jwt until it expires. It is recommended to set a shorter expiry on the jwt for this reason.
 	*
 	* If using `others` scope, no `SIGNED_OUT` event is fired!
-	*
-	* **Warning:** the default `scope` is `'global'`. This signs the user out of
-	* **every device they are currently signed in on**, not just the current
-	* tab/session. If you only want to sign the user out of the current session
-	* (the behavior most other auth libraries default to), pass
-	* `{ scope: 'local' }` explicitly.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - In order to use the `signOut()` method, the user needs to be signed in first.
-	* - By default, `signOut()` uses the **global** scope, which signs out the user
-	*   on every device they are signed in on (not just the current one). Pass
-	*   `{ scope: 'local' }` to only sign out the current session. This is
-	*   usually what apps want on a "Sign out" button, especially when users
-	*   sign in from multiple devices and do not expect signing out of one to
-	*   terminate the others.
-	* - Since Supabase Auth uses JWTs for authentication, the access token JWT will be valid until it's expired. When the user signs out, Supabase revokes the refresh token and deletes the JWT from the client-side. This does not revoke the JWT and it will still be valid until it expires.
-	*
-	* @example Sign out of every device (global – default)
-	* ```js
-	* const { error } = await supabase.auth.signOut()
-	* ```
-	*
-	* @example Sign out only the current session (recommended for most apps)
-	* ```js
-	* const { error } = await supabase.auth.signOut({ scope: 'local' })
-	* ```
-	*
-	* @example Sign out of all other sessions, keep the current one
-	* ```js
-	* const { error } = await supabase.auth.signOut({ scope: 'others' })
-	* ```
 	*/
 	async signOut(options = { scope: "global" }) {
 		await this.initializePromise;
-		if (this.lock != null) return await this._acquireLock(this.lockAcquireTimeout, async () => {
+		return await this._acquireLock(-1, async () => {
 			return await this._signOut(options);
 		});
-		return await this._signOut(options);
 	}
 	async _signOut({ scope } = { scope: "global" }) {
 		return await this._useSession(async (result) => {
 			var _a;
-			const removeCurrentSession = async () => {
-				await this._removeSession();
-				await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-			};
 			const { data, error: sessionError } = result;
-			if (sessionError && !isAuthSessionMissingError(sessionError)) return this._returnResult({ error: sessionError });
+			if (sessionError) return { error: sessionError };
 			const accessToken = (_a = data.session) === null || _a === void 0 ? void 0 : _a.access_token;
 			if (accessToken) {
 				const { error } = await this.admin.signOut(accessToken, scope);
 				if (error) {
-					if (!(isAuthApiError(error) && (error.status === 404 || error.status === 401 || error.status === 403) || isAuthSessionMissingError(error))) {
-						if (scope !== "others") await removeCurrentSession();
-						return this._returnResult({ error });
-					}
+					if (!(isAuthApiError(error) && (error.status === 404 || error.status === 401 || error.status === 403))) return { error };
 				}
 			}
-			if (scope !== "others") await removeCurrentSession();
-			return this._returnResult({ error: null });
+			if (scope !== "others") {
+				await this._removeSession();
+				await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
+			}
+			return { error: null };
 		});
 	}
-	/**  *
-	* @category Auth
-	*
-	* @remarks
-	* - Subscribes to important events occurring on the user's session.
-	* - Use on the frontend/client. It is less useful on the server.
-	* - Events are emitted across tabs to keep your application's UI up-to-date. Some events can fire very frequently, based on the number of tabs open. Use a quick and efficient callback function, and defer or debounce as many operations as you can to be performed outside of the callback.
-	* - Callbacks can be `async` and can safely call other Supabase auth methods (`getUser`, `setSession`, etc.) from inside the callback.
-	* - Keep callbacks quick. Events are awaited in order, so a slow callback delays subsequent events to subscribers in this tab.
-	* - Emitted events:
-	*   - `INITIAL_SESSION`
-	*     - Emitted right after the Supabase client is constructed and the initial session from storage is loaded.
-	*   - `SIGNED_IN`
-	*     - Emitted each time a user session is confirmed or re-established, including on user sign in and when refocusing a tab.
-	*     - Avoid making assumptions as to when this event is fired, this may occur even when the user is already signed in. Instead, check the user object attached to the event to see if a new user has signed in and update your application's UI.
-	*     - This event can fire very frequently depending on the number of tabs open in your application.
-	*   - `SIGNED_OUT`
-	*     - Emitted when the user signs out. This can be after:
-	*       - A call to `supabase.auth.signOut()`.
-	*       - After the user's session has expired for any reason:
-	*         - User has signed out on another device.
-	*         - The session has reached its timebox limit or inactivity timeout.
-	*         - User has signed in on another device with single session per user enabled.
-	*         - Check the [User Sessions](/docs/guides/auth/sessions) docs for more information.
-	*     - Use this to clean up any local storage your application has associated with the user.
-	*   - `TOKEN_REFRESHED`
-	*     - Emitted each time a new access and refresh token are fetched for the signed in user.
-	*     - It's best practice and highly recommended to extract the access token (JWT) and store it in memory for further use in your application.
-	*       - Avoid frequent calls to `supabase.auth.getSession()` for the same purpose.
-	*     - There is a background process that keeps track of when the session should be refreshed so you will always receive valid tokens by listening to this event.
-	*     - The frequency of this event is related to the JWT expiry limit configured on your project.
-	*   - `USER_UPDATED`
-	*     - Emitted each time the `supabase.auth.updateUser()` method finishes successfully. Listen to it to update your application's UI based on new profile information.
-	*   - `PASSWORD_RECOVERY`
-	*     - Emitted instead of the `SIGNED_IN` event when the user lands on a page that includes a password recovery link in the URL.
-	*     - Use it to show a UI to the user where they can [reset their password](/docs/guides/auth/passwords#resetting-a-users-password-forgot-password).
-	*
-	* @example Listen to auth changes
-	* ```js
-	* const { data } = supabase.auth.onAuthStateChange((event, session) => {
-	*   console.log(event, session)
-	*
-	*   if (event === 'INITIAL_SESSION') {
-	*     // handle initial session
-	*   } else if (event === 'SIGNED_IN') {
-	*     // handle sign in event
-	*   } else if (event === 'SIGNED_OUT') {
-	*     // handle sign out event
-	*   } else if (event === 'PASSWORD_RECOVERY') {
-	*     // handle password recovery event
-	*   } else if (event === 'TOKEN_REFRESHED') {
-	*     // handle token refreshed event
-	*   } else if (event === 'USER_UPDATED') {
-	*     // handle user updated event
-	*   }
-	* })
-	*
-	* // call unsubscribe to remove the callback
-	* data.subscription.unsubscribe()
-	* ```
-	*
-	* @exampleDescription Listen to sign out
-	* Make sure you clear out any local data, such as local and session storage, after the client library has detected the user's sign out.
-	*
-	* @example Listen to sign out
-	* ```js
-	* supabase.auth.onAuthStateChange((event, session) => {
-	*   if (event === 'SIGNED_OUT') {
-	*     console.log('SIGNED_OUT', session)
-	*
-	*     // clear local and session storage
-	*     [
-	*       window.localStorage,
-	*       window.sessionStorage,
-	*     ].forEach((storage) => {
-	*       Object.entries(storage)
-	*         .forEach(([key]) => {
-	*           storage.removeItem(key)
-	*         })
-	*     })
-	*   }
-	* })
-	* ```
-	*
-	* @exampleDescription Store OAuth provider tokens on sign in
-	* When using [OAuth (Social Login)](/docs/guides/auth/social-login) you sometimes wish to get access to the provider's access token and refresh token, in order to call provider APIs in the name of the user.
-	*
-	* For example, if you are using [Sign in with Google](/docs/guides/auth/social-login/auth-google) you may want to use the provider token to call Google APIs on behalf of the user. Supabase Auth does not keep track of the provider access and refresh token, but does return them for you once, immediately after sign in. You can use the `onAuthStateChange` method to listen for the presence of the provider tokens and store them in local storage. You can further send them to your server's APIs for use on the backend.
-	*
-	* Finally, make sure you remove them from local storage on the `SIGNED_OUT` event. If the OAuth provider supports token revocation, make sure you call those APIs either from the frontend or schedule them to be called on the backend.
-	*
-	* @example Store OAuth provider tokens on sign in
-	* ```js
-	* // Register this immediately after calling createClient!
-	* // Because signInWithOAuth causes a redirect, you need to fetch the
-	* // provider tokens from the callback.
-	* supabase.auth.onAuthStateChange((event, session) => {
-	*   if (session && session.provider_token) {
-	*     window.localStorage.setItem('oauth_provider_token', session.provider_token)
-	*   }
-	*
-	*   if (session && session.provider_refresh_token) {
-	*     window.localStorage.setItem('oauth_provider_refresh_token', session.provider_refresh_token)
-	*   }
-	*
-	*   if (event === 'SIGNED_OUT') {
-	*     window.localStorage.removeItem('oauth_provider_token')
-	*     window.localStorage.removeItem('oauth_provider_refresh_token')
-	*   }
-	* })
-	* ```
-	*
-	* @exampleDescription Use React Context for the User's session
-	* Instead of relying on `supabase.auth.getSession()` within your React components, you can use a [React Context](https://react.dev/reference/react/createContext) to store the latest session information from the `onAuthStateChange` callback and access it that way.
-	*
-	* @example Use React Context for the User's session
-	* ```js
-	* const SessionContext = React.createContext(null)
-	*
-	* function main() {
-	*   const [session, setSession] = React.useState(null)
-	*
-	*   React.useEffect(() => {
-	*     const {data: { subscription }} = supabase.auth.onAuthStateChange(
-	*       (event, session) => {
-	*         if (event === 'SIGNED_OUT') {
-	*           setSession(null)
-	*         } else if (session) {
-	*           setSession(session)
-	*         }
-	*       })
-	*
-	*     return () => {
-	*       subscription.unsubscribe()
-	*     }
-	*   }, [])
-	*
-	*   return (
-	*     <SessionContext.Provider value={session}>
-	*       <App />
-	*     </SessionContext.Provider>
-	*   )
-	* }
-	* ```
-	*
-	* @example Listen to password recovery events
-	* ```js
-	* supabase.auth.onAuthStateChange((event, session) => {
-	*   if (event === 'PASSWORD_RECOVERY') {
-	*     console.log('PASSWORD_RECOVERY', session)
-	*     // show screen to update user's password
-	*     showPasswordResetScreen(true)
-	*   }
-	* })
-	* ```
-	*
-	* @example Listen to sign in
-	* ```js
-	* supabase.auth.onAuthStateChange((event, session) => {
-	*   if (event === 'SIGNED_IN') console.log('SIGNED_IN', session)
-	* })
-	* ```
-	*
-	* @example Listen to token refresh
-	* ```js
-	* supabase.auth.onAuthStateChange((event, session) => {
-	*   if (event === 'TOKEN_REFRESHED') console.log('TOKEN_REFRESHED', session)
-	* })
-	* ```
-	*
-	* @example Listen to user updates
-	* ```js
-	* supabase.auth.onAuthStateChange((event, session) => {
-	*   if (event === 'USER_UPDATED') console.log('USER_UPDATED', session)
-	* })
-	* ```
-	*/
 	onAuthStateChange(callback) {
-		const id = generateCallbackId();
+		const id = uuid();
 		const subscription = {
 			id,
 			callback,
@@ -6415,10 +3567,9 @@ var GoTrueClient = class GoTrueClient {
 		this.stateChangeEmitters.set(id, subscription);
 		(async () => {
 			await this.initializePromise;
-			if (this.lock != null) await this._acquireLock(this.lockAcquireTimeout, async () => {
+			await this._acquireLock(-1, async () => {
 				this._emitInitialSession(id);
 			});
-			else await this._emitInitialSession(id);
 		})();
 		return { data: { subscription } };
 	}
@@ -6433,8 +3584,7 @@ var GoTrueClient = class GoTrueClient {
 			} catch (err) {
 				await ((_b = this.stateChangeEmitters.get(id)) === null || _b === void 0 ? void 0 : _b.callback("INITIAL_SESSION", null));
 				this._debug("INITIAL_SESSION", "callback id", id, "error", err);
-				if (isAuthSessionMissingError(err)) console.warn(err);
-				else console.error(err);
+				console.error(err);
 			}
 		});
 	}
@@ -6444,66 +3594,6 @@ var GoTrueClient = class GoTrueClient {
 	* @param email The email address of the user.
 	* @param options.redirectTo The URL to send the user to after they click the password reset link.
 	* @param options.captchaToken Verification token received when the user completes the captcha on the site.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - The password reset flow consist of 2 broad steps: (i) Allow the user to login via the password reset link; (ii) Update the user's password.
-	* - The `resetPasswordForEmail()` only sends a password reset link to the user's email.
-	* To update the user's password, see [`updateUser()`](/docs/reference/javascript/auth-updateuser).
-	* - A `PASSWORD_RECOVERY` event will be emitted when the password recovery link is clicked.
-	* You can use [`onAuthStateChange()`](/docs/reference/javascript/auth-onauthstatechange) to listen and invoke a callback function on these events.
-	* - When the user clicks the reset link in the email they are redirected back to your application.
-	* You can configure the URL that the user is redirected to with the `redirectTo` parameter.
-	* See [redirect URLs and wildcards](/docs/guides/auth/redirect-urls#use-wildcards-in-redirect-urls) to add additional redirect URLs to your project.
-	* - After the user has been redirected successfully, prompt them for a new password and call `updateUser()`:
-	* ```js
-	* const { data, error } = await supabase.auth.updateUser({
-	*   password: new_password
-	* })
-	* ```
-	*
-	* @example Reset password
-	* ```js
-	* const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-	*   redirectTo: 'https://example.com/update-password',
-	* })
-	* ```
-	*
-	* @exampleResponse Reset password
-	* ```json
-	* {
-	*   data: {}
-	*   error: null
-	* }
-	* ```
-	*
-	* @example Reset password (React)
-	* ```js
-	* /**
-	*  * Step 1: Send the user an email to get a password reset token.
-	*  * This email contains a link which sends the user back to your application.
-	*  *\/
-	* const { data, error } = await supabase.auth
-	*   .resetPasswordForEmail('user@email.com')
-	*
-	* /**
-	*  * Step 2: Once the user is redirected back to your application,
-	*  * ask the user to reset their password.
-	*  *\/
-	*  useEffect(() => {
-	*    supabase.auth.onAuthStateChange(async (event, session) => {
-	*      if (event == "PASSWORD_RECOVERY") {
-	*        const newPassword = prompt("What would you like your new password to be?");
-	*        const { data, error } = await supabase.auth
-	*          .updateUser({ password: newPassword })
-	*
-	*        if (data) alert("Password updated successfully!")
-	*        if (error) alert("There was an error updating your password.")
-	*      }
-	*    })
-	*  }, [])
-	* ```
 	*/
 	async resetPasswordForEmail(email, options = {}) {
 		let codeChallenge = null;
@@ -6521,98 +3611,33 @@ var GoTrueClient = class GoTrueClient {
 				redirectTo: options.redirectTo
 			});
 		} catch (error) {
-			await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: null,
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	/**
 	* Gets all the identities linked to a user.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - The user needs to be signed in to call `getUserIdentities()`.
-	*
-	* @example Returns a list of identities linked to the user
-	* ```js
-	* const { data, error } = await supabase.auth.getUserIdentities()
-	* ```
-	*
-	* @exampleResponse Returns a list of identities linked to the user
-	* ```json
-	* {
-	*   "data": {
-	*     "identities": [
-	*       {
-	*         "identity_id": "22222222-2222-2222-2222-222222222222",
-	*         "id": "2024-01-01T00:00:00Z",
-	*         "user_id": "2024-01-01T00:00:00Z",
-	*         "identity_data": {
-	*           "email": "example@email.com",
-	*           "email_verified": false,
-	*           "phone_verified": false,
-	*           "sub": "11111111-1111-1111-1111-111111111111"
-	*         },
-	*         "provider": "email",
-	*         "last_sign_in_at": "2024-01-01T00:00:00Z",
-	*         "created_at": "2024-01-01T00:00:00Z",
-	*         "updated_at": "2024-01-01T00:00:00Z",
-	*         "email": "example@email.com"
-	*       }
-	*     ]
-	*   },
-	*   "error": null
-	* }
-	* ```
 	*/
 	async getUserIdentities() {
 		var _a;
 		try {
 			const { data, error } = await this.getUser();
 			if (error) throw error;
-			return this._returnResult({
+			return {
 				data: { identities: (_a = data.user.identities) !== null && _a !== void 0 ? _a : [] },
 				error: null
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: null,
 				error
-			});
+			};
 			throw error;
 		}
 	}
-	/**  *
-	* @category Auth
-	*
-	* @remarks
-	* - The **Enable Manual Linking** option must be enabled from your [project's authentication settings](/dashboard/project/_/auth/providers).
-	* - The user needs to be signed in to call `linkIdentity()`.
-	* - If the candidate identity is already linked to the existing user or another user, `linkIdentity()` will fail.
-	* - If `linkIdentity` is run in the browser, the user is automatically redirected to the returned URL. On the server, you should handle the redirect.
-	*
-	* @example Link an identity to a user
-	* ```js
-	* const { data, error } = await supabase.auth.linkIdentity({
-	*   provider: 'github'
-	* })
-	* ```
-	*
-	* @exampleResponse Link an identity to a user
-	* ```json
-	* {
-	*   data: {
-	*     provider: 'github',
-	*     url: <PROVIDER_URL_TO_REDIRECT_TO>
-	*   },
-	*   error: null
-	* }
-	* ```
-	*/
 	async linkIdentity(credentials) {
 		if ("token" in credentials) return this.linkIdentityIdToken(credentials);
 		return this.linkIdentityOAuth(credentials);
@@ -6621,7 +3646,7 @@ var GoTrueClient = class GoTrueClient {
 		var _a;
 		try {
 			const { data, error } = await this._useSession(async (result) => {
-				var _a, _b, _c, _d, _f;
+				var _a, _b, _c, _d, _e;
 				const { data, error } = result;
 				if (error) throw error;
 				const url = await this._getUrlForProvider(`${this.url}/user/identities/authorize`, credentials.provider, {
@@ -6632,26 +3657,26 @@ var GoTrueClient = class GoTrueClient {
 				});
 				return await _request(this.fetch, "GET", url, {
 					headers: this.headers,
-					jwt: (_f = (_d = data.session) === null || _d === void 0 ? void 0 : _d.access_token) !== null && _f !== void 0 ? _f : void 0
+					jwt: (_e = (_d = data.session) === null || _d === void 0 ? void 0 : _d.access_token) !== null && _e !== void 0 ? _e : void 0
 				});
 			});
 			if (error) throw error;
 			if (isBrowser() && !((_a = credentials.options) === null || _a === void 0 ? void 0 : _a.skipBrowserRedirect)) window.location.assign(data === null || data === void 0 ? void 0 : data.url);
-			return this._returnResult({
+			return {
 				data: {
 					provider: credentials.provider,
 					url: data === null || data === void 0 ? void 0 : data.url
 				},
 				error: null
-			});
+			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					provider: credentials.provider,
 					url: null
 				},
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -6675,65 +3700,42 @@ var GoTrueClient = class GoTrueClient {
 					},
 					xform: _sessionResponse
 				});
-				if (error) return this._returnResult({
+				if (error) return {
 					data: {
 						user: null,
 						session: null
 					},
 					error
-				});
-				else if (!data || !data.session || !data.user) return this._returnResult({
+				};
+				else if (!data || !data.session || !data.user) return {
 					data: {
 						user: null,
 						session: null
 					},
 					error: new AuthInvalidTokenResponseError()
-				});
+				};
 				if (data.session) {
 					await this._saveSession(data.session);
 					await this._notifyAllSubscribers("USER_UPDATED", data.session);
 				}
-				return this._returnResult({
+				return {
 					data,
 					error
-				});
+				};
 			} catch (error) {
-				await removeItemAsync(this.storage, `${this.storageKey}-code-verifier`);
-				if (isAuthError(error)) return this._returnResult({
+				if (isAuthError(error)) return {
 					data: {
 						user: null,
 						session: null
 					},
 					error
-				});
+				};
 				throw error;
 			}
 		});
 	}
 	/**
 	* Unlinks an identity from a user by deleting it. The user will no longer be able to sign in with that identity once it's unlinked.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - The **Enable Manual Linking** option must be enabled from your [project's authentication settings](/dashboard/project/_/auth/providers).
-	* - The user needs to be signed in to call `unlinkIdentity()`.
-	* - The user must have at least 2 identities in order to unlink an identity.
-	* - The identity to be unlinked must belong to the user.
-	*
-	* @example Unlink an identity
-	* ```js
-	* // retrieve all identities linked to a user
-	* const identities = await supabase.auth.getUserIdentities()
-	*
-	* // find the google identity
-	* const googleIdentity = identities.find(
-	*   identity => identity.provider === 'google'
-	* )
-	*
-	* // unlink the google identity
-	* const { error } = await supabase.auth.unlinkIdentity(googleIdentity)
-	* ```
 	*/
 	async unlinkIdentity(identity) {
 		try {
@@ -6747,10 +3749,10 @@ var GoTrueClient = class GoTrueClient {
 				});
 			});
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: null,
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -6759,7 +3761,7 @@ var GoTrueClient = class GoTrueClient {
 	* @param refreshToken A valid refresh token that was returned on login.
 	*/
 	async _refreshAccessToken(refreshToken) {
-		const debugName = `#_refreshAccessToken()`;
+		const debugName = `#_refreshAccessToken(${refreshToken.substring(0, 5)}...)`;
 		this._debug(debugName, "begin");
 		try {
 			const startedAt = Date.now();
@@ -6777,13 +3779,13 @@ var GoTrueClient = class GoTrueClient {
 			});
 		} catch (error) {
 			this._debug(debugName, "error", error);
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: {
 					session: null,
 					user: null
 				},
 				error
-			});
+			};
 			throw error;
 		} finally {
 			this._debug(debugName, "end");
@@ -6846,8 +3848,13 @@ var GoTrueClient = class GoTrueClient {
 			if (expiresWithMargin) {
 				if (this.autoRefreshToken && currentSession.refresh_token) {
 					const { error } = await this._callRefreshToken(currentSession.refresh_token);
-					if (error) if (isAuthRefreshDiscardedError(error)) this._debug(debugName, "refresh discarded by commit guard", error);
-					else this._debug(debugName, "refresh failed", error);
+					if (error) {
+						console.error(error);
+						if (!isAuthRetryableFetchError(error)) {
+							this._debug(debugName, "refresh failed with a non-retryable error, removing the session", error);
+							await this._removeSession();
+						}
+					}
 				}
 			} else if (currentSession.user && currentSession.user.__isUserNotAvailableProxy === true) try {
 				const { data, error: userError } = await this._getUser(currentSession.access_token);
@@ -6873,50 +3880,19 @@ var GoTrueClient = class GoTrueClient {
 		var _a, _b;
 		if (!refreshToken) throw new AuthSessionMissingError();
 		if (this.refreshingDeferred) return this.refreshingDeferred.promise;
-		if (this.lastRefreshFailure && this.lastRefreshFailure.refreshToken === refreshToken && Date.now() < this.lastRefreshFailure.expiresAt) {
-			this._debug("#_callRefreshToken()", "returning cached failure (cooldown active)");
-			return this.lastRefreshFailure.result;
-		}
-		const debugName = `#_callRefreshToken()`;
+		const debugName = `#_callRefreshToken(${refreshToken.substring(0, 5)}...)`;
 		this._debug(debugName, "begin");
 		try {
 			this.refreshingDeferred = new Deferred();
-			const storedAtStart = await getItemAsync(this.storage, this.storageKey);
 			const { data, error } = await this._refreshAccessToken(refreshToken);
 			if (error) throw error;
 			if (!data.session) throw new AuthSessionMissingError();
-			const storedAfter = await getItemAsync(this.storage, this.storageKey);
-			if (storedAtStart !== null && (storedAfter === null || storedAfter.refresh_token !== storedAtStart.refresh_token)) {
-				this._debug(debugName, "commit guard: storage changed since refresh started, discarding rotated tokens", {
-					startedWith: "present",
-					nowHolds: storedAfter ? "replaced" : "cleared"
-				});
-				const discarded = {
-					data: null,
-					error: new AuthRefreshDiscardedError()
-				};
-				this.refreshingDeferred.resolve(discarded);
-				return discarded;
-			}
-			const epochBeforeSave = this._sessionRemovalEpoch;
 			await this._saveSession(data.session);
-			if (this._sessionRemovalEpoch !== epochBeforeSave) {
-				this._debug(debugName, "commit guard (post-save): _removeSession ran during _saveSession, undoing write");
-				await removeItemAsync(this.storage, this.storageKey);
-				if (this.userStorage) await removeItemAsync(this.userStorage, this.storageKey + "-user");
-				const discarded = {
-					data: null,
-					error: new AuthRefreshDiscardedError()
-				};
-				this.refreshingDeferred.resolve(discarded);
-				return discarded;
-			}
 			await this._notifyAllSubscribers("TOKEN_REFRESHED", data.session);
 			const result = {
 				data: data.session,
 				error: null
 			};
-			this.lastRefreshFailure = null;
 			this.refreshingDeferred.resolve(result);
 			return result;
 		} catch (error) {
@@ -6926,16 +3902,7 @@ var GoTrueClient = class GoTrueClient {
 					data: null,
 					error
 				};
-				if (!isAuthRetryableFetchError(error)) {
-					const storedNow = await getItemAsync(this.storage, this.storageKey);
-					if (!!((storedNow === null || storedNow === void 0 ? void 0 : storedNow.expires_at) && storedNow.expires_at * 1e3 > Date.now())) this._debug(debugName, "proactive refresh failed, access token still valid — preserving session");
-					else await this._removeSession();
-				}
-				this.lastRefreshFailure = {
-					refreshToken,
-					result,
-					expiresAt: Date.now() + REFRESH_FAILURE_COOLDOWN_MS
-				};
+				if (!isAuthRetryableFetchError(error)) await this._removeSession();
 				(_a = this.refreshingDeferred) === null || _a === void 0 || _a.resolve(result);
 				return result;
 			}
@@ -6947,14 +3914,6 @@ var GoTrueClient = class GoTrueClient {
 		}
 	}
 	async _notifyAllSubscribers(event, session, broadcast = true) {
-		if (this._pendingInitNotifications !== null && broadcast) {
-			this._pendingInitNotifications.push({
-				event,
-				session,
-				broadcast
-			});
-			return;
-		}
 		const debugName = `#_notifyAllSubscribers(${event})`;
 		this._debug(debugName, "begin", session, `broadcast = ${broadcast}`);
 		try {
@@ -7001,10 +3960,7 @@ var GoTrueClient = class GoTrueClient {
 		}
 	}
 	async _removeSession() {
-		this._sessionRemovalEpoch += 1;
 		this._debug("#_removeSession()");
-		this.lastRefreshFailure = null;
-		this.suppressGetSessionWarning = false;
 		await removeItemAsync(this.storage, this.storageKey);
 		await removeItemAsync(this.storage, this.storageKey + "-code-verifier");
 		await removeItemAsync(this.storage, this.storageKey + "-user");
@@ -7014,8 +3970,8 @@ var GoTrueClient = class GoTrueClient {
 	/**
 	* Removes any registered visibilitychange callback.
 	*
-	* {@link GoTrueClient.startAutoRefresh}
-	* {@link GoTrueClient.stopAutoRefresh}
+	* {@see #startAutoRefresh}
+	* {@see #stopAutoRefresh}
 	*/
 	_removeVisibilityChangedCallback() {
 		this._debug("#_removeVisibilityChangedCallback()");
@@ -7028,7 +3984,7 @@ var GoTrueClient = class GoTrueClient {
 		}
 	}
 	/**
-	* This is the private implementation of {@link GoTrueClient.startAutoRefresh}. Use this
+	* This is the private implementation of {@link #startAutoRefresh}. Use this
 	* within the library.
 	*/
 	async _startAutoRefresh() {
@@ -7038,16 +3994,13 @@ var GoTrueClient = class GoTrueClient {
 		this.autoRefreshTicker = ticker;
 		if (ticker && typeof ticker === "object" && typeof ticker.unref === "function") ticker.unref();
 		else if (typeof Deno !== "undefined" && typeof Deno.unrefTimer === "function") Deno.unrefTimer(ticker);
-		const timeout = setTimeout(async () => {
+		setTimeout(async () => {
 			await this.initializePromise;
 			await this._autoRefreshTokenTick();
 		}, 0);
-		this.autoRefreshTickTimeout = timeout;
-		if (timeout && typeof timeout === "object" && typeof timeout.unref === "function") timeout.unref();
-		else if (typeof Deno !== "undefined" && typeof Deno.unrefTimer === "function") Deno.unrefTimer(timeout);
 	}
 	/**
-	* This is the private implementation of {@link GoTrueClient.stopAutoRefresh}. Use this
+	* This is the private implementation of {@link #stopAutoRefresh}. Use this
 	* within the library.
 	*/
 	async _stopAutoRefresh() {
@@ -7055,9 +4008,6 @@ var GoTrueClient = class GoTrueClient {
 		const ticker = this.autoRefreshTicker;
 		this.autoRefreshTicker = null;
 		if (ticker) clearInterval(ticker);
-		const timeout = this.autoRefreshTickTimeout;
-		this.autoRefreshTickTimeout = null;
-		if (timeout) clearTimeout(timeout);
 	}
 	/**
 	* Starts an auto-refresh process in the background. The session is checked
@@ -7079,29 +4029,7 @@ var GoTrueClient = class GoTrueClient {
 	* platform's foreground indication mechanism and call these methods
 	* appropriately to conserve resources.
 	*
-	* {@link GoTrueClient.stopAutoRefresh}
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Only useful in non-browser environments such as React Native or Electron.
-	* - The Supabase Auth library automatically starts and stops proactively refreshing the session when a tab is focused or not.
-	* - On non-browser platforms, such as mobile or desktop apps built with web technologies, the library is not able to effectively determine whether the application is _focused_ or not.
-	* - To give this hint to the application, you should be calling this method when the app is in focus and calling `supabase.auth.stopAutoRefresh()` when it's out of focus.
-	*
-	* @example Start and stop auto refresh in React Native
-	* ```js
-	* import { AppState } from 'react-native'
-	*
-	* // make sure you register this only once!
-	* AppState.addEventListener('change', (state) => {
-	*   if (state === 'active') {
-	*     supabase.auth.startAutoRefresh()
-	*   } else {
-	*     supabase.auth.stopAutoRefresh()
-	*   }
-	* })
-	* ```
+	* {@see #stopAutoRefresh}
 	*/
 	async startAutoRefresh() {
 		this._removeVisibilityChangedCallback();
@@ -7113,128 +4041,42 @@ var GoTrueClient = class GoTrueClient {
 	* If you call this method any managed visibility change callback will be
 	* removed and you must manage visibility changes on your own.
 	*
-	* See {@link GoTrueClient.startAutoRefresh} for more details.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Only useful in non-browser environments such as React Native or Electron.
-	* - The Supabase Auth library automatically starts and stops proactively refreshing the session when a tab is focused or not.
-	* - On non-browser platforms, such as mobile or desktop apps built with web technologies, the library is not able to effectively determine whether the application is _focused_ or not.
-	* - When your application goes in the background or out of focus, call this method to stop the proactive refreshing of the session.
-	*
-	* @example Start and stop auto refresh in React Native
-	* ```js
-	* import { AppState } from 'react-native'
-	*
-	* // make sure you register this only once!
-	* AppState.addEventListener('change', (state) => {
-	*   if (state === 'active') {
-	*     supabase.auth.startAutoRefresh()
-	*   } else {
-	*     supabase.auth.stopAutoRefresh()
-	*   }
-	* })
-	* ```
+	* See {@link #startAutoRefresh} for more details.
 	*/
 	async stopAutoRefresh() {
 		this._removeVisibilityChangedCallback();
 		await this._stopAutoRefresh();
 	}
 	/**
-	* Tears down the client's background work: stops the auto-refresh interval,
-	* removes the `visibilitychange` listener, closes the cross-tab
-	* `BroadcastChannel`, and clears registered `onAuthStateChange` subscribers.
-	*
-	* Call this from cleanup hooks when the client is being replaced before
-	* its JS realm is destroyed. React Strict Mode and HMR are the common
-	* cases. Any in-flight `fetch` calls continue to completion and may still
-	* write to storage; dispose doesn't abort them or erase storage.
-	*
-	* Lifecycle caveat: because in-flight refreshes are not aborted, a
-	* disposed instance can still persist a rotated session to storage after
-	* `dispose()` returns. A subsequent `createClient` against the same
-	* `storageKey` will pick up that session on its next read. If you need
-	* strict isolation between client lifecycles, await any pending auth
-	* operation before calling `dispose()` (or change the `storageKey` for
-	* the replacement client).
-	*
-	* Safe to call repeatedly.
-	*
-	* @category Auth
-	*
-	* @example Cleanup on React unmount
-	* ```ts
-	* useEffect(() => {
-	*   const client = createClient(...)
-	*   return () => { client.auth.dispose() }
-	* }, [])
-	* ```
-	*/
-	async dispose() {
-		var _a;
-		this._removeVisibilityChangedCallback();
-		await this._stopAutoRefresh();
-		(_a = this.broadcastChannel) === null || _a === void 0 || _a.close();
-		this.broadcastChannel = null;
-		this.stateChangeEmitters.clear();
-	}
-	/**
 	* Runs the auto refresh token tick.
 	*/
 	async _autoRefreshTokenTick() {
 		this._debug("#_autoRefreshTokenTick()", "begin");
-		if (this.lock != null) {
-			try {
-				await this._acquireLock(0, async () => {
-					try {
-						const now = Date.now();
-						try {
-							return await this._useSession(async (result) => {
-								const { data: { session } } = result;
-								if (!session || !session.refresh_token || !session.expires_at) {
-									this._debug("#_autoRefreshTokenTick()", "no session");
-									return;
-								}
-								const expiresInTicks = Math.floor((session.expires_at * 1e3 - now) / AUTO_REFRESH_TICK_DURATION_MS);
-								this._debug("#_autoRefreshTokenTick()", `access token expires in ${expiresInTicks} ticks, a tick lasts ${AUTO_REFRESH_TICK_DURATION_MS}ms, refresh threshold is 3 ticks`);
-								if (expiresInTicks <= 3) await this._callRefreshToken(session.refresh_token);
-							});
-						} catch (e) {
-							console.error("Auto refresh tick failed with error. This is likely a transient error.", e);
-						}
-					} finally {
-						this._debug("#_autoRefreshTokenTick()", "end");
-					}
-				});
-			} catch (e) {
-				if (e instanceof LockAcquireTimeoutError) this._debug("auto refresh token tick lock not available");
-				else throw e;
-			}
-			return;
-		}
-		if (this.refreshingDeferred !== null) {
-			this._debug("#_autoRefreshTokenTick()", "refresh already in flight, skipping");
-			return;
-		}
 		try {
-			const now = Date.now();
-			try {
-				await this._useSession(async (result) => {
-					const { data: { session } } = result;
-					if (!session || !session.refresh_token || !session.expires_at) {
-						this._debug("#_autoRefreshTokenTick()", "no session");
-						return;
+			await this._acquireLock(0, async () => {
+				try {
+					const now = Date.now();
+					try {
+						return await this._useSession(async (result) => {
+							const { data: { session } } = result;
+							if (!session || !session.refresh_token || !session.expires_at) {
+								this._debug("#_autoRefreshTokenTick()", "no session");
+								return;
+							}
+							const expiresInTicks = Math.floor((session.expires_at * 1e3 - now) / AUTO_REFRESH_TICK_DURATION_MS);
+							this._debug("#_autoRefreshTokenTick()", `access token expires in ${expiresInTicks} ticks, a tick lasts ${AUTO_REFRESH_TICK_DURATION_MS}ms, refresh threshold is 3 ticks`);
+							if (expiresInTicks <= 3) await this._callRefreshToken(session.refresh_token);
+						});
+					} catch (e) {
+						console.error("Auto refresh tick failed with error. This is likely a transient error.", e);
 					}
-					const expiresInTicks = Math.floor((session.expires_at * 1e3 - now) / AUTO_REFRESH_TICK_DURATION_MS);
-					this._debug("#_autoRefreshTokenTick()", `access token expires in ${expiresInTicks} ticks, a tick lasts ${AUTO_REFRESH_TICK_DURATION_MS}ms, refresh threshold is 3 ticks`);
-					if (expiresInTicks <= 3) await this._callRefreshToken(session.refresh_token);
-				});
-			} catch (e) {
-				console.error("Auto refresh tick failed with error. This is likely a transient error.", e);
-			}
-		} finally {
-			this._debug("#_autoRefreshTokenTick()", "end");
+				} finally {
+					this._debug("#_autoRefreshTokenTick()", "end");
+				}
+			});
+		} catch (e) {
+			if (e.isAcquireTimeout || e instanceof LockAcquireTimeoutError) this._debug("auto refresh token tick lock not available");
+			else throw e;
 		}
 	}
 	/**
@@ -7249,13 +4091,7 @@ var GoTrueClient = class GoTrueClient {
 			return false;
 		}
 		try {
-			this.visibilityChangedCallback = async () => {
-				try {
-					await this._onVisibilityChanged(false);
-				} catch (error) {
-					this._debug("#visibilityChangedCallback", "error", error);
-				}
-			};
+			this.visibilityChangedCallback = async () => await this._onVisibilityChanged(false);
 			window === null || window === void 0 || window.addEventListener("visibilitychange", this.visibilityChangedCallback);
 			await this._onVisibilityChanged(true);
 		} catch (error) {
@@ -7272,20 +4108,13 @@ var GoTrueClient = class GoTrueClient {
 			if (this.autoRefreshToken) this._startAutoRefresh();
 			if (!calledFromInitialize) {
 				await this.initializePromise;
-				if (this.lock != null) await this._acquireLock(this.lockAcquireTimeout, async () => {
+				await this._acquireLock(-1, async () => {
 					if (document.visibilityState !== "visible") {
 						this._debug(methodName, "acquired the lock to recover the session, but the browser visibilityState is no longer visible, aborting");
 						return;
 					}
 					await this._recoverAndRefresh();
 				});
-				else {
-					if (document.visibilityState !== "visible") {
-						this._debug(methodName, "visibilityState is no longer visible, skipping recovery");
-						return;
-					}
-					await this._recoverAndRefresh();
-				}
 			}
 		} else if (document.visibilityState === "hidden") {
 			if (this.autoRefreshToken) this._stopAutoRefresh();
@@ -7321,20 +4150,20 @@ var GoTrueClient = class GoTrueClient {
 			return await this._useSession(async (result) => {
 				var _a;
 				const { data: sessionData, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
+				if (sessionError) return {
 					data: null,
 					error: sessionError
-				});
+				};
 				return await _request(this.fetch, "DELETE", `${this.url}/factors/${params.factorId}`, {
 					headers: this.headers,
 					jwt: (_a = sessionData === null || sessionData === void 0 ? void 0 : sessionData.session) === null || _a === void 0 ? void 0 : _a.access_token
 				});
 			});
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: null,
 				error
-			});
+			};
 			throw error;
 		}
 	}
@@ -7343,10 +4172,10 @@ var GoTrueClient = class GoTrueClient {
 			return await this._useSession(async (result) => {
 				var _a, _b;
 				const { data: sessionData, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
+				if (sessionError) return {
 					data: null,
 					error: sessionError
-				});
+				};
 				const body = Object.assign({
 					friendly_name: params.friendlyName,
 					factor_type: params.factorType
@@ -7356,72 +4185,70 @@ var GoTrueClient = class GoTrueClient {
 					headers: this.headers,
 					jwt: (_a = sessionData === null || sessionData === void 0 ? void 0 : sessionData.session) === null || _a === void 0 ? void 0 : _a.access_token
 				});
-				if (error) return this._returnResult({
+				if (error) return {
 					data: null,
 					error
-				});
+				};
 				if (params.factorType === "totp" && data.type === "totp" && ((_b = data === null || data === void 0 ? void 0 : data.totp) === null || _b === void 0 ? void 0 : _b.qr_code)) data.totp.qr_code = `data:image/svg+xml;utf-8,${data.totp.qr_code}`;
-				return this._returnResult({
+				return {
 					data,
 					error: null
-				});
+				};
 			});
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: null,
 				error
-			});
+			};
 			throw error;
 		}
 	}
 	async _verify(params) {
-		const run = async () => {
+		return this._acquireLock(-1, async () => {
 			try {
 				return await this._useSession(async (result) => {
 					var _a;
 					const { data: sessionData, error: sessionError } = result;
-					if (sessionError) return this._returnResult({
+					if (sessionError) return {
 						data: null,
 						error: sessionError
-					});
+					};
 					const body = Object.assign({ challenge_id: params.challengeId }, "webauthn" in params ? { webauthn: Object.assign(Object.assign({}, params.webauthn), { credential_response: params.webauthn.type === "create" ? serializeCredentialCreationResponse(params.webauthn.credential_response) : serializeCredentialRequestResponse(params.webauthn.credential_response) }) } : { code: params.code });
 					const { data, error } = await _request(this.fetch, "POST", `${this.url}/factors/${params.factorId}/verify`, {
 						body,
 						headers: this.headers,
 						jwt: (_a = sessionData === null || sessionData === void 0 ? void 0 : sessionData.session) === null || _a === void 0 ? void 0 : _a.access_token
 					});
-					if (error) return this._returnResult({
+					if (error) return {
 						data: null,
 						error
-					});
+					};
 					await this._saveSession(Object.assign({ expires_at: Math.round(Date.now() / 1e3) + data.expires_in }, data));
 					await this._notifyAllSubscribers("MFA_CHALLENGE_VERIFIED", data);
-					return this._returnResult({
+					return {
 						data,
 						error
-					});
+					};
 				});
 			} catch (error) {
-				if (isAuthError(error)) return this._returnResult({
+				if (isAuthError(error)) return {
 					data: null,
 					error
-				});
+				};
 				throw error;
 			}
-		};
-		if (this.lock != null) return this._acquireLock(this.lockAcquireTimeout, run);
-		return run();
+		});
 	}
 	async _challenge(params) {
-		const run = async () => {
+		return this._acquireLock(-1, async () => {
 			try {
 				return await this._useSession(async (result) => {
 					var _a;
 					const { data: sessionData, error: sessionError } = result;
-					if (sessionError) return this._returnResult({
+					if (sessionError) return {
 						data: null,
 						error: sessionError
-					});
+					};
 					const response = await _request(this.fetch, "POST", `${this.url}/factors/${params.factorId}/challenge`, {
 						body: params,
 						headers: this.headers,
@@ -7445,25 +4272,23 @@ var GoTrueClient = class GoTrueClient {
 					}
 				});
 			} catch (error) {
-				if (isAuthError(error)) return this._returnResult({
+				if (isAuthError(error)) return {
 					data: null,
 					error
-				});
+				};
 				throw error;
 			}
-		};
-		if (this.lock != null) return this._acquireLock(this.lockAcquireTimeout, run);
-		return run();
+		});
 	}
 	/**
-	* {@link GoTrueMFAApi#challengeAndVerify}
+	* {@see GoTrueMFAApi#challengeAndVerify}
 	*/
 	async _challengeAndVerify(params) {
 		const { data: challengeData, error: challengeError } = await this._challenge({ factorId: params.factorId });
-		if (challengeError) return this._returnResult({
+		if (challengeError) return {
 			data: null,
 			error: challengeError
-		});
+		};
 		return await this._verify({
 			factorId: params.factorId,
 			challengeId: challengeData.id,
@@ -7471,7 +4296,7 @@ var GoTrueClient = class GoTrueClient {
 		});
 	}
 	/**
-	* {@link GoTrueMFAApi#listFactors}
+	* {@see GoTrueMFAApi#listFactors}
 	*/
 	async _listFactors() {
 		var _a;
@@ -7496,245 +4321,41 @@ var GoTrueClient = class GoTrueClient {
 		};
 	}
 	/**
-	* {@link GoTrueMFAApi#getAuthenticatorAssuranceLevel}
+	* {@see GoTrueMFAApi#getAuthenticatorAssuranceLevel}
 	*/
-	async _getAuthenticatorAssuranceLevel(jwt) {
-		var _a, _b, _c, _d;
-		if (jwt) try {
-			const { payload } = decodeJWT(jwt);
-			let currentLevel = null;
-			if (payload.aal) currentLevel = payload.aal;
-			let nextLevel = currentLevel;
-			const { data: { user }, error: userError } = await this.getUser(jwt);
-			if (userError) return this._returnResult({
-				data: null,
-				error: userError
-			});
-			if (((_b = (_a = user === null || user === void 0 ? void 0 : user.factors) === null || _a === void 0 ? void 0 : _a.filter((factor) => factor.status === "verified")) !== null && _b !== void 0 ? _b : []).length > 0) nextLevel = "aal2";
-			const currentAuthenticationMethods = payload.amr || [];
-			return {
-				data: {
-					currentLevel,
-					nextLevel,
-					currentAuthenticationMethods
-				},
-				error: null
-			};
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-		const { data: { session }, error: sessionError } = await this.getSession();
-		if (sessionError) return this._returnResult({
-			data: null,
-			error: sessionError
-		});
-		if (!session) return {
-			data: {
-				currentLevel: null,
-				nextLevel: null,
-				currentAuthenticationMethods: []
-			},
-			error: null
-		};
-		const { payload } = decodeJWT(session.access_token);
-		let currentLevel = null;
-		if (payload.aal) currentLevel = payload.aal;
-		let nextLevel = currentLevel;
-		if (((_d = (_c = session.user.factors) === null || _c === void 0 ? void 0 : _c.filter((factor) => factor.status === "verified")) !== null && _d !== void 0 ? _d : []).length > 0) nextLevel = "aal2";
-		const currentAuthenticationMethods = payload.amr || [];
-		return {
-			data: {
-				currentLevel,
-				nextLevel,
-				currentAuthenticationMethods
-			},
-			error: null
-		};
-	}
-	/**
-	* Retrieves details about an OAuth authorization request.
-	* Only relevant when the OAuth 2.1 server is enabled in Supabase Auth.
-	*
-	* Returns authorization details including client info, scopes, and user information.
-	* If the response includes only a redirect_url field, it means consent was already given - the caller
-	* should handle the redirect manually if needed.
-	*/
-	async _getAuthorizationDetails(authorizationId) {
-		try {
+	async _getAuthenticatorAssuranceLevel() {
+		return this._acquireLock(-1, async () => {
 			return await this._useSession(async (result) => {
+				var _a, _b;
 				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
+				if (sessionError) return {
 					data: null,
 					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				return await _request(this.fetch, "GET", `${this.url}/oauth/authorizations/${authorizationId}`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					xform: (data) => ({
-						data,
-						error: null
-					})
-				});
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Approves an OAuth authorization request.
-	* Only relevant when the OAuth 2.1 server is enabled in Supabase Auth.
-	*/
-	async _approveAuthorization(authorizationId, options) {
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				const response = await _request(this.fetch, "POST", `${this.url}/oauth/authorizations/${authorizationId}/consent`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					body: { action: "approve" },
-					xform: (data) => ({
-						data,
-						error: null
-					})
-				});
-				if (response.data && response.data.redirect_url) {
-					if (isBrowser() && !(options === null || options === void 0 ? void 0 : options.skipBrowserRedirect)) window.location.assign(response.data.redirect_url);
-				}
-				return response;
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Denies an OAuth authorization request.
-	* Only relevant when the OAuth 2.1 server is enabled in Supabase Auth.
-	*/
-	async _denyAuthorization(authorizationId, options) {
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				const response = await _request(this.fetch, "POST", `${this.url}/oauth/authorizations/${authorizationId}/consent`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					body: { action: "deny" },
-					xform: (data) => ({
-						data,
-						error: null
-					})
-				});
-				if (response.data && response.data.redirect_url) {
-					if (isBrowser() && !(options === null || options === void 0 ? void 0 : options.skipBrowserRedirect)) window.location.assign(response.data.redirect_url);
-				}
-				return response;
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Lists all OAuth grants that the authenticated user has authorized.
-	* Only relevant when the OAuth 2.1 server is enabled in Supabase Auth.
-	*/
-	async _listOAuthGrants() {
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				return await _request(this.fetch, "GET", `${this.url}/user/oauth/grants`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					xform: (data) => ({
-						data,
-						error: null
-					})
-				});
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Revokes a user's OAuth grant for a specific client.
-	* Only relevant when the OAuth 2.1 server is enabled in Supabase Auth.
-	*/
-	async _revokeOAuthGrant(options) {
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				await _request(this.fetch, "DELETE", `${this.url}/user/oauth/grants`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					query: { client_id: options.clientId },
-					noResolveJson: true
-				});
+				};
+				if (!session) return {
+					data: {
+						currentLevel: null,
+						nextLevel: null,
+						currentAuthenticationMethods: []
+					},
+					error: null
+				};
+				const { payload } = decodeJWT(session.access_token);
+				let currentLevel = null;
+				if (payload.aal) currentLevel = payload.aal;
+				let nextLevel = currentLevel;
+				if (((_b = (_a = session.user.factors) === null || _a === void 0 ? void 0 : _a.filter((factor) => factor.status === "verified")) !== null && _b !== void 0 ? _b : []).length > 0) nextLevel = "aal2";
+				const currentAuthenticationMethods = payload.amr || [];
 				return {
-					data: {},
+					data: {
+						currentLevel,
+						nextLevel,
+						currentAuthenticationMethods
+					},
 					error: null
 				};
 			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
+		});
 	}
 	async fetchJwk(kid, jwks = { keys: [] }) {
 		let jwk = jwks.keys.find((key) => key.kid === kid);
@@ -7755,84 +4376,31 @@ var GoTrueClient = class GoTrueClient {
 	* Extracts the JWT claims present in the access token by first verifying the
 	* JWT against the server's JSON Web Key Set endpoint
 	* `/.well-known/jwks.json` which is often cached, resulting in significantly
-	* faster responses. Prefer this method over {@link GoTrueClient.getUser} which always
+	* faster responses. Prefer this method over {@link #getUser} which always
 	* sends a request to the Auth server for each JWT.
 	*
 	* If the project is not using an asymmetric JWT signing key (like ECC or
-	* RSA) it always sends a request to the Auth server (similar to
-	* {@link GoTrueClient.getUser}) to verify the JWT.
+	* RSA) it always sends a request to the Auth server (similar to {@link
+	* #getUser}) to verify the JWT.
 	*
 	* @param jwt An optional specific JWT you wish to verify, not the one you
-	*            can obtain from {@link GoTrueClient.getSession}.
+	*            can obtain from {@link #getSession}.
 	* @param options Various additional options that allow you to customize the
 	*                behavior of this method.
-	*
-	* @category Auth
-	*
-	* @remarks
-	* - Parses the user's [access token](/docs/guides/auth/sessions#access-token-jwt-claims) as a [JSON Web Token (JWT)](/docs/guides/auth/jwts) and returns its components if valid and not expired.
-	* - If your project is using asymmetric JWT signing keys, then the verification is done locally usually without a network request using the [WebCrypto API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API).
-	* - A network request is sent to your project's JWT signing key discovery endpoint `https://project-id.supabase.co/auth/v1/.well-known/jwks.json`, which is cached locally. If your environment is ephemeral, such as a Lambda function that is destroyed after every request, a network request will be sent for each new invocation. Supabase provides a network-edge cache providing fast responses for these situations.
-	* - If the user's access token is about to expire when calling this function, the user's session will first be refreshed before validating the JWT.
-	* - If your project is using a symmetric secret to sign the JWT, it always sends a request similar to `getUser()` to validate the JWT at the server before returning the decoded token. This is also used if the WebCrypto API is not available in the environment. Make sure you polyfill it in such situations.
-	* - The returned claims can be customized per project using the [Custom Access Token Hook](/docs/guides/auth/auth-hooks/custom-access-token-hook).
-	*
-	* @example Get JWT claims, header and signature
-	* ```js
-	* const { data, error } = await supabase.auth.getClaims()
-	* ```
-	*
-	* @exampleResponse Get JWT claims, header and signature
-	* ```json
-	* {
-	*   "data": {
-	*     "claims": {
-	*       "aal": "aal1",
-	*       "amr": [{
-	*         "method": "email",
-	*         "timestamp": 1715766000
-	*       }],
-	*       "app_metadata": {},
-	*       "aud": "authenticated",
-	*       "email": "example@email.com",
-	*       "exp": 1715769600,
-	*       "iat": 1715766000,
-	*       "is_anonymous": false,
-	*       "iss": "https://project-id.supabase.co/auth/v1",
-	*       "phone": "+13334445555",
-	*       "role": "authenticated",
-	*       "session_id": "11111111-1111-1111-1111-111111111111",
-	*       "sub": "11111111-1111-1111-1111-111111111111",
-	*       "user_metadata": {}
-	*     },
-	*     "header": {
-	*       "alg": "RS256",
-	*       "typ": "JWT",
-	*       "kid": "11111111-1111-1111-1111-111111111111"
-	*     },
-	*     "signature": [/** Uint8Array *\/],
-	*   },
-	*   "error": null
-	* }
-	* ```
 	*/
 	async getClaims(jwt, options = {}) {
 		try {
 			let token = jwt;
 			if (!token) {
 				const { data, error } = await this.getSession();
-				if (error || !data.session) return this._returnResult({
+				if (error || !data.session) return {
 					data: null,
 					error
-				});
+				};
 				token = data.session.access_token;
 			}
 			const { header, payload, signature, raw: { header: rawHeader, payload: rawPayload } } = decodeJWT(token);
-			if (!(options === null || options === void 0 ? void 0 : options.allowExpired)) try {
-				validateExp(payload.exp);
-			} catch (e) {
-				throw new AuthInvalidJwtError(e instanceof Error ? e.message : "JWT validation failed");
-			}
+			if (!(options === null || options === void 0 ? void 0 : options.allowExpired)) validateExp(payload.exp);
 			const signingKey = !header.alg || header.alg.startsWith("HS") || !header.kid || !("crypto" in globalThis && "subtle" in globalThis.crypto) ? null : await this.fetchJwk(header.kid, (options === null || options === void 0 ? void 0 : options.keys) ? { keys: options.keys } : options === null || options === void 0 ? void 0 : options.jwks);
 			if (!signingKey) {
 				const { error } = await this.getUser(token);
@@ -7858,364 +4426,15 @@ var GoTrueClient = class GoTrueClient {
 				error: null
 			};
 		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
+			if (isAuthError(error)) return {
 				data: null,
 				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Sign in with a passkey. Handles the full WebAuthn ceremony:
-	* 1. Fetches authentication challenge from server
-	* 2. Prompts user via navigator.credentials.get()
-	* 3. Verifies credential with server and creates session
-	*
-	* Requires `auth.experimental.passkey: true`.
-	*
-	* @category Auth
-	*/
-	async signInWithPasskey(credentials) {
-		var _a, _b, _c;
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			if (!browserSupportsWebAuthn()) return this._returnResult({
-				data: null,
-				error: new AuthUnknownError("Browser does not support WebAuthn", null)
-			});
-			const { data: options, error: optionsError } = await this._startPasskeyAuthentication({ options: { captchaToken: (_a = credentials === null || credentials === void 0 ? void 0 : credentials.options) === null || _a === void 0 ? void 0 : _a.captchaToken } });
-			if (optionsError || !options) return this._returnResult({
-				data: null,
-				error: optionsError
-			});
-			const { data: credential, error: credentialError } = await getCredential({
-				publicKey: deserializeCredentialRequestOptions(options.options),
-				signal: (_c = (_b = credentials === null || credentials === void 0 ? void 0 : credentials.options) === null || _b === void 0 ? void 0 : _b.signal) !== null && _c !== void 0 ? _c : webAuthnAbortService.createNewAbortSignal()
-			});
-			if (credentialError || !credential) return this._returnResult({
-				data: null,
-				error: credentialError !== null && credentialError !== void 0 ? credentialError : new AuthUnknownError("WebAuthn ceremony failed", null)
-			});
-			const serialized = serializeCredentialRequestResponse(credential);
-			return this._verifyPasskeyAuthentication({
-				challengeId: options.challenge_id,
-				credential: serialized
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Register a passkey for the current authenticated user. Handles the full WebAuthn ceremony:
-	* 1. Fetches registration challenge from server
-	* 2. Prompts user via navigator.credentials.create()
-	* 3. Verifies credential with server
-	*
-	* Requires an active session. Requires `auth.experimental.passkey: true`.
-	*
-	* @category Auth
-	*/
-	async registerPasskey(credentials) {
-		var _a, _b;
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			if (!browserSupportsWebAuthn()) return this._returnResult({
-				data: null,
-				error: new AuthUnknownError("Browser does not support WebAuthn", null)
-			});
-			const { data: options, error: optionsError } = await this._startPasskeyRegistration();
-			if (optionsError || !options) return this._returnResult({
-				data: null,
-				error: optionsError
-			});
-			const { data: credential, error: credentialError } = await createCredential({
-				publicKey: deserializeCredentialCreationOptions(options.options),
-				signal: (_b = (_a = credentials === null || credentials === void 0 ? void 0 : credentials.options) === null || _a === void 0 ? void 0 : _a.signal) !== null && _b !== void 0 ? _b : webAuthnAbortService.createNewAbortSignal()
-			});
-			if (credentialError || !credential) return this._returnResult({
-				data: null,
-				error: credentialError !== null && credentialError !== void 0 ? credentialError : new AuthUnknownError("WebAuthn ceremony failed", null)
-			});
-			const serialized = serializeCredentialCreationResponse(credential);
-			return this._verifyPasskeyRegistration({
-				challengeId: options.challenge_id,
-				credential: serialized
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Start passkey registration for the current authenticated user.
-	* Returns WebAuthn credential creation options to pass to navigator.credentials.create().
-	*/
-	async _startPasskeyRegistration() {
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				const { data, error } = await _request(this.fetch, "POST", `${this.url}/passkeys/registration/options`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					body: {}
-				});
-				if (error) return this._returnResult({
-					data: null,
-					error
-				});
-				return this._returnResult({
-					data,
-					error: null
-				});
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Verify passkey registration with the credential response.
-	* The credentialResponse should be the serialized output of navigator.credentials.create().
-	*/
-	async _verifyPasskeyRegistration(params) {
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				const { data, error } = await _request(this.fetch, "POST", `${this.url}/passkeys/registration/verify`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					body: {
-						challenge_id: params.challengeId,
-						credential: params.credential
-					}
-				});
-				if (error) return this._returnResult({
-					data: null,
-					error
-				});
-				return this._returnResult({
-					data,
-					error: null
-				});
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Start passkey authentication.
-	* Returns WebAuthn credential request options to pass to navigator.credentials.get().
-	*/
-	async _startPasskeyAuthentication(params) {
-		var _a;
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			const { data, error } = await _request(this.fetch, "POST", `${this.url}/passkeys/authentication/options`, {
-				headers: this.headers,
-				body: { gotrue_meta_security: { captcha_token: (_a = params === null || params === void 0 ? void 0 : params.options) === null || _a === void 0 ? void 0 : _a.captchaToken } }
-			});
-			if (error) return this._returnResult({
-				data: null,
-				error
-			});
-			return this._returnResult({
-				data,
-				error: null
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Verify passkey authentication and create a session.
-	* The credential should be the serialized output of navigator.credentials.get().
-	*/
-	async _verifyPasskeyAuthentication(params) {
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			const { data, error } = await _request(this.fetch, "POST", `${this.url}/passkeys/authentication/verify`, {
-				headers: this.headers,
-				body: {
-					challenge_id: params.challengeId,
-					credential: params.credential
-				},
-				xform: _sessionResponse
-			});
-			if (error) return this._returnResult({
-				data: null,
-				error
-			});
-			if (data.session) {
-				await this._saveSession(data.session);
-				await this._notifyAllSubscribers("SIGNED_IN", data.session);
-			}
-			return this._returnResult({
-				data,
-				error: null
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* List all passkeys for the current user.
-	*/
-	async _listPasskeys() {
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				const { data, error } = await _request(this.fetch, "GET", `${this.url}/passkeys`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					xform: (data) => ({
-						data,
-						error: null
-					})
-				});
-				if (error) return this._returnResult({
-					data: null,
-					error
-				});
-				return this._returnResult({
-					data,
-					error: null
-				});
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Update a passkey.
-	*/
-	async _updatePasskey(params) {
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				const { data, error } = await _request(this.fetch, "PATCH", `${this.url}/passkeys/${params.passkeyId}`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					body: { friendly_name: params.friendlyName }
-				});
-				if (error) return this._returnResult({
-					data: null,
-					error
-				});
-				return this._returnResult({
-					data,
-					error: null
-				});
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
-			throw error;
-		}
-	}
-	/**
-	* Delete a passkey.
-	*/
-	async _deletePasskey(params) {
-		assertPasskeyExperimentalEnabled(this.experimental);
-		try {
-			return await this._useSession(async (result) => {
-				const { data: { session }, error: sessionError } = result;
-				if (sessionError) return this._returnResult({
-					data: null,
-					error: sessionError
-				});
-				if (!session) return this._returnResult({
-					data: null,
-					error: new AuthSessionMissingError()
-				});
-				const { error } = await _request(this.fetch, "DELETE", `${this.url}/passkeys/${params.passkeyId}`, {
-					headers: this.headers,
-					jwt: session.access_token,
-					noResolveJson: true
-				});
-				if (error) return this._returnResult({
-					data: null,
-					error
-				});
-				return this._returnResult({
-					data: null,
-					error: null
-				});
-			});
-		} catch (error) {
-			if (isAuthError(error)) return this._returnResult({
-				data: null,
-				error
-			});
+			};
 			throw error;
 		}
 	}
 };
-GoTrueClient.nextInstanceID = {};
+GoTrueClient.nextInstanceID = 0;
 //#endregion
 //#region node_modules/@supabase/auth-js/dist/module/AuthClient.js
 var AuthClient = GoTrueClient;

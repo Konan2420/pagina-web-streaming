@@ -1,1 +1,0 @@
-import{i as e,r as t,t as n}from"./auth-middleware-xDhWWlCh.js";var r=t({method:`POST`}).handler(e(`39a0417704f811794703987a71b321d62c2696baad2dc944fcb08205fb9476df`)),i=t({method:`GET`}).middleware([n]).handler(e(`391684d8ef65bd4077644dcb0f3c50cb5f1f46857fe0b226ffeb07dd899622ce`));export{r as n,i as t};

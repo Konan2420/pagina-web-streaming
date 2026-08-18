@@ -1,4 +1,4 @@
-import { i as __toESM, r as __require, t as __commonJSMin } from "../../_runtime.mjs";
+import { i as __require, o as __toESM, t as __commonJSMin } from "../../_runtime.mjs";
 import { l as require_react_dom, u as require_react } from "../@floating-ui/react-dom+[...].mjs";
 import { r as parseHref } from "../tanstack__history.mjs";
 import { o as require_jsx_runtime } from "../@radix-ui/react-collection+[...].mjs";
@@ -93,15 +93,12 @@ function dehydrateSsrMatchId(id) {
 function last(arr) {
 	return arr[arr.length - 1];
 }
-function isFunction(d) {
-	return typeof d === "function";
-}
 /**
 * Apply a value-or-updater to a previous value.
 * Accepts either a literal value or a function of the previous value.
 */
 function functionalUpdate(updater, previous) {
-	if (isFunction(updater)) return updater(previous);
+	if (typeof updater === "function") return updater(previous);
 	return updater;
 }
 var hasOwn = Object.prototype.hasOwnProperty;
@@ -389,14 +386,6 @@ function invariant() {
 //#region node_modules/@tanstack/router-core/dist/esm/new-process-route-tree.js
 var SEGMENT_TYPE_INDEX = 4;
 var SEGMENT_TYPE_PATHLESS = 5;
-function getOpenAndCloseBraces(part) {
-	const openBrace = part.indexOf("{");
-	if (openBrace === -1) return null;
-	const closeBrace = part.indexOf("}", openBrace);
-	if (closeBrace === -1) return null;
-	if (openBrace + 1 >= part.length) return null;
-	return [openBrace, closeBrace];
-}
 /**
 * Populates the `output` array with the parsed representation of the given `segment` string.
 *
@@ -445,9 +434,9 @@ function parseSegment(path, start, output = /* @__PURE__ */ new Uint16Array(6)) 
 		output[5] = end;
 		return output;
 	}
-	const braces = getOpenAndCloseBraces(part);
-	if (braces) {
-		const [openBrace, closeBrace] = braces;
+	const openBrace = part.indexOf("{");
+	let closeBrace;
+	if (openBrace !== -1 && openBrace + 1 < part.length && (closeBrace = part.indexOf("}", openBrace)) !== -1) {
 		const firstChar = part.charCodeAt(openBrace + 1);
 		if (firstChar === 45) {
 			if (openBrace + 2 < part.length && part.charCodeAt(openBrace + 2) === 36) {
@@ -1839,34 +1828,25 @@ var RouterCore = class {
 					unmaskOnReload: dest.unmaskOnReload
 				};
 			};
-			const buildWithMatches = (dest = {}, maskedDest) => {
-				const next = build(dest);
-				let maskedNext = maskedDest ? build(maskedDest) : void 0;
-				if (!maskedNext) {
-					const params = Object.create(null);
-					if (this.options.routeMasks) {
-						const match = findFlatMatch(next.pathname, this.processedTree);
-						if (match) {
-							Object.assign(params, match.rawParams);
-							const { from: _from, params: maskParams, ...maskProps } = match.route;
-							const nextParams = resolveNextParams(maskParams, params);
-							maskedDest = {
-								from: opts.from,
-								...maskProps,
-								params: nextParams
-							};
-							maskedNext = build(maskedDest);
-						}
-					}
-				}
-				if (maskedNext) next.maskedLocation = maskedNext;
-				return next;
-			};
-			if (opts.mask) return buildWithMatches(opts, {
+			const next = build(opts);
+			if (opts.mask) next.maskedLocation = build({
 				from: opts.from,
 				...opts.mask
 			});
-			return buildWithMatches(opts);
+			else if (this.options.routeMasks) {
+				const match = findFlatMatch(next.pathname, this.processedTree);
+				if (match) {
+					const params = Object.assign(Object.create(null), match.rawParams);
+					const { from: _from, params: maskParams, ...maskProps } = match.route;
+					const nextParams = resolveNextParams(maskParams, params);
+					next.maskedLocation = build({
+						from: opts.from,
+						...maskProps,
+						params: nextParams
+					});
+				}
+			}
+			return next;
 		};
 		this.commitLocation = async ({ viewTransition, ignoreBlocker, ...next }) => {
 			let historyAction;
@@ -2703,7 +2683,7 @@ function createLoaderTask$1(router, lane, index, tasks, semanticParent, options,
 	const match = lane[1][index];
 	const route = getRoute$1(router, match);
 	const preload = !!options[4];
-	const plannedCacheMatch = preload ? router._cache.get(match.id) : void 0;
+	const plannedCacheMatch = router._cache.get(match.id);
 	let configured;
 	let reload = false;
 	let reloadFailure;
@@ -2753,7 +2733,7 @@ function createLoaderTask$1(router, lane, index, tasks, semanticParent, options,
 		if (blocking) {
 			settleInto(match, result, preload);
 			if (result[0] === SUCCESS$1) {
-				if (preload && routeLoader && !options[0].signal.aborted) cacheLoaderMatch(router, match, plannedCacheMatch);
+				if (routeLoader && !options[0].signal.aborted && true) cacheLoaderMatch(router, match, plannedCacheMatch);
 				match.status = "pending";
 			}
 		}
@@ -3007,79 +2987,6 @@ async function executeClientLane(router, location, matches, options) {
 	}
 	if (isControl(reduced)) return reduced;
 	return projectLane$1(router, reduced, options[0].signal, options[7] === reduced[1].length ? options[7] : 0);
-}
-/**
-* Waits for `pendingMs`, then presents the complete lane. Rendering applies the
-* selected boundary cutoff while retaining every match's structural state.
-* A replacement load for the same match keeps the timer; choosing a different
-* match resets it. `pendingMinMs` starts after the fallback renders.
-*/
-function offerPending(router, tx) {
-	if (router._tx !== tx) return;
-	let session = router._pending;
-	let tookOver = false;
-	const sessionMatchId = session?.[0][3][session[1]]?.id;
-	if (session?.[0] !== tx) if (session && tx[3][session[1]]?.id === sessionMatchId) {
-		session[0] = tx;
-		tookOver = true;
-	} else {
-		clearTimeout(session?.[3]);
-		router._pending = session = void 0;
-	}
-	const matches = tx[3];
-	const presented = router.stores.matches.get();
-	let boundary = -1;
-	let delay;
-	let min;
-	let component;
-	let presentedPending = false;
-	for (let index = 0; index < matches.length; index++) {
-		const match = matches[index];
-		const success = match.status === "success";
-		presentedPending = presented[index]?.id === match.id && presented[index]?.status === "pending";
-		if (success && !presentedPending) continue;
-		const route = getRoute$1(router, match);
-		delay = success && presentedPending || match.invalid ? 0 : route.options.pendingMs ?? router.options.defaultPendingMs;
-		component = route.options.pendingComponent ?? router.options.defaultPendingComponent;
-		if (!component || typeof delay !== "number" || delay === Infinity) return;
-		boundary = index;
-		min = route.options.pendingMinMs ?? router.options.defaultPendingMinMs ?? 0;
-		break;
-	}
-	if (boundary < 0) return;
-	const matchId = matches[boundary].id;
-	if (!session || session[1] !== boundary || sessionMatchId !== matchId) {
-		clearTimeout(session?.[3]);
-		router._pending = session = [
-			tx,
-			boundary,
-			presentedPending ? Date.now() + min : tx[4] + delay,
-			void 0,
-			presentedPending ? Promise.resolve(true) : void 0,
-			component
-		];
-	}
-	if (session[4] && !tookOver && session[5] === component) return;
-	session[5] = component;
-	if (!session[4]) {
-		clearTimeout(session[3]);
-		const remaining = session[2] - Date.now();
-		if (remaining > 0) {
-			session[3] = setTimeout(() => offerPending(router, tx), remaining);
-			return;
-		}
-		session[2] = 0;
-	}
-	const offered = matches.map((match) => ({
-		...match,
-		_flight: void 0
-	}));
-	offered[boundary].status = "pending";
-	const ack = router.startTransition(() => router.stores.setMatches(offered), offered).then((rendered) => {
-		if (rendered && router._pending === session && session[4] === ack && !session[2]) session[2] = Date.now() + min;
-		return rendered;
-	});
-	session[4] = ack;
 }
 async function preloadClientRoute(router, opts, redirects = 0) {
 	if (redirects > 20) return;
@@ -3705,48 +3612,6 @@ var import_react = /* @__PURE__ */ __toESM(require_react(), 1);
 var reactUse = import_react.use;
 var useLayoutEffect = import_react.useEffect;
 /**
-* React hook to wrap `IntersectionObserver`.
-*
-* This hook will create an `IntersectionObserver` and observe the ref passed to it.
-*
-* When the intersection changes, the callback will be called with the `IntersectionObserverEntry`.
-*
-* @param ref - The ref to observe
-* @param intersectionObserverOptions - The options to pass to the IntersectionObserver
-* @param disabled - Whether observation is disabled
-* @param callback - The callback to call when the intersection changes
-* @returns The IntersectionObserver instance
-* @example
-* ```tsx
-* const MyComponent = () => {
-* const ref = React.useRef<HTMLDivElement>(null)
-* useIntersectionObserver(
-*  ref,
-*  (entry) => { doSomething(entry) },
-*  { rootMargin: '10px' },
-*  false
-* )
-* return <div ref={ref} />
-* ```
-*/
-function useIntersectionObserver(ref, callback, intersectionObserverOptions = {}, disabled) {
-	import_react.useEffect(() => {
-		if (!ref.current || disabled || typeof IntersectionObserver !== "function") return;
-		const observer = new IntersectionObserver(([entry]) => {
-			callback(entry);
-		}, intersectionObserverOptions);
-		observer.observe(ref.current);
-		return () => {
-			observer.disconnect();
-		};
-	}, [
-		callback,
-		disabled,
-		intersectionObserverOptions,
-		ref
-	]);
-}
-/**
 * React hook to take a `React.ForwardedRef` and returns a `ref` that can be used on a DOM element.
 *
 * @param ref - The forwarded ref
@@ -3764,9 +3629,6 @@ function useForwardedRef(ref) {
 	import_react.useImperativeHandle(ref, () => innerRef.current, []);
 	return innerRef;
 }
-//#endregion
-//#region node_modules/@tanstack/router-core/dist/esm/link.js
-var preloadWarning = "Error preloading route! ☝️";
 //#endregion
 //#region node_modules/@tanstack/router-core/dist/esm/manifest.js
 function getAssetCrossOrigin(assetCrossOrigin, kind) {
@@ -3935,10 +3797,11 @@ var CatchBoundaryImpl = class extends import_react.Component {
 	}
 	render() {
 		const error = this.state.error;
-		return error ? import_react.createElement(this.props.errorComponent ?? ErrorComponent, {
+		if (error) return import_react.createElement(this.props.errorComponent ?? ErrorComponent, {
 			error,
 			reset: this.reset
-		}) : this.props.children;
+		});
+		return this.props.children;
 	}
 };
 function ErrorComponent({ error }) {
@@ -4396,34 +4259,9 @@ var require_with_selector_production = /* @__PURE__ */ __commonJSMin(((exports) 
 		return value;
 	};
 }));
-//#endregion
-//#region node_modules/@tanstack/react-store/dist/esm/useStore.js
-var import_with_selector = (/* @__PURE__ */ __commonJSMin(((exports, module) => {
+(/* @__PURE__ */ __commonJSMin(((exports, module) => {
 	module.exports = require_with_selector_production();
 })))();
-function defaultCompare(a, b) {
-	return a === b;
-}
-function useStore(atom, selector, compare = defaultCompare) {
-	const subscribe = (0, import_react.useCallback)((handleStoreChange) => {
-		if (!atom) return () => {};
-		const { unsubscribe } = atom.subscribe(handleStoreChange);
-		return unsubscribe;
-	}, [atom]);
-	const boundGetSnapshot = (0, import_react.useCallback)(() => atom?.get(), [atom]);
-	return (0, import_with_selector.useSyncExternalStoreWithSelector)(subscribe, boundGetSnapshot, boundGetSnapshot, selector, compare);
-}
-//#endregion
-//#region node_modules/@tanstack/react-router/dist/esm/useMatch.js
-var dummyMatch = {};
-function useStructuralSharing(opts, router) {
-	const previousResult = import_react.useRef();
-	return (slice) => {
-		const selected = opts?.select ? opts.select(slice) : slice;
-		if (opts?.structuralSharing ?? router.options.defaultStructuralSharing) return previousResult.current = replaceEqualDeep(previousResult.current, selected);
-		return selected;
-	};
-}
 /**
 * Read and select the nearest or targeted route match.
 * @link https://tanstack.com/router/latest/docs/framework/react/api/router/useMatchHook
@@ -4441,10 +4279,6 @@ function useMatch(opts) {
 		}
 		return opts.select ? opts.select(match) : match;
 	}
-	const selector = useStructuralSharing(opts, router);
-	const matchSelection = useStore(matchStore, (match) => match ? selector(match) : dummyMatch);
-	if (matchSelection !== dummyMatch) return matchSelection;
-	if (opts.shouldThrow ?? true) invariant();
 }
 //#endregion
 //#region node_modules/@tanstack/react-router/dist/esm/useLoaderData.js
@@ -4574,48 +4408,6 @@ function useRouteContext(opts) {
 		...opts,
 		select: (match) => opts.select ? opts.select(match.context) : match.context
 	});
-}
-//#endregion
-//#region node_modules/@tanstack/react-router/dist/esm/link.js
-var import_react_dom = /* @__PURE__ */ __toESM(require_react_dom(), 1);
-function useValueStable(value) {
-	const ref = import_react.useRef(value);
-	if (!deepEqual(ref.current, value, { ignoreUndefined: false })) ref.current = value;
-	return ref.current;
-}
-function compareLinkState(a, b) {
-	return a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
-}
-function resolveExternalLink(hrefOption, to, protocolAllowlist) {
-	if (hrefOption?.external) {
-		if (isDangerousProtocol(hrefOption.href, protocolAllowlist)) return;
-		return hrefOption.href;
-	}
-	if (isSafeInternal(to)) return;
-	if (typeof to !== "string" || to.indexOf(":") === -1) return;
-	try {
-		new URL(to);
-		if (isDangerousProtocol(to, protocolAllowlist)) return;
-		return to;
-	} catch {}
-}
-function resolveIsActive(location, next, activeOptions, basepath, isHydrated, isExternal) {
-	if (isExternal) return false;
-	if (activeOptions?.exact) {
-		if (!exactPathTest(location.pathname, next.pathname, basepath)) return false;
-	} else {
-		const currentPathSplit = removeTrailingSlash(location.pathname, basepath);
-		const nextPathSplit = removeTrailingSlash(next.pathname, basepath);
-		if (!(currentPathSplit.startsWith(nextPathSplit) && (currentPathSplit.length === nextPathSplit.length || currentPathSplit[nextPathSplit.length] === "/"))) return false;
-	}
-	if (activeOptions?.includeSearch ?? true) {
-		if (!deepEqual(location.search, next.search, {
-			partial: !activeOptions?.exact,
-			ignoreUndefined: !activeOptions?.explicitUndefined
-		})) return false;
-	}
-	if (activeOptions?.includeHash) return isHydrated && location.hash === next.hash;
-	return true;
 }
 /**
 * Build anchor-like props for declarative navigation and preloading.
@@ -4752,165 +4544,6 @@ function useLinkProps(options, forwardedRef) {
 			...isActive && STATIC_ACTIVE_PROPS
 		};
 	}
-	const isHydrated = useHydrated();
-	const stableSearch = useValueStable(options.search);
-	const stableParams = useValueStable(options.params);
-	const stableActiveOptions = useValueStable(activeOptions);
-	const _options = import_react.useMemo(() => options, [
-		router,
-		options.from,
-		options._fromLocation,
-		options.hash,
-		options.to,
-		stableSearch,
-		stableParams,
-		options.state,
-		options.mask,
-		options.unsafeRelative
-	]);
-	const selectLinkState = import_react.useCallback((location) => {
-		const next = router.buildLocation({
-			_fromLocation: location,
-			..._options
-		});
-		const hrefOption = getHrefOption(next.maskedLocation ? next.maskedLocation.publicHref : next.publicHref, next.maskedLocation ? next.maskedLocation.external : next.external, router.history, disabled);
-		const externalLink = resolveExternalLink(hrefOption, to, router.protocolAllowlist);
-		return [
-			hrefOption?.href,
-			externalLink,
-			resolveIsActive(location, next, stableActiveOptions, router.basepath, isHydrated, externalLink !== void 0)
-		];
-	}, [
-		stableActiveOptions,
-		disabled,
-		isHydrated,
-		_options,
-		router,
-		to
-	]);
-	const [href, externalLink, isActive] = useStore(router.stores.location, selectLinkState, compareLinkState);
-	const resolvedActiveProps = isActive ? functionalUpdate(activeProps, {}) ?? STATIC_ACTIVE_OBJECT : STATIC_EMPTY_OBJECT;
-	const resolvedInactiveProps = isActive ? STATIC_EMPTY_OBJECT : functionalUpdate(inactiveProps, {}) ?? STATIC_EMPTY_OBJECT;
-	const resolvedClassName = [
-		className,
-		resolvedActiveProps.className,
-		resolvedInactiveProps.className
-	].filter(Boolean).join(" ");
-	const resolvedStyle = (style || resolvedActiveProps.style || resolvedInactiveProps.style) && {
-		...style,
-		...resolvedActiveProps.style,
-		...resolvedInactiveProps.style
-	};
-	const [isTransitioning, setIsTransitioning] = import_react.useState(false);
-	const hasRenderFetched = import_react.useRef(false);
-	const preload = options.reloadDocument || externalLink ? false : userPreload ?? router.options.defaultPreload;
-	const preloadDelay = userPreloadDelay ?? router.options.defaultPreloadDelay ?? 0;
-	const doPreload = import_react.useCallback(() => {
-		router.preloadRoute(_options).catch((err) => {
-			console.warn(err);
-			console.warn(preloadWarning);
-		});
-	}, [router, _options]);
-	useIntersectionObserver(innerRef, import_react.useCallback((entry) => {
-		if (entry?.isIntersecting) doPreload();
-	}, [doPreload]), intersectionObserverOptions, !!disabled || preload !== "viewport");
-	import_react.useEffect(() => {
-		if (hasRenderFetched.current) return;
-		if (!disabled && preload === "render") {
-			doPreload();
-			hasRenderFetched.current = true;
-		}
-	}, [
-		disabled,
-		doPreload,
-		preload
-	]);
-	const handleClick = (e) => {
-		const elementTarget = e.currentTarget.getAttribute("target");
-		const effectiveTarget = target !== void 0 ? target : elementTarget;
-		if (!disabled && !isCtrlEvent(e) && !e.defaultPrevented && (!effectiveTarget || effectiveTarget === "_self") && e.button === 0) {
-			e.preventDefault();
-			(0, import_react_dom.flushSync)(() => {
-				setIsTransitioning(true);
-			});
-			const unsub = router.subscribe("onResolved", () => {
-				unsub();
-				setIsTransitioning(false);
-			});
-			router.navigate({
-				..._options,
-				replace,
-				resetScroll,
-				hashScrollIntoView,
-				startTransition,
-				viewTransition,
-				ignoreBlocker
-			});
-		}
-	};
-	if (externalLink) return {
-		...propsSafeToSpread,
-		ref: innerRef,
-		href: externalLink,
-		...children && { children },
-		...target && { target },
-		...disabled && { disabled },
-		...style && { style },
-		...className && { className },
-		...onClick && { onClick },
-		...onBlur && { onBlur },
-		...onFocus && { onFocus },
-		...onMouseEnter && { onMouseEnter },
-		...onMouseLeave && { onMouseLeave },
-		...onTouchStart && { onTouchStart }
-	};
-	const enqueueIntentPreload = (e) => {
-		if (disabled || preload !== "intent") return;
-		if (!preloadDelay) {
-			doPreload();
-			return;
-		}
-		const eventTarget = e.currentTarget;
-		if (timeoutMap.has(eventTarget)) return;
-		const id = setTimeout(() => {
-			timeoutMap.delete(eventTarget);
-			doPreload();
-		}, preloadDelay);
-		timeoutMap.set(eventTarget, id);
-	};
-	const handleTouchStart = (_) => {
-		if (disabled || preload !== "intent") return;
-		doPreload();
-	};
-	const handleLeave = (e) => {
-		if (disabled || !preload || !preloadDelay) return;
-		const eventTarget = e.currentTarget;
-		const id = timeoutMap.get(eventTarget);
-		if (id) {
-			clearTimeout(id);
-			timeoutMap.delete(eventTarget);
-		}
-	};
-	return {
-		...propsSafeToSpread,
-		...resolvedActiveProps,
-		...resolvedInactiveProps,
-		href,
-		ref: innerRef,
-		onClick: composeHandlers([onClick, handleClick]),
-		onBlur: composeHandlers([onBlur, handleLeave]),
-		onFocus: composeHandlers([onFocus, enqueueIntentPreload]),
-		onMouseEnter: composeHandlers([onMouseEnter, enqueueIntentPreload]),
-		onMouseLeave: composeHandlers([onMouseLeave, handleLeave]),
-		onTouchStart: composeHandlers([onTouchStart, handleTouchStart]),
-		disabled: !!disabled,
-		target,
-		...resolvedStyle && { style: resolvedStyle },
-		...resolvedClassName && { className: resolvedClassName },
-		...disabled && STATIC_DISABLED_PROPS,
-		...isActive && STATIC_ACTIVE_PROPS,
-		...isHydrated && isTransitioning && STATIC_TRANSITIONING_PROPS
-	};
 }
 var STATIC_EMPTY_OBJECT = {};
 var STATIC_ACTIVE_OBJECT = { className: "active" };
@@ -4921,16 +4554,6 @@ var STATIC_DISABLED_PROPS = {
 var STATIC_ACTIVE_PROPS = {
 	"data-status": "active",
 	"aria-current": "page"
-};
-var STATIC_TRANSITIONING_PROPS = { "data-transitioning": "transitioning" };
-var timeoutMap = /* @__PURE__ */ new WeakMap();
-var intersectionObserverOptions = { rootMargin: "100px" };
-var composeHandlers = (handlers) => (e) => {
-	for (const handler of handlers) {
-		if (!handler) continue;
-		if (e.defaultPrevented) return;
-		handler(e);
-	}
 };
 function getHrefOption(publicHref, external, history, disabled) {
 	if (disabled) return void 0;
@@ -4956,7 +4579,7 @@ function isSafeInternal(to) {
 *
 * Props:
 * - `preload`: Controls route preloading (eg. 'intent', 'render', 'viewport', true/false)
-* - `preloadDelay`: Delay in ms before preloading on hover
+* - `preloadDelay`: Delay in ms before preloading on focus, hover, or viewport entry
 * - `activeProps`/`inactiveProps`: Additional props merged when link is active/inactive
 * - `resetScroll`/`hashScrollIntoView`: Control scroll behavior on navigation
 * - `viewTransition`/`startTransition`: Use View Transitions/React transitions for navigation
@@ -4975,9 +4598,6 @@ var Link = import_react.forwardRef((props, ref) => {
 	}
 	return import_react.createElement(_asChild, linkProps, children);
 });
-function isCtrlEvent(e) {
-	return !!(e.metaKey || e.altKey || e.ctrlKey || e.shiftKey);
-}
 //#endregion
 //#region node_modules/@tanstack/react-router/dist/esm/route.js
 var Route = class extends BaseRoute {
@@ -5213,19 +4833,6 @@ function CatchNotFound(props) {
 			children: props.children
 		});
 	}
-	const resetKey = `not-found-${useStore(router.stores.location, (location) => location.pathname)}-${useStore(router.stores.status, (status) => status)}`;
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CatchBoundary, {
-		getResetKey: () => resetKey,
-		onCatch: (error, errorInfo) => {
-			if (isNotFound(error)) props.onCatch?.(error, errorInfo);
-			else throw error;
-		},
-		errorComponent: ({ error }) => {
-			if (isNotFound(error)) return props.fallback?.(error);
-			else throw error;
-		},
-		children: props.children
-	});
 }
 function DefaultGlobalNotFound() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: "Not Found" });
@@ -5294,8 +4901,10 @@ function ScrollRestoration() {
 //#region node_modules/@tanstack/react-router/dist/esm/Match.js
 function renderPending(router, route) {
 	const PendingComponent = route?.options.pendingComponent ?? router.options.defaultPendingComponent;
-	return PendingComponent ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PendingComponent, {}) : null;
+	if (!PendingComponent) return null;
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PendingComponent, {});
 }
+var canWrapInSuspense = (router, route, ssr) => !route.isRoot || route.options.shellComponent || route.options.wrapInSuspense || ssr === false || ssr === "data-only" || false;
 var Match = import_react.memo(function MatchImpl({ routeId }) {
 	const router = useRouter();
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MatchView, {
@@ -5310,7 +4919,7 @@ function MatchView({ router, match }) {
 	const routeOnCatch = route.options.onCatch ?? router.options.defaultOnCatch;
 	const routeNotFoundComponent = route.isRoot ? route.options.notFoundComponent ?? router.options.notFoundRoute?.options.component : route.options.notFoundComponent;
 	const resolvedNoSsr = match.ssr === false || match.ssr === "data-only";
-	const ResolvedSuspenseBoundary = route.options.wrapInSuspense ?? pendingElement ?? (route.options.errorComponent?.preload || resolvedNoSsr) ? import_react.Suspense : SafeFragment;
+	const ResolvedSuspenseBoundary = canWrapInSuspense(router, route, match.ssr) && (route.options.wrapInSuspense ?? pendingElement ?? (route.options.errorComponent?.preload || resolvedNoSsr)) ? import_react.Suspense : SafeFragment;
 	const ResolvedCatchBoundary = routeErrorComponent ? CatchBoundary : SafeFragment;
 	const ResolvedNotFoundBoundary = routeNotFoundComponent ? CatchNotFound : SafeFragment;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(route.isRoot ? route.options.shellComponent ?? SafeFragment : SafeFragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(matchContext.Provider, {
@@ -5371,6 +4980,7 @@ var MatchInner = import_react.memo(function MatchInnerImpl({ match }) {
 		router.options.defaultComponent
 	]);
 	if (match.status === "pending") {
+		if (router.ssr && !canWrapInSuspense(router, route, match.ssr)) return out;
 		if (router._tx) throw router._tx[5];
 		return renderPending(router, route);
 	}
@@ -5541,7 +5151,6 @@ function useLocation(opts) {
 		const location = router.stores.location.get();
 		return opts?.select ? opts.select(location) : location;
 	}
-	return useStore(router.stores.location, useStructuralSharing(opts, router));
 }
 //#endregion
 //#region node_modules/@tanstack/react-router/dist/esm/Asset.js
@@ -9727,7 +9336,7 @@ var require_react_dom_server_legacy_node_production = /* @__PURE__ */ __commonJS
 	exports.renderToString = function(children, options) {
 		return renderToStringImpl(children, options, !1, "The server used \"renderToString\" which does not support Suspense. If you intended for this Suspense boundary to render the fallback content on the server consider throwing an Error somewhere within the Suspense boundary. If you intended to have the server wait for the suspended component please switch to \"renderToPipeableStream\" which supports Suspense on the server");
 	};
-	exports.version = "19.2.7";
+	exports.version = "19.2.8";
 }));
 //#endregion
 //#region node_modules/react-dom/cjs/react-dom-server.node.production.js
@@ -13814,7 +13423,7 @@ var require_react_dom_server_node_production = /* @__PURE__ */ __commonJSMin(((e
 	}
 	function ensureCorrectIsomorphicReactVersion() {
 		var isomorphicReactPackageVersion = React.version;
-		if ("19.2.7" !== isomorphicReactPackageVersion) throw Error("Incompatible React versions: The \"react\" and \"react-dom\" packages must have the exact same version. Instead got:\n  - react:      " + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.7\nLearn more: https://react.dev/warnings/version-mismatch"));
+		if ("19.2.8" !== isomorphicReactPackageVersion) throw Error("Incompatible React versions: The \"react\" and \"react-dom\" packages must have the exact same version. Instead got:\n  - react:      " + (isomorphicReactPackageVersion + "\n  - react-dom:  19.2.8\nLearn more: https://react.dev/warnings/version-mismatch"));
 	}
 	ensureCorrectIsomorphicReactVersion();
 	function createDrainHandler(destination, request) {
@@ -14126,7 +13735,7 @@ var require_react_dom_server_node_production = /* @__PURE__ */ __commonJSMin(((e
 			}
 		};
 	};
-	exports.version = "19.2.7";
+	exports.version = "19.2.8";
 }));
 //#endregion
 //#region node_modules/react-dom/server.node.js
@@ -14241,9 +13850,9 @@ var MIN_CLOSING_TAG_LENGTH = 4;
 var DEFAULT_SERIALIZATION_TIMEOUT_MS = 6e4;
 var DEFAULT_LIFETIME_TIMEOUT_MS = DEFAULT_SERIALIZATION_TIMEOUT_MS * 2;
 var MAX_LEFTOVER_CHARS = 2048;
-var MAX_TAIL_CHARS = 64 * 1024;
-var MAX_ROUTER_HTML_CHARS = 16 * 1024 * 1024;
-var MAX_PENDING_WRITE_CHARS = 16 * 1024 * 1024;
+var MAX_TAIL_CHARS = 65536;
+var MAX_ROUTER_HTML_CHARS = 16777216;
+var MAX_PENDING_WRITE_CHARS = 16777216;
 var MergeState = {
 	ReadingBody: 0,
 	HoldingTail: 1,

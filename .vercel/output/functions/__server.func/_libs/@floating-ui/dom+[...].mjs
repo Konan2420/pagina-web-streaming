@@ -167,9 +167,11 @@ function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetPar
 	const clientRect = element.getBoundingClientRect();
 	const domElement = unwrapElement(element);
 	let scale = createCoords(1);
-	if (includeScale) if (offsetParent) {
-		if (isElement(offsetParent)) scale = getScale(offsetParent);
-	} else scale = getScale(element);
+	if (includeScale) {
+		if (offsetParent) {
+			if (isElement(offsetParent)) scale = getScale(offsetParent);
+		} else scale = getScale(element);
+	}
 	const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
 	let x = (clientRect.left + visualOffsets.x) / scale.x;
 	let y = (clientRect.top + visualOffsets.y) / scale.y;
