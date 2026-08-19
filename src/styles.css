@@ -215,22 +215,8 @@
 }
 
 @utility glass-card {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.015));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-@utility starfield {
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(255, 255, 255, 0.5), transparent 50%),
-    radial-gradient(1px 1px at 70% 60%, rgba(255, 255, 255, 0.35), transparent 50%),
-    radial-gradient(1.5px 1.5px at 40% 80%, rgba(239, 68, 68, 0.4), transparent 50%),
-    radial-gradient(1px 1px at 85% 20%, rgba(255, 255, 255, 0.4), transparent 50%),
-    radial-gradient(1px 1px at 10% 70%, rgba(255, 255, 255, 0.3), transparent 50%),
-    radial-gradient(1.5px 1.5px at 55% 15%, rgba(248, 113, 113, 0.35), transparent 50%),
-    radial-gradient(1px 1px at 30% 50%, rgba(255, 255, 255, 0.25), transparent 50%),
-    radial-gradient(1px 1px at 90% 85%, rgba(255, 255, 255, 0.35), transparent 50%);
-  background-size: 800px 800px;
-  background-repeat: repeat;
+  background-color: var(--color-background);
+  border: 1px solid var(--color-border);
 }
 
 @keyframes arc-pulse {
@@ -379,12 +365,6 @@
   }
 }
 
-@media (prefers-reduced-data: reduce) {
-  .ambient-falling-stars {
-    display: none;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -397,27 +377,6 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-@keyframes falling-star {
-  0% {
-    transform: translateY(0) translateX(0);
-    opacity: 0;
-  }
-  10% {
-    opacity: 1;
-  }
-  90% {
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(110vh) translateX(50px);
-    opacity: 0;
-  }
-}
-
-.animate-falling-star {
-  animation: falling-star linear infinite;
 }
 
 @keyframes fire-aura {

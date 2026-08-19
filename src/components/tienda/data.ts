@@ -1,26 +1,8 @@
 import type { ProductDetail } from "@/components/ProductModal";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  AppWindow,
-  Flame,
-  Gamepad2,
-  Gift,
-  GraduationCap,
-  Key,
-  Layers,
-  Mail,
-  Music,
-  Play,
-  Sparkles,
-  Tv,
-  Users,
-  Zap,
-} from "lucide-react";
-
 export type Category = {
   id: string;
   label: string;
-  icon: typeof Layers;
   /** Accent color used consistently by category navigation. */
   accent: string;
 };
@@ -28,21 +10,164 @@ export type Category = {
 export const WA_NUMBER = "51970097715";
 
 export const categories: Category[] = [
-  { id: "todo", label: "Todo", icon: Layers, accent: "#f8fafc" },
-  { id: "combos", label: "Combos Premium", icon: Sparkles, accent: "#fbbf24" },
-  { id: "streaming", label: "Streaming", icon: Play, accent: "#f43f5e" },
-  { id: "ia", label: "IA & Herramientas", icon: Zap, accent: "#a78bfa" },
-  { id: "apps", label: "Aplicaciones", icon: AppWindow, accent: "#38bdf8" },
-  { id: "licencias", label: "Licencias", icon: Key, accent: "#eab308" },
-  { id: "cursos", label: "Cursos", icon: GraduationCap, accent: "#2dd4bf" },
-  { id: "recargas", label: "Recargas", icon: Zap, accent: "#fb923c" },
-  { id: "videojuegos", label: "Videojuegos", icon: Gamepad2, accent: "#8b5cf6" },
-  { id: "giftcards", label: "Tarjetas de Regalo", icon: Gift, accent: "#ec4899" },
-  { id: "invitaciones", label: "Invitaciones", icon: Mail, accent: "#60a5fa" },
-  { id: "redes", label: "Redes Sociales", icon: Users, accent: "#22c55e" },
-  { id: "music", label: "MUSIC", icon: Music, accent: "#f472b6" },
-  { id: "adult", label: "ADULT", icon: Flame, accent: "#ef4444" },
-  { id: "iptv", label: "IPTV", icon: Tv, accent: "#06b6d4" },
+  { id: "todo", label: "Todos", accent: "#f8fafc" },
+  { id: "combos", label: "Packs Premium", accent: "#fbbf24" },
+  { id: "streaming", label: "Streaming", accent: "#f43f5e" },
+  { id: "ia", label: "Inteligencia Artificial", accent: "#a78bfa" },
+  { id: "apps", label: "Aplicaciones", accent: "#38bdf8" },
+  { id: "licencias", label: "Licencias", accent: "#eab308" },
+  { id: "cursos", label: "Cursos", accent: "#2dd4bf" },
+  { id: "recargas", label: "Recargas", accent: "#fb923c" },
+  { id: "videojuegos", label: "Juegos", accent: "#8b5cf6" },
+  { id: "giftcards", label: "Giftcards", accent: "#ec4899" },
+  { id: "invitaciones", label: "Invitaciones", accent: "#60a5fa" },
+  { id: "redes", label: "Redes Sociales", accent: "#22c55e" },
+  { id: "music", label: "Música", accent: "#f472b6" },
+  { id: "adult", label: "Adultos", accent: "#ef4444" },
+  { id: "iptv", label: "IPTV", accent: "#06b6d4" },
+];
+
+export type PlatformShortcut = {
+  label: string;
+  categoryId: Category["id"];
+  searchTerm: string;
+  logoUrl: string;
+  fallback: string;
+};
+
+const simpleIcon = (slug: string, color: string) => `https://cdn.simpleicons.org/${slug}/${color}`;
+
+/**
+ * Accesos rápidos visibles en la navegación de plataformas. Cada uno apunta a
+ * un producto real del catálogo mediante los filtros existentes de categoría y búsqueda.
+ */
+export const platformShortcuts: PlatformShortcut[] = [
+  {
+    label: "Netflix",
+    categoryId: "streaming",
+    searchTerm: "Netflix",
+    logoUrl: simpleIcon("netflix", "E50914"),
+    fallback: "N",
+  },
+  {
+    label: "Prime Video",
+    categoryId: "streaming",
+    searchTerm: "Prime Video",
+    logoUrl: simpleIcon("primevideo", "00A8E1"),
+    fallback: "P",
+  },
+  {
+    label: "Disney+",
+    categoryId: "streaming",
+    searchTerm: "Disney+",
+    logoUrl: simpleIcon("disneyplus", "113CCF"),
+    fallback: "D",
+  },
+  {
+    label: "HBO Max",
+    categoryId: "streaming",
+    searchTerm: "HBO Max",
+    logoUrl: simpleIcon("max", "8B5CF6"),
+    fallback: "H",
+  },
+  {
+    label: "Paramount+",
+    categoryId: "streaming",
+    searchTerm: "Paramount",
+    logoUrl: simpleIcon("paramountplus", "0064FF"),
+    fallback: "P+",
+  },
+  {
+    label: "Crunchyroll",
+    categoryId: "streaming",
+    searchTerm: "Crunchyroll",
+    logoUrl: simpleIcon("crunchyroll", "F47521"),
+    fallback: "C",
+  },
+  {
+    label: "YouTube Premium",
+    categoryId: "streaming",
+    searchTerm: "YouTube Premium",
+    logoUrl: simpleIcon("youtube", "FF0000"),
+    fallback: "Y",
+  },
+  {
+    label: "Spotify",
+    categoryId: "music",
+    searchTerm: "Spotify",
+    logoUrl: simpleIcon("spotify", "1DB954"),
+    fallback: "S",
+  },
+  {
+    label: "Apple Music",
+    categoryId: "music",
+    searchTerm: "Apple Music",
+    logoUrl: simpleIcon("applemusic", "FA243C"),
+    fallback: "A",
+  },
+  {
+    label: "Deezer",
+    categoryId: "music",
+    searchTerm: "Deezer",
+    logoUrl: simpleIcon("deezer", "FEAA2D"),
+    fallback: "D",
+  },
+  {
+    label: "ChatGPT Plus",
+    categoryId: "ia",
+    searchTerm: "ChatGPT Plus",
+    logoUrl: simpleIcon("openai", "FFFFFF"),
+    fallback: "AI",
+  },
+  {
+    label: "Claude Pro",
+    categoryId: "ia",
+    searchTerm: "Claude Pro",
+    logoUrl: simpleIcon("anthropic", "D97757"),
+    fallback: "C",
+  },
+  {
+    label: "Gemini Advanced",
+    categoryId: "ia",
+    searchTerm: "Gemini",
+    logoUrl: simpleIcon("googlegemini", "8AB4F8"),
+    fallback: "G",
+  },
+  {
+    label: "Microsoft Copilot",
+    categoryId: "ia",
+    searchTerm: "Copilot",
+    logoUrl: simpleIcon("microsoftcopilot", "FFFFFF"),
+    fallback: "M",
+  },
+  {
+    label: "Adobe Creative Cloud",
+    categoryId: "apps",
+    searchTerm: "Adobe Creative Cloud",
+    logoUrl: simpleIcon("adobe", "FF0000"),
+    fallback: "A",
+  },
+  {
+    label: "Canva Pro",
+    categoryId: "apps",
+    searchTerm: "Canva Pro",
+    logoUrl: simpleIcon("canva", "00C4CC"),
+    fallback: "C",
+  },
+  {
+    label: "Dropbox",
+    categoryId: "apps",
+    searchTerm: "Dropbox",
+    logoUrl: simpleIcon("dropbox", "0061FF"),
+    fallback: "D",
+  },
+  {
+    label: "ESET NOD32",
+    categoryId: "licencias",
+    searchTerm: "ESET NOD32",
+    logoUrl: simpleIcon("eset", "00A5E0"),
+    fallback: "E",
+  },
 ];
 
 const baseDesc = `🔒 Producto de acceso digital. No compartir credenciales.

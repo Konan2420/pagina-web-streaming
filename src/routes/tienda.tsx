@@ -1,34 +1,25 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import * as React from "react";
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { getMyOrderRatings, rateOrderSupplier } from "@/lib/ratings.functions";
 import {
-  Search,
   ChevronDown,
+  Search,
+  SlidersHorizontal,
   ShoppingCart,
-  Eye,
-  Moon,
-  DollarSign,
   BadgeCheck,
-  Moon as MoonIcon,
   Package,
   Share2,
   MessageCircle,
   Mail,
   Clapperboard,
-  LogOut,
-  ShoppingBag,
   X,
-  Plus,
-  UserCircle2,
   Loader2,
   Save,
   User as UserIcon,
   Phone,
   BarChart3,
-  AlertCircle,
-  Settings,
   ChevronLeft,
   ChevronRight,
   Key,
@@ -36,11 +27,9 @@ import {
   Eye as EyeIcon,
   EyeOff,
   ExternalLink,
-  LayoutDashboard,
   Star,
 } from "lucide-react";
 import {
-  categories,
   products,
   estadoStyles,
   WA_NUMBER,
@@ -50,6 +39,7 @@ import {
   type PanelTab,
   type Profile,
   type Order,
+  type PlatformShortcut,
   getAvatarUrl,
 } from "@/components/tienda/data";
 import { toast } from "sonner";
@@ -64,18 +54,14 @@ import { useRouter } from "@tanstack/react-router";
 import { cartStore, useCart } from "@/lib/cart-store";
 import type { Session } from "@supabase/supabase-js";
 import { useAnalytics } from "@/hooks/useAnalytics";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { ProviderAvatar } from "@/components/supplier/ProviderAvatar";
-import { AvatarEffect } from "@/components/supplier/AvatarEffect";
-import { normalizeEffect } from "@/lib/avatar-effects";
-import { PlatformBackground } from "@/components/tienda/PlatformBackground";
 import { useFuturisticSound } from "@/hooks/useSound";
-import { FallingStars, FuturisticBackground } from "@/components/BackgroundAnimations";
-import { cn } from "@/lib/utils";
 import { useServerFn } from "@tanstack/react-start";
 import { createOrders } from "@/lib/orders.functions";
 import type { Database, Tables } from "@/integrations/supabase/types";
 import { getAuthDestination } from "@/lib/auth-destination";
+import { PlatformNavigation } from "@/components/tienda/PlatformNavigation";
+import { StoreSidebar } from "@/components/tienda/StoreSidebar";
 
 export const Route = createFileRoute("/tienda")({
   head: () => ({
@@ -241,27 +227,104 @@ export function TiendaPage() {
   const [orders, setOrders] = useState<StoreOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
-  const tabsRef = useRef<HTMLDivElement>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
   const [tutorialOpen, setTutorialOpen] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStartPos = useRef<{ x: number; scrollLeft: number } | null>(null);
   const track = useAnalytics();
   const createOrdersFn = useServerFn(createOrders);
 
-  const isAdminHook = useIsAdmin();
-  const isSupplier = isAdminHook.isSupplier;
-  const isAdmin = isAdminHook.isAdmin;
   const { playHover, playClick } = useFuturisticSound();
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryDetails | null>(null);
   const [showPass, setShowPass] = useState(false);
-  const [isAdminActive, setIsAdminActive] = useState(true);
-  const [supplierAvatarFailed, setSupplierAvatarFailed] = useState(false);
   const ordersRequestId = useRef(0);
   const orderSubmissionRef = useRef(false);
-  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const openAuth = useCallback((mode: AuthMode = "login") => {
+    setAuthMode(mode);
+    setAuthOpen(true);
+  }, []);
+
+  const scrollToCatalog = useCallback(() => {
+    requestAnimationFrame(() => {
+      document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
+  const focusCatalogSearch = useCallback(() => {
+    setPanel("tienda");
+    requestAnimationFrame(() => searchRef.current?.focus());
+  }, []);
+
+  const handleCategorySelect = useCallback(
+    (categoryId: string) => {
+      playClick();
+      setActiveCat(categoryId);
+      setQuery("");
+      scrollToCatalog();
+    },
+    [playClick, scrollToCatalog],
+  );
+
+  const handlePlatformSelect = useCallback(
+    (platform: PlatformShortcut) => {
+      playClick();
+      setActiveCat(platform.categoryId);
+      setQuery(platform.searchTerm);
+      scrollToCatalog();
+    },
+    [playClick, scrollToCatalog],
+  );
+
+  const handleGoShop = useCallback(() => {
+    playClick();
+    setPanel("tienda");
+    setActiveCat("todo");
+    setQuery("");
+    scrollToCatalog();
+  }, [playClick, scrollToCatalog]);
+
+  const handleAffiliate = useCallback(() => {
+    playClick();
+    const message = encodeURIComponent(
+      "Hola, quiero conocer el programa de afiliados de CMD Streaming y cómo puedo empezar a ganar comisiones.",
+    );
+    openWhatsApp(`https://wa.me/${WA_NUMBER}?text=${message}`);
+  }, [playClick]);
+
+  const handleWallet = useCallback(() => {
+    playClick();
+    const message = encodeURIComponent(
+      "Hola, quiero recargar mi saldo en CMD Streaming. ¿Me indican los métodos de pago disponibles?",
+    );
+    openWhatsApp(`https://wa.me/${WA_NUMBER}?text=${message}`);
+  }, [playClick]);
+
+  const handleSidebarPanel = useCallback(
+    (nextPanel: PanelTab) => {
+      playClick();
+      setPanel(nextPanel);
+    },
+    [playClick],
+  );
+
+  const handleUnavailableSection = useCallback((section: string) => {
+    toast.info(`${section} estará disponible próximamente.`);
+  }, []);
+
+  useEffect(() => {
+    const handleSearchShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        focusCatalogSearch();
+      }
+    };
+
+    window.addEventListener("keydown", handleSearchShortcut);
+    return () => window.removeEventListener("keydown", handleSearchShortcut);
+  }, [focusCatalogSearch]);
 
   useEffect(() => {
     let active = true;
@@ -300,46 +363,10 @@ export function TiendaPage() {
     };
   }, [router]);
 
-  useEffect(() => {
-    const getStatus = async () => {
-      const { data } = await supabase
-        .from("admin_status")
-        .select("is_active")
-        .limit(1)
-        .maybeSingle();
-      if (data) setIsAdminActive(data.is_active);
-    };
-    getStatus();
-
-    const channel = supabase
-      .channel("admin_status_changes")
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "admin_status" },
-        (payload) => {
-          setIsAdminActive(payload.new.is_active);
-        },
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, []);
-
   const userId = session?.user.id;
-
-  const [profileError, setProfileError] = useState<{
-    message: string;
-    code?: string;
-    details?: string;
-    hint?: string;
-  } | null>(null);
-  const [isCreatingProfile, setIsCreatingProfile] = useState(false);
 
   const fetchProfile = useCallback(async () => {
     if (!userId) return;
-    setProfileError(null);
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -387,44 +414,6 @@ export function TiendaPage() {
       });
     }
   }, [userId, session?.user?.email]);
-
-  const handleCreateProfileManually = useCallback(async () => {
-    if (!userId || isCreatingProfile) return;
-    setIsCreatingProfile(true);
-    setProfileError(null);
-    try {
-      const { error } = await supabase.from("profiles").upsert(
-        {
-          id: userId,
-          email: session?.user.email || "",
-          nombre_completo:
-            (session?.user.user_metadata?.full_name as string) ||
-            session?.user.email?.split("@")[0] ||
-            "",
-        },
-        { onConflict: "id" },
-      );
-
-      if (error) {
-        console.error("[Profile] Upsert error:", error);
-        setProfileError({
-          message: `Error al crear/actualizar perfil: ${error.message}`,
-          code: error.code,
-          details: error.details,
-        });
-        toast.error("Error al procesar perfil");
-        return;
-      }
-
-      toast.success("Perfil sincronizado correctamente");
-      await fetchProfile();
-    } catch (err) {
-      console.error("[Profile] Unexpected error in upsert:", err);
-      setProfileError({ message: "Error crítico al intentar sincronizar el perfil." });
-    } finally {
-      setIsCreatingProfile(false);
-    }
-  }, [fetchProfile, isCreatingProfile, session?.user.email, session?.user.user_metadata, userId]);
 
   useEffect(() => {
     if (userId) {
@@ -582,24 +571,6 @@ export function TiendaPage() {
     retry: 1,
   });
 
-  // Perfil de proveedor del usuario actual (para la cabecera de la tienda).
-  const { data: mySupplier } = useQuery({
-    queryKey: ["public-suppliers", "me", userId],
-    enabled: !!userId,
-    queryFn: async () => {
-      if (!userId) return null;
-      const { data, error } = await supabase.rpc("get_public_suppliers", {
-        _user_ids: [userId],
-      });
-      if (error) throw error;
-      return data?.[0] ?? null;
-    },
-  });
-
-  useEffect(() => {
-    setSupplierAvatarFailed(false);
-  }, [mySupplier?.avatar_url]);
-
   // Realtime: cualquier cambio en supplier_profiles (avatar_url / avatar_effect)
   // refresca la tienda al instante, sin recargar la página.
   useEffect(() => {
@@ -689,7 +660,7 @@ export function TiendaPage() {
 
   function handleAdd(p: Product) {
     if (!session) {
-      setAuthOpen(true);
+      openAuth();
       return;
     }
     cartStore.add({
@@ -709,7 +680,7 @@ export function TiendaPage() {
   async function handleCheckout() {
     if (!session) {
       setCartOpen(false);
-      setAuthOpen(true);
+      openAuth();
       return;
     }
     if (cartItems.length === 0 || isOrderSubmitting || orderSubmissionRef.current) return;
@@ -756,7 +727,7 @@ export function TiendaPage() {
 
   async function handleBuyNow(p: Product, quantity = 1) {
     if (!session) {
-      setAuthOpen(true);
+      openAuth();
       return;
     }
     if (isOrderSubmitting || orderSubmissionRef.current) return;
@@ -793,34 +764,6 @@ export function TiendaPage() {
     }
   }
 
-  async function handleSignOut() {
-    if (isSigningOut) return;
-    setIsSigningOut(true);
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
-      ordersRequestId.current += 1;
-      orderSubmissionRef.current = false;
-      await queryClient.cancelQueries();
-      queryClient.clear();
-      setSession(null);
-      setProfile(null);
-      setOrders([]);
-      setSelectedDelivery(null);
-      setShowPass(false);
-      setCartOpen(false);
-      setPanel("tienda");
-      await router.navigate({ to: "/tienda", replace: true });
-      toast.success("Sesión cerrada");
-    } catch (error) {
-      console.error("No se pudo cerrar la sesión:", error);
-      toast.error("No se pudo cerrar sesión. Intenta de nuevo.");
-    } finally {
-      setIsSigningOut(false);
-    }
-  }
-
   const displayName =
     profile?.nombre_completo?.trim() || session?.user.email?.split("@")[0] || "usuario";
   const initials = displayName
@@ -833,475 +776,74 @@ export function TiendaPage() {
   const safeDeliveryUrl = getSafeExternalUrl(selectedDelivery?.access_link ?? null);
 
   return (
-    <div className="min-h-screen text-foreground relative isolate overflow-x-hidden">
-      <PlatformBackground />
-      <FuturisticBackground />
-      <FallingStars />
+    <div className="relative isolate min-h-screen overflow-x-hidden bg-background text-foreground">
 
-      <div>
-        {/* Top nav */}
-        <header className="sticky top-0 z-50 border-b border-white/5 bg-background/95 sm:bg-background/80 sm:backdrop-blur-xl">
-          <div className="max-w-[1600px] mx-auto px-4 py-3 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
-              <Link
-                to="/"
-                className="flex items-center gap-2.5 shrink-0 group"
-                onMouseEnter={playHover}
-                onClick={playClick}
-              >
-                <img
-                  src="/favicon.png"
-                  alt="CMD Streaming"
-                  className="h-10 w-10 rounded-xl object-contain transition-transform group-hover:scale-105"
-                />
-              </Link>
-            </div>
+      <StoreSidebar
+        open={sidebarOpen}
+        sessionActive={!!session}
+        displayName={displayName}
+        initials={initials}
+        avatarUrl={profile?.avatar_url ? getAvatarUrl(profile.avatar_url) : null}
+        activePanel={panel}
+        activeCategory={activeCat}
+        onClose={() => setSidebarOpen(false)}
+        onCategorySelect={handleCategorySelect}
+        onPanelSelect={handleSidebarPanel}
+        onOpenWallet={handleWallet}
+        onOpenAuth={openAuth}
+        onUnavailable={handleUnavailableSection}
+      />
 
-            <div className="flex items-center gap-3">
-              {session ? (
-                <div className="flex items-center gap-3">
-                  <div className="hidden sm:flex items-center gap-3 pr-2 border-r border-white/10">
-                    <div className="w-9 h-9 bg-red-accent rounded-full overflow-hidden shrink-0 shadow-lg shadow-red-600/20">
-                      {profile?.avatar_url ? (
-                        <img
-                          src={getAvatarUrl(profile.avatar_url)}
-                          alt="Foto de perfil"
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full grid place-items-center text-[11px] font-bold text-white uppercase">
-                          {initials || "US"}
-                        </div>
-                      )}
-                    </div>
-                    <div className="leading-tight">
-                      <p className="text-[10px] text-white/50">Hola,</p>
-                      <p className="text-xs text-white font-bold truncate max-w-[120px]">
-                        {displayName}
-                      </p>
-                    </div>
-                  </div>
-                  {(isAdmin || isSupplier) && (
-                    <Link
-                      to={isAdmin ? "/admin" : "/proveedor"}
-                      className="p-2 text-white/60 hover:text-white hover:bg-white/5 rounded-full transition-colors group"
-                      onMouseEnter={playHover}
-                      onClick={() => {
-                        playClick();
-                        track("cta_click", {
-                          eventName: "panel_link",
-                          metadata: {
-                            location: "tienda_header",
-                            role: isAdmin ? "admin" : "supplier",
-                          },
-                        });
-                      }}
-                    >
-                      <Settings className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" />
-                    </Link>
-                  )}
-                  <button
-                    type="button"
-                    onMouseEnter={playHover}
-                    onClick={() => {
-                      playClick();
-                      handleSignOut();
-                    }}
-                    className="p-2 text-white/60 hover:text-white hover:bg-white/5 rounded-full transition-colors"
-                    disabled={isSigningOut}
-                    aria-label="Cerrar sesión"
-                  >
-                    <LogOut className="w-5 h-5" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => {
-                      playClick();
-                      setAuthOpen(true);
-                    }}
-                    onMouseEnter={playHover}
-                    className="text-xs font-bold text-white px-4 py-2 bg-red-accent rounded-full hover:brightness-110 transition shadow-lg shadow-red-600/20"
-                  >
-                    Ingresar
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        {/* CABECERA DE TIENDA */}
-        <section className="relative border-b border-white/10">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-12 sm:pt-16 pb-8 sm:pb-10">
-            {profileError && profileError.code !== "NOT_FOUND" && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-white uppercase tracking-wider">
-                      Error del Sistema
-                    </p>
-                    <p className="text-xs text-white/70 mt-1">{profileError.message}</p>
-
-                    <div className="mt-2 p-2 bg-black/40 rounded font-mono text-[10px] text-red-400 overflow-x-auto">
-                      Detalle Técnico: {profileError.code}
-                      {profileError.details && <br />}
-                      {profileError.details && `${profileError.details}`}
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <button
-                        onMouseEnter={playHover}
-                        onClick={() => {
-                          playClick();
-                          window.location.reload();
-                        }}
-                        className="px-3 py-1.5 bg-red-accent text-white text-[10px] uppercase font-bold tracking-widest transition"
-                      >
-                        Refrescar página
-                      </button>
-                      <button
-                        onMouseEnter={playHover}
-                        onClick={() => {
-                          playClick();
-                          fetchProfile();
-                        }}
-                        className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white text-[10px] uppercase font-bold tracking-widest transition"
-                      >
-                        Reintentar lectura
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/[0.08] via-white/[0.04] to-transparent p-5 shadow-[0_0_50px_rgba(220,38,38,0.1)] sm:p-8 sm:shadow-[0_0_80px_rgba(220,38,38,0.12)] sm:backdrop-blur-xl">
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                <div className="max-w-2xl">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-red-accent">
-                    <span className="h-2.5 w-2.5 rounded-full bg-red-accent shadow-[0_0_10px_rgba(220,38,38,0.7)]" />
-                    Acceso inmediato y soporte 24/7
-                  </div>
-                  <h1 className="mt-4 font-display text-3xl sm:text-5xl uppercase text-white tracking-tight leading-[0.95]">
-                    {session ? (
-                      <>
-                        Hola, {displayName}
-                        <br />
-                        Tu tienda de streaming
-                      </>
-                    ) : (
-                      <>
-                        Tienda premium
-                        <br />
-                        Catálogo de cuentas
-                      </>
-                    )}
-                  </h1>
-                  <p className="mt-4 text-sm sm:text-base text-white/70 leading-relaxed max-w-xl">
-                    Explora servicios y licencias con activación rápida, pagos seguros y una
-                    experiencia más rápida para encontrar exactamente lo que necesitas.
-                  </p>
-                  <div className="mt-6 flex flex-wrap gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playClick();
-                        document
-                          .getElementById("catalogo")
-                          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                      }}
-                      className="inline-flex items-center justify-center gap-2 rounded-full bg-red-accent px-5 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
-                    >
-                      <Eye aria-hidden="true" className="w-4 h-4" />
-                      Explorar catálogo
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        playClick();
-                        if (!session) setAuthOpen(true);
-                        else setPanel("perfil");
-                      }}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/[0.05] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/[0.1]"
-                    >
-                      <UserCircle2 aria-hidden="true" className="w-4 h-4" />
-                      {session ? "Mi cuenta" : "Ingresar ahora"}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:min-w-[320px]">
-                  {[
-                    { value: "1.2K", label: "Ventas" },
-                    { value: `${products.length}`, label: "Productos" },
-                    { value: "24/7", label: "Soporte" },
-                  ].map((stat) => (
-                    <div
-                      key={stat.label}
-                      className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-center backdrop-blur-sm"
-                    >
-                      <p className="font-display text-xl text-white">{stat.value}</p>
-                      <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-white/60">
-                        {stat.label}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-8 flex flex-wrap items-center gap-3">
-                <div
-                  className="inline-flex items-center gap-2.5 pr-4 border-r border-white/10 group/camd cursor-default"
-                  onMouseEnter={playHover}
-                >
-                  <div className="relative group/avatar">
-                    {!mySupplier?.avatar_effect || mySupplier.avatar_effect === "none" ? (
-                      <div className="absolute inset-0 rounded-full animate-fire-aura pointer-events-none scale-110" />
-                    ) : null}
-
-                    <div className="relative z-10 transition-transform duration-300 group-hover/camd:scale-110">
-                      <AvatarEffect effect={normalizeEffect(mySupplier?.avatar_effect)} size="sm">
-                        <div className="w-9 h-9 rounded-full bg-red-accent overflow-hidden shrink-0 shadow-lg shadow-red-600/20">
-                          <img
-                            src={
-                              !supplierAvatarFailed && mySupplier?.avatar_url
-                                ? getAvatarUrl(mySupplier.avatar_url)
-                                : "/provider-avatars/provider-avatar-01.png"
-                            }
-                            alt="Avatar de CMD Streaming"
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              if (!supplierAvatarFailed && mySupplier?.avatar_url) {
-                                setSupplierAvatarFailed(true);
-                              } else {
-                                (e.currentTarget as HTMLImageElement).style.display = "none";
-                              }
-                            }}
-                          />
-                        </div>
-                      </AvatarEffect>
-                    </div>
-                  </div>
-                  <div className="leading-tight">
-                    <p className="text-xs font-semibold text-white flex items-center gap-1 transition-colors group-hover/camd:text-red-accent">
-                      {mySupplier?.display_name || (session ? displayName : "@camd")}
-                      <BadgeCheck
-                        className={cn(
-                          "w-3.5 h-3.5",
-                          isAdminActive ? "text-green-500 animate-pulse" : "text-red-accent",
-                        )}
-                      />
-                    </p>
-                    <p className="text-[10px] text-white/70 flex items-center gap-1">
-                      {isAdminActive ? (
-                        <>
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                          Disponible ahora
-                        </>
-                      ) : (
-                        <>
-                          <MoonIcon className="w-2.5 h-2.5" /> Fuera de horario
-                        </>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    playClick();
-                    setCartOpen(true);
-                  }}
-                  onMouseEnter={playHover}
-                  aria-label={`Abrir carrito${cartCount > 0 ? `, ${cartCount} ${cartCount === 1 ? "producto" : "productos"}` : ""}`}
-                  className="relative inline-flex items-center gap-2 min-h-11 px-5 py-2.5 bg-red-accent text-white text-[11px] font-bold uppercase tracking-[0.16em] hover:brightness-110 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
-                >
-                  <ShoppingCart aria-hidden="true" className="w-4 h-4" />
-                  Carrito
-                  {cartCount > 0 && (
-                    <span
-                      aria-hidden="true"
-                      className="ml-1 px-1.5 py-0.5 bg-white text-red-accent text-[10px] font-bold leading-none"
-                    >
-                      {cartCount}
-                    </span>
-                  )}
-                </button>
-
-                <IconBtn onClick={() => setPanel("tienda")} label="Tienda">
-                  <Eye aria-hidden="true" className="w-4 h-4" />
-                </IconBtn>
-                <IconBtn onClick={() => setTutorialOpen(true)} label="Ayuda">
-                  <Moon aria-hidden="true" className="w-4 h-4" />
-                </IconBtn>
-                <IconBtn
-                  onClick={() => {
-                    if (!session) setAuthOpen(true);
-                    else setPanel("perfil");
-                  }}
-                  label="Mi Cuenta"
-                >
-                  <UserCircle2 aria-hidden="true" className="w-4 h-4" />
-                </IconBtn>
-                {isSupplier && (
-                  <IconBtn
-                    onClick={() => router.navigate({ to: "/proveedor" })}
-                    label="Panel Proveedor"
-                  >
-                    <LayoutDashboard aria-hidden="true" className="w-4 h-4" />
-                  </IconBtn>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Panel tabs (only when authenticated) */}
-        {session && (
-          <section className="mt-6">
-            <div className="max-w-6xl mx-auto px-4 sm:px-6">
-              <div className="inline-flex gap-1.5 w-full sm:w-auto overflow-x-auto scrollbar-none border border-white/10 p-1.5 bg-black/20 backdrop-blur-md rounded-lg">
-                <PanelTabBtn
-                  active={panel === "tienda"}
-                  onClick={() => {
-                    track("cta_click", {
-                      eventName: "panel_tienda",
-                      metadata: { location: "panel_tabs" },
-                    });
-                    setPanel("tienda");
-                  }}
-                  icon={<ShoppingBag className="w-4 h-4" />}
-                  label="Tienda"
-                />
-                <PanelTabBtn
-                  active={panel === "compras"}
-                  onClick={() => {
-                    track("cta_click", {
-                      eventName: "panel_compras",
-                      metadata: { location: "panel_tabs" },
-                    });
-                    setPanel("compras");
-                  }}
-                  icon={<Package className="w-4 h-4" />}
-                  label="Mis Compras"
-                />
-                <PanelTabBtn
-                  active={panel === "perfil"}
-                  onClick={() => {
-                    track("cta_click", {
-                      eventName: "panel_perfil",
-                      metadata: { location: "panel_tabs" },
-                    });
-                    setPanel("perfil");
-                  }}
-                  icon={<UserCircle2 className="w-4 h-4" />}
-                  label="Mi Perfil"
-                />
-              </div>
-            </div>
-          </section>
-        )}
+      <div className="min-h-screen lg:pl-[190px]">
 
         {panel === "tienda" && (
           <div className="tienda-main-content">
-            {/* PLATAFORMAS (Grid superior Estilo Referencia) */}
-            <section className="mt-8 relative">
-              <div className="max-w-[1600px] mx-auto px-4">
-                <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.28em] text-red-accent">
-                      Explora por plataformas
-                    </p>
-                    <h2 className="text-3xl font-bold text-white tracking-tight">
-                      Encuentra lo que más te interesa
-                    </h2>
-                  </div>
-                  <p className="text-white/50 text-sm">
-                    Filtra rápido por tus categorías favoritas y ahorra tiempo.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-4 min-[420px]:grid-cols-5 sm:grid-cols-10 md:grid-cols-12 lg:grid-cols-[repeat(18,minmax(0,1fr))] gap-2 sm:gap-3">
-                  {categories
-                    .filter((c) => c.id !== "todo")
-                    .map((cat) => {
-                      const isActive = activeCat === cat.id;
-                      return (
-                        <button
-                          key={cat.id}
-                          onClick={() => {
-                            playClick();
-                            setActiveCat(cat.id);
-                          }}
-                          onMouseEnter={playHover}
-                          style={
-                            isActive
-                              ? {
-                                  borderColor: cat.accent,
-                                  backgroundColor: `${cat.accent}1a`,
-                                  boxShadow: `0 0 25px ${cat.accent}40`,
-                                }
-                              : undefined
-                          }
-                          className={`group relative flex aspect-[1/1.05] min-h-[4.75rem] flex-col items-center justify-center rounded-2xl border p-1 transition-all duration-300 hover:scale-[1.02] sm:aspect-square ${isActive ? "" : "border-white/10 bg-black/40 sm:backdrop-blur-md hover:bg-white/5"}`}
-                        >
-                          <div
-                            style={{
-                              color: "#fff",
-                              backgroundColor: isActive ? cat.accent : `${cat.accent}24`,
-                              boxShadow: isActive ? `0 0 18px ${cat.accent}80` : undefined,
-                            }}
-                            className="mx-auto flex h-8 w-8 items-center justify-center rounded-lg transition-all group-hover:brightness-125"
-                          >
-                            <cat.icon className="w-5 h-5" />
-                          </div>
-                          <span
-                            style={isActive ? { color: cat.accent } : undefined}
-                            className={`mt-2 block px-1 text-[9px] font-bold uppercase tracking-tighter leading-none transition-colors ${isActive ? "" : "text-white/65 group-hover:text-white"}`}
-                          >
-                            {cat.label.split(" ")[0]}
-                          </span>
-                        </button>
-                      );
-                    })}
-                </div>
-              </div>
-            </section>
-            {/* Buscador y Filtros */}
-            <section className="mt-8 border-t border-b border-white/5 bg-black/20 sm:backdrop-blur-sm">
-              <div className="max-w-[1600px] mx-auto px-4 py-4 flex flex-col sm:flex-row items-center gap-4">
-                <div className="relative w-full sm:max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <PlatformNavigation
+              activeCategory={activeCat}
+              query={query}
+              searchRef={searchRef}
+              onCategorySelect={handleCategorySelect}
+              onPlatformSelect={handlePlatformSelect}
+              onQueryChange={setQuery}
+              onGoShop={handleGoShop}
+              onOpenAffiliate={handleAffiliate}
+              onToggleSidebar={() => setSidebarOpen(true)}
+            />
+            <section className="mt-4 border-y border-border bg-background">
+              <div className="max-w-[1600px] mx-auto flex items-center gap-3 px-4 py-3">
+                <label className="relative flex h-9 min-w-0 flex-1 items-center rounded-lg border border-border bg-background pl-9 pr-3">
+                  <Search className="absolute left-3 h-3.5 w-3.5 text-white/40" aria-hidden="true" />
                   <input
-                    ref={searchRef}
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    onChange={(event) => setQuery(event.target.value)}
                     placeholder="Buscar productos..."
-                    className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-red-accent/50 focus:ring-1 focus:ring-red-accent/20 transition-all"
+                    className="w-full bg-transparent text-xs text-white outline-none placeholder:text-white/35"
                   />
-                </div>
-
-                <div className="flex items-center gap-3 ml-auto w-full sm:w-auto">
-                  <div className="relative group/sort flex-1 sm:flex-initial">
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setFiltersOpen((value) => !value)}
+                  aria-expanded={filtersOpen}
+                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-background px-3 text-[10px] font-bold text-white/85 transition hover:border-primary/60"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
+                  Filtros
+                </button>
+              </div>
+              {filtersOpen && (
+                <div className="max-w-[1600px] mx-auto flex flex-col gap-3 border-t border-border px-4 py-3 sm:flex-row sm:items-center">
+                  <div className="relative w-full sm:w-64">
                     <select
                       value={sort}
-                      onChange={(e) => setSort(e.target.value as SortKey)}
-                      className="appearance-none w-full bg-white/5 border border-white/10 rounded-full py-2.5 px-6 pr-10 text-xs font-bold text-white uppercase tracking-wider focus:outline-none transition-all cursor-pointer"
+                      onChange={(event) => setSort(event.target.value as SortKey)}
+                      className="w-full appearance-none rounded-lg border border-border bg-background px-3 py-2.5 pr-9 text-[10px] font-bold uppercase tracking-wider text-white outline-none"
                     >
                       <option value="destacado">Todas las categorías</option>
                       <option value="precio-asc">Precio: Bajo a Alto</option>
                       <option value="precio-desc">Precio: Alto a Bajo</option>
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none" />
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
                   </div>
-
                   <button
                     type="button"
                     onClick={() => {
@@ -1312,14 +854,13 @@ export function TiendaPage() {
                       searchRef.current?.focus();
                     }}
                     aria-label="Limpiar filtros"
-                    className="flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-white transition-all hover:bg-white/10 sm:px-6"
+                    className="flex shrink-0 items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-white transition-all hover:border-primary/60"
                   >
-                    <BarChart3 className="w-4 h-4" />
-                    <span className="hidden min-[420px]:inline">Limpiar filtros</span>
-                    <span className="inline min-[420px]:hidden">Limpiar</span>
+                    <BarChart3 className="h-3.5 w-3.5" />
+                    Limpiar filtros
                   </button>
                 </div>
-              </div>
+              )}
             </section>
 
             {/* El grid superior reemplaza la barra antigua */}
@@ -1327,27 +868,23 @@ export function TiendaPage() {
         )}
 
         {panel === "tienda" && (
-          <section id="catalogo" className="mt-6 pb-24 relative z-10">
+          <section id="catalogo" className="relative z-10 mt-4 pb-24">
             <div className="max-w-[1600px] mx-auto px-4">
-              <div className="mb-8 flex flex-col gap-3 border-b border-white/10 pb-4 sm:flex-row sm:items-end sm:justify-between">
+              <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.28em] text-red-accent">
-                    Catálogo
-                  </p>
-                  <h2 className="mt-1 text-xl font-bold text-white flex items-center gap-2 uppercase tracking-widest text-sm">
+                  <h2 className="text-[11px] font-black uppercase tracking-wider text-white">
                     {activeCat === "todo" ? "Todos los productos" : activeCat}
-                    <span className="text-red-accent font-black">#</span>
                   </h2>
                 </div>
-                <div className="flex items-center gap-2 self-start rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-white/70 sm:self-auto">
-                  <span className="h-2 w-2 rounded-full bg-red-accent" />
+                <div className="flex items-center gap-1.5 self-start rounded-lg border border-border bg-background px-2 py-1 text-[9px] font-bold text-white/65 sm:self-auto">
+                  <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
                   {visible.length} productos disponibles
                 </div>
               </div>
 
               {visible.length === 0 ? (
-                <div className="border border-white/10 p-10 sm:p-16 grid place-items-center text-center rounded-2xl">
-                  <div className="w-14 h-14 border border-white/12 grid place-items-center mb-5">
+                <div className="grid place-items-center rounded-xl border border-border bg-background p-10 text-center sm:p-16">
+                  <div className="mb-5 grid h-14 w-14 place-items-center rounded-lg border border-border bg-background">
                     <Package className="w-6 h-6 text-white/70" />
                   </div>
                   <p className="text-sm text-white/60 mb-5">
@@ -1363,20 +900,19 @@ export function TiendaPage() {
                         .getElementById("catalogo")
                         ?.scrollIntoView({ behavior: "smooth", block: "start" });
                     }}
-                    className="px-5 py-2.5 border border-white/20 text-white text-[11px] uppercase tracking-[0.18em] hover:bg-white hover:text-background transition"
+                    className="rounded-lg border border-border bg-background px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-white transition hover:border-primary hover:text-primary"
                   >
                     Ver todo el catálogo
                   </button>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 min-[480px]:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-6 lg:gap-8">
+                <div className="grid grid-cols-2 gap-2 min-[480px]:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
                   {visible.map((p) => (
                     <article
                       key={p.id}
-                      className="product-card group relative flex flex-col overflow-hidden rounded-xl border border-white/10 bg-white/[0.02] transition-all duration-500 hover:border-white/20 hover:bg-white/[0.04] hover:shadow-[0_0_40px_rgba(220,38,38,0.1)] sm:rounded-[1.5rem] sm:backdrop-blur-xl"
+                      className="product-card group relative flex flex-col overflow-hidden rounded-lg border border-border bg-background transition-colors duration-300 hover:border-red-accent/60"
                     >
-                      {/* Media Section - Reduced aspect ratio and margin */}
-                      <div className="relative aspect-video overflow-hidden bg-white/[0.03] m-1 rounded-lg sm:rounded-xl group/img">
+                      <div className="relative aspect-[1.2/1] overflow-hidden bg-background group/img">
                         {p.image && !p.image.includes("/placeholder.svg") ? (
                           <img
                             src={p.image}
@@ -1386,16 +922,23 @@ export function TiendaPage() {
                             className="h-full w-full object-cover transition-transform duration-700 motion-reduce:transition-none sm:group-hover/img:scale-110"
                           />
                         ) : (
-                          <div className="w-full h-full bg-gradient-to-br from-white/[0.05] to-transparent flex items-center justify-center">
+                          <div className="flex h-full w-full items-center justify-center bg-background">
                             <Package className="w-6 sm:w-10 h-6 sm:h-10 text-white/10" />
                           </div>
                         )}
 
-                        {/* Floating Badges */}
-                        <div className="absolute top-1.5 left-1.5 sm:top-3 sm:left-3 flex flex-col gap-1 pointer-events-none">
-                          <span className="px-1.5 sm:px-2 py-0.5 bg-red-accent/90 backdrop-blur-md text-[6px] sm:text-[9px] font-black text-white uppercase tracking-[0.1em] rounded-full shadow-xl">
-                            Premium
+                        <div className="pointer-events-none absolute left-1 top-1 flex flex-col gap-1">
+                          <span className="bg-emerald-500 px-1.5 py-0.5 text-[7px] font-black text-white">
+                            Renovable
                           </span>
+                        </div>
+                        <div className="pointer-events-none absolute right-1 top-1">
+                          <span className="bg-red-accent px-1.5 py-0.5 text-[7px] font-black text-white">
+                            {p.duracion}
+                          </span>
+                        </div>
+                        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-red-accent/95 px-2 py-1 text-center text-[7px] font-black uppercase tracking-wide text-white">
+                          Entrega inmediata
                         </div>
 
                         {/* Detail Overlay Trigger */}
@@ -1406,22 +949,31 @@ export function TiendaPage() {
                             setSelected(p);
                           }}
                           onMouseEnter={playHover}
-                          className="absolute inset-0 grid place-items-center bg-black/25 opacity-100 transition-opacity duration-300 sm:bg-black/40 sm:opacity-0 sm:group-hover/img:opacity-100 sm:backdrop-blur-[2px]"
+                          className="absolute inset-0 grid place-items-center bg-black/25 opacity-100 transition-opacity duration-300 sm:bg-black/45 sm:opacity-0 sm:group-hover/img:opacity-100"
                         >
-                          <div className="px-3 sm:px-4 py-1 sm:py-1.5 bg-white text-black text-[6px] sm:text-[9px] font-black uppercase tracking-[0.1em] rounded-full transform translate-y-4 group-hover/img:translate-y-0 transition-transform duration-500">
+                          <div className="rounded-lg bg-background px-3 py-1 text-[6px] font-black uppercase tracking-[0.1em] text-white transition-transform duration-500 sm:px-4 sm:py-1.5 sm:text-[9px] sm:translate-y-4 sm:group-hover/img:translate-y-0">
                             Ver detalles
                           </div>
                         </button>
                       </div>
 
-                      {/* Content Section - Reduced paddings and margins */}
-                      <div className="px-2 sm:px-4 pb-2 sm:pb-4 pt-1 flex flex-col flex-1">
-                        {/* Title & Meta - Compact spacing */}
-                        <div className="mb-2 sm:mb-3">
-                          <h3 className="mb-0.5 text-xs font-display font-bold leading-tight tracking-tight text-white transition-colors group-hover:text-red-accent line-clamp-1 sm:mb-1 sm:text-base lg:text-lg">
+                      <div className="flex flex-1 flex-col p-2">
+                        <div className="mb-2 flex items-center gap-1.5">
+                          <div className="grid h-5 w-5 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10 text-[7px] font-black text-white">
+                            {p.supplier_avatar_url ? (
+                              <img src={p.supplier_avatar_url} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              p.vendedor.slice(0, 1).toUpperCase()
+                            )}
+                          </div>
+                          <span className="truncate text-[8px] font-bold text-white/75">{p.vendedor}</span>
+                          {p.supplier_verified && <BadgeCheck className="h-3 w-3 shrink-0 text-red-accent" />}
+                        </div>
+                        <div className="mb-2">
+                          <h3 className="mb-0.5 line-clamp-2 text-[11px] font-bold leading-tight tracking-tight text-white transition-colors group-hover:text-red-accent sm:text-xs">
                             {p.name}
                           </h3>
-                          <div className="flex items-center gap-1.5 text-[8px] sm:text-[10px] text-white/40 font-medium uppercase tracking-wider">
+                          <div className="flex items-center gap-1.5 text-[8px] font-medium uppercase tracking-wider text-white/40">
                             <span className="flex items-center gap-1">
                               <Clapperboard className="w-2 sm:w-2.5 h-2 sm:h-2.5" />
                               <span className="hidden min-[380px]:inline">{p.duracion}</span>
@@ -1436,151 +988,54 @@ export function TiendaPage() {
                           </div>
                         </div>
 
-                        {/* Interaction Area */}
-                        <div className="mt-auto space-y-2 sm:space-y-3">
-                          {/* Price & Quantity - Unified row for desktop */}
-                          <div className="flex flex-row items-center justify-between gap-2">
-                            <div className="flex flex-col">
-                              <span className="text-[6px] sm:text-[8px] text-white/30 uppercase font-black tracking-[0.1em] mb-0">
-                                Precio
-                              </span>
-                              <span className="text-xs sm:text-lg lg:text-xl font-display font-bold text-white leading-none">
-                                S/ {p.price.toFixed(2)}
-                              </span>
-                            </div>
-
-                            <div className="flex h-10 items-center rounded-lg border border-white/10 bg-white/[0.03] px-1 shadow-inner sm:h-9 sm:rounded-xl">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const input = e.currentTarget
-                                    .nextElementSibling as HTMLInputElement;
-                                  const val = parseInt(input.value) || 1;
-                                  if (val > 1) {
-                                    input.value = (val - 1).toString();
-                                    playClick();
-                                  }
-                                }}
-                                className="flex h-full w-8 items-center justify-center text-white/50 transition-colors hover:text-white sm:w-7"
-                              >
-                                <span className="text-sm sm:text-lg leading-none font-light">
-                                  -
-                                </span>
-                              </button>
-                              <input
-                                type="number"
-                                defaultValue="1"
-                                min="1"
-                                max={getProductStock(p.id, stockLevels).count ?? 99}
-                                className="w-7 border-none bg-transparent text-center text-xs font-black text-white focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none sm:w-7"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const input = e.currentTarget
-                                    .previousElementSibling as HTMLInputElement;
-                                  const val = parseInt(input.value) || 1;
-                                  const max = getProductStock(p.id, stockLevels).count ?? 99;
-                                  if (val < max) {
-                                    input.value = (val + 1).toString();
-                                    playClick();
-                                  }
-                                }}
-                                className="flex h-full w-8 items-center justify-center text-white/50 transition-colors hover:text-white sm:w-7"
-                              >
-                                <span className="text-sm sm:text-lg leading-none font-light">
-                                  +
-                                </span>
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Actions - More compact buttons */}
-                          <div className="flex gap-1 sm:gap-1.5">
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                playClick();
-                                const input = e.currentTarget
-                                  .closest("article")
-                                  ?.querySelector('input[type="number"]') as HTMLInputElement;
-                                const qty = parseInt(input?.value) || 1;
-                                handleBuyNow(p, qty);
-                              }}
-                              onMouseEnter={playHover}
-                              className="group/btn flex min-h-10 flex-1 items-center justify-center gap-1 rounded-lg bg-red-accent py-2 text-[9px] font-black uppercase tracking-[0.1em] text-white shadow-[0_4px_10px_-4px_rgba(220,38,38,0.4)] transition-all hover:brightness-125 sm:gap-2 sm:rounded-xl sm:py-2.5"
-                            >
-                              <MessageCircle className="w-3 sm:w-3.5 h-3 sm:h-3.5 group-hover:scale-110 transition-transform" />
-                              <span className="hidden min-[360px]:inline">WhatsApp</span>
-                              <span className="inline min-[360px]:hidden">Chat</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                playClick();
-                                const input = e.currentTarget
-                                  .closest("article")
-                                  ?.querySelector('input[type="number"]') as HTMLInputElement;
-                                const qty = parseInt(input?.value) || 1;
-                                for (let i = 0; i < qty; i++) {
-                                  handleAdd(p);
-                                }
-                              }}
-                              onMouseEnter={playHover}
-                              className="grid h-10 w-10 place-items-center rounded-lg border border-white/10 bg-white/[0.03] text-white transition-all hover:border-white/20 hover:bg-white/[0.08] sm:rounded-xl"
-                              aria-label="Agregar al carrito"
-                            >
-                              <ShoppingCart className="w-3 sm:w-4 h-3 sm:h-4" />
-                            </button>
-                          </div>
-
-                          {/* Stock Badge - Compacted */}
-                          {(() => {
-                            const stock = getProductStock(p.id, stockLevels);
-                            return (
-                              <div className="flex items-center justify-center pt-0.5">
-                                <div
-                                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[6px] sm:text-[8px] font-black uppercase tracking-[0.05em] transition-colors ${
-                                    stock.available
-                                      ? "bg-green-500/5 border-green-500/20 text-green-400"
-                                      : "bg-red-500/5 border-red-500/20 text-red-400"
+                        {(() => {
+                          const stock = getProductStock(p.id, stockLevels);
+                          return (
+                            <div className="mt-auto border-t border-border pt-2">
+                              <div className="flex items-end justify-between gap-2">
+                                <div>
+                                  <span className="block text-[7px] font-bold uppercase tracking-wider text-white/35">Precio</span>
+                                  <span className="text-sm font-black leading-none text-white">S/ {p.price.toFixed(2)}</span>
+                                </div>
+                                <span
+                                  className={`inline-flex items-center gap-1 px-1.5 py-1 text-[7px] font-black text-white ${
+                                    stock.available ? "bg-emerald-500" : "bg-red-accent"
                                   }`}
                                 >
-                                  <div
-                                    className={`w-1 h-1 rounded-full ${stock.available ? "bg-green-500 animate-pulse" : "bg-red-500"}`}
-                                  />
-                                  {stock.available ? (
-                                    stock.count != null ? (
-                                      <>
-                                        <span className="hidden min-[400px]:inline">
-                                          {stock.count} en stock
-                                        </span>
-                                        <span className="inline min-[400px]:hidden">
-                                          {stock.count} disp.
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <>
-                                        <span className="hidden min-[400px]:inline">
-                                          Disponible
-                                        </span>
-                                        <span className="inline min-[400px]:hidden">Disp.</span>
-                                      </>
-                                    )
-                                  ) : (
-                                    "Agotado"
-                                  )}
-                                </div>
+                                  <span className="h-1 w-1 rounded-full bg-white" />
+                                  {stock.available
+                                    ? stock.count != null
+                                      ? `${stock.count} Stock`
+                                      : "Stock"
+                                    : "Agotado"}
+                                </span>
                               </div>
-                            );
-                          })()}
-                        </div>
+                              <div className="mt-2 flex gap-1.5">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    playClick();
+                                    setSelected(p);
+                                  }}
+                                  className="flex h-7 flex-1 items-center justify-center rounded-lg border border-border bg-background text-[8px] font-black uppercase text-white/80 transition hover:border-primary/60"
+                                >
+                                  Detalles
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    playClick();
+                                    handleAdd(p);
+                                  }}
+                                  className="grid h-7 w-7 place-items-center rounded-lg bg-red-accent text-white transition hover:brightness-110"
+                                  aria-label="Agregar al carrito"
+                                >
+                                  <ShoppingCart className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </article>
                   ))}
@@ -1659,10 +1114,7 @@ export function TiendaPage() {
 
         <KeyboardShortcuts
           authed={!!session}
-          onFocusSearch={() => {
-            setPanel("tienda");
-            requestAnimationFrame(() => searchRef.current?.focus());
-          }}
+          onFocusSearch={focusCatalogSearch}
           onToggleCart={() => setCartOpen((v) => !v)}
           onGoPanel={(p) => setPanel(p)}
           onGoHome={() => router.navigate({ to: "/" })}
@@ -1681,7 +1133,7 @@ export function TiendaPage() {
           onBuyNow={(p) => {
             handleBuyNow(p);
           }}
-          onLoginRequired={session ? undefined : () => setAuthOpen(true)}
+          onLoginRequired={session ? undefined : () => openAuth()}
           isBuying={isOrderSubmitting}
         />
 
@@ -1689,14 +1141,14 @@ export function TiendaPage() {
         {selectedDelivery && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/80"
               onClick={() => {
                 setSelectedDelivery(null);
                 setShowPass(false);
               }}
             />
-            <div className="relative w-full max-w-md bg-[#0d0d14] border border-white/10 rounded-3xl overflow-hidden animate-scale-in">
-              <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+            <div className="relative w-full max-w-md overflow-hidden rounded-xl border border-border bg-background animate-scale-in">
+              <div className="flex items-center justify-between border-b border-border bg-background p-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                     <Key className="w-5 h-5" />
@@ -1713,7 +1165,7 @@ export function TiendaPage() {
                     setSelectedDelivery(null);
                     setShowPass(false);
                   }}
-                  className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-white/40 transition-colors hover:border-primary/60 hover:text-white"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1730,13 +1182,13 @@ export function TiendaPage() {
                         <input
                           readOnly
                           value={selectedDelivery.email}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-all"
+                          className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-white transition-all focus:outline-none"
                         />
                         <button
                           onClick={() => {
                             void copyText(selectedDelivery.email ?? "");
                           }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                          className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg border border-border bg-background text-white/40 transition-all hover:border-primary/60 hover:text-white"
                         >
                           <Copy className="w-3.5 h-3.5" />
                         </button>
@@ -1754,12 +1206,12 @@ export function TiendaPage() {
                           type={showPass ? "text" : "password"}
                           readOnly
                           value={selectedDelivery.password}
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none transition-all"
+                          className="w-full rounded-lg border border-border bg-background px-4 py-3 text-sm text-white transition-all focus:outline-none"
                         />
                         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                           <button
                             onClick={() => setShowPass(!showPass)}
-                            className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-white/40 transition-all hover:border-primary/60 hover:text-white"
                           >
                             {showPass ? (
                               <EyeOff className="w-3.5 h-3.5" />
@@ -1771,7 +1223,7 @@ export function TiendaPage() {
                             onClick={() => {
                               void copyText(selectedDelivery.password ?? "");
                             }}
-                            className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-background text-white/40 transition-all hover:border-primary/60 hover:text-white"
                           >
                             <Copy className="w-3.5 h-3.5" />
                           </button>
@@ -1789,7 +1241,7 @@ export function TiendaPage() {
                         href={safeDeliveryUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full bg-primary/10 border border-primary/20 rounded-xl px-4 py-3 text-sm text-primary font-bold flex items-center justify-between hover:bg-primary/20 transition-all"
+                        className="flex w-full items-center justify-between rounded-lg border border-primary/30 bg-background px-4 py-3 text-sm font-bold text-primary transition-all hover:border-primary"
                       >
                         <span>Abrir Plataforma</span>
                         <ExternalLink className="w-4 h-4" />
@@ -1802,7 +1254,7 @@ export function TiendaPage() {
                       <label className="text-[10px] uppercase tracking-wider text-white/40 font-bold ml-1">
                         Notas del Administrador
                       </label>
-                      <div className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white/80 whitespace-pre-line leading-relaxed italic">
+                      <div className="w-full whitespace-pre-line rounded-lg border border-border bg-background px-4 py-3 text-sm italic leading-relaxed text-white/80">
                         {selectedDelivery.notes}
                       </div>
                     </div>
@@ -1823,79 +1275,6 @@ export function TiendaPage() {
   );
 }
 
-function PanelTabBtn({
-  active,
-  onClick,
-  icon,
-  label,
-  accent = "text-sky-300",
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  accent?: string;
-}) {
-  const { playHover, playClick } = useFuturisticSound();
-  return (
-    <button
-      onClick={() => {
-        playClick();
-        onClick();
-      }}
-      onMouseEnter={playHover}
-      aria-pressed={active}
-      className={`shrink-0 inline-flex items-center gap-2 px-5 py-3 text-[11px] sm:text-xs font-bold uppercase tracking-[0.14em] transition-all ${
-        active
-          ? "bg-red-accent text-white shadow-lg shadow-red-600/20 rounded-md"
-          : "text-white/70 hover:text-white hover:bg-white/[0.04]"
-      }`}
-    >
-      <span className={cn("transition-colors", active ? "text-white" : accent)}>{icon}</span>
-      {label}
-    </button>
-  );
-}
-
-function IconBtn({
-  children,
-  label,
-  onClick,
-}: {
-  children: React.ReactNode;
-  label: string;
-  onClick?: () => void;
-}) {
-  const { playHover, playClick } = useFuturisticSound();
-  const accentByLabel: Record<string, string> = {
-    Tienda: "text-cyan-300",
-    Ayuda: "text-amber-300",
-    "Mi Cuenta": "text-violet-300",
-    "Panel Proveedor": "text-amber-300",
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        playClick();
-        onClick?.();
-      }}
-      onMouseEnter={playHover}
-      aria-label={label}
-      className="group w-11 h-11 border border-white/12 grid place-items-center text-white/60 hover:border-white/35 transition focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-accent"
-    >
-      <span
-        className={cn(
-          "transition-colors group-hover:text-white",
-          accentByLabel[label] ?? "text-sky-300",
-        )}
-      >
-        {children}
-      </span>
-    </button>
-  );
-}
 function PurchasesPanel({
   loading,
   orders,
@@ -1970,12 +1349,12 @@ function PurchasesPanel({
         </div>
 
         {loading ? (
-          <div className="rounded-2xl glass-card p-10 grid place-items-center">
+          <div className="grid place-items-center rounded-xl glass-card p-10">
             <Loader2 className="w-6 h-6 text-white/78 animate-spin" />
           </div>
         ) : orders.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-white/15 p-10 sm:p-16 grid place-items-center text-center">
-            <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/10 grid place-items-center mb-4">
+          <div className="grid place-items-center rounded-xl border-2 border-dashed border-border bg-background p-10 text-center sm:p-16">
+            <div className="mb-4 grid h-16 w-16 place-items-center rounded-lg border border-border bg-background">
               <Package className="w-8 h-8 text-white/70" />
             </div>
             <p className="text-sm text-white/70 mb-4">Aún no tienes pedidos.</p>
@@ -1993,7 +1372,7 @@ function PurchasesPanel({
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden sm:block rounded-2xl glass-card overflow-hidden">
+            <div className="hidden overflow-hidden rounded-xl glass-card sm:block">
               <table className="w-full text-sm">
                 <thead className="bg-white/[0.03] text-white/78 text-xs uppercase tracking-wider">
                   <tr>
@@ -2168,7 +1547,7 @@ function ProfilePanel({
     <section className="mt-6 pb-24">
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <h1 className="font-display text-2xl text-white uppercase tracking-wide mb-4">Mi Perfil</h1>
-        <div className="rounded-2xl glass-card p-5 sm:p-6 mb-4">
+        <div className="mb-4 rounded-xl glass-card p-5 sm:p-6">
           <AvatarUploader
             userId={userId}
             fallbackInitials={initials}
@@ -2177,7 +1556,7 @@ function ProfilePanel({
             }}
           />
         </div>
-        <form onSubmit={handleSave} className="rounded-2xl glass-card p-5 sm:p-6 space-y-4">
+        <form onSubmit={handleSave} className="space-y-4 rounded-xl glass-card p-5 sm:p-6">
           <div>
             <label className="text-xs text-white/78 uppercase tracking-wider">Correo</label>
             <div className="mt-1.5 relative">
@@ -2186,7 +1565,7 @@ function ProfilePanel({
                 type="email"
                 value={email}
                 disabled
-                className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/[0.02] border border-white/5 text-white/78 text-sm cursor-not-allowed"
+                className="w-full cursor-not-allowed rounded-lg border border-border bg-background py-3 pl-10 pr-3 text-sm text-white/78"
               />
             </div>
           </div>
@@ -2202,7 +1581,7 @@ function ProfilePanel({
                 required
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/74 focus:outline-none focus:border-violet-2/60 transition"
+                className="w-full rounded-lg border border-border bg-background py-3 pl-10 pr-3 text-sm text-white placeholder:text-white/74 transition focus:border-primary/60 focus:outline-none"
               />
             </div>
           </div>
@@ -2217,7 +1596,7 @@ function ProfilePanel({
                 value={whatsapp}
                 onChange={(e) => setWhatsapp(e.target.value)}
                 placeholder="+51 999 999 999"
-                className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/74 focus:outline-none focus:border-violet-2/60 transition"
+                className="w-full rounded-lg border border-border bg-background py-3 pl-10 pr-3 text-sm text-white placeholder:text-white/74 transition focus:border-primary/60 focus:outline-none"
               />
             </div>
           </div>
