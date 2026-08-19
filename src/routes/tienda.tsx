@@ -60,6 +60,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { createOrders } from "@/lib/orders.functions";
 import type { Database, Tables } from "@/integrations/supabase/types";
 import { getAuthDestination } from "@/lib/auth-destination";
+import { cn } from "@/lib/utils";
 import { PlatformNavigation } from "@/components/tienda/PlatformNavigation";
 import { StoreSidebar } from "@/components/tienda/StoreSidebar";
 
@@ -123,6 +124,8 @@ export const Route = createFileRoute("/tienda")({
 });
 
 type SortKey = "destacado" | "precio-asc" | "precio-desc" | "nombre";
+
+const SIDEBAR_COLLAPSED_STORAGE_KEY = "cmd-tienda-sidebar-collapsed";
 
 type DeliveryDetails = Pick<
   Tables<"delivered_accounts">,
@@ -228,6 +231,7 @@ export function TiendaPage() {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
@@ -241,6 +245,30 @@ export function TiendaPage() {
   const [showPass, setShowPass] = useState(false);
   const ordersRequestId = useRef(0);
   const orderSubmissionRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      setSidebarCollapsed(window.localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === "true");
+    } catch {
+      // El catálogo sigue siendo totalmente usable aunque el navegador bloquee el almacenamiento local.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(sidebarCollapsed));
+    } catch {
+      // No es necesario interrumpir la navegación si la preferencia no se puede guardar.
+    }
+  }, [sidebarCollapsed]);
+
+  const handleSidebarToggle = useCallback(() => {
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      setSidebarCollapsed((value) => !value);
+      return;
+    }
+    setSidebarOpen(true);
+  }, []);
 
   const openAuth = useCallback((mode: AuthMode = "login") => {
     setAuthMode(mode);
@@ -780,6 +808,7 @@ export function TiendaPage() {
 
       <StoreSidebar
         open={sidebarOpen}
+        collapsed={sidebarCollapsed}
         sessionActive={!!session}
         displayName={displayName}
         initials={initials}
@@ -794,7 +823,12 @@ export function TiendaPage() {
         onUnavailable={handleUnavailableSection}
       />
 
-      <div className="min-h-screen lg:pl-[190px]">
+      <div
+        className={cn(
+          "min-h-screen transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
+          sidebarCollapsed ? "lg:pl-[76px]" : "lg:pl-[190px]",
+        )}
+      >
 
         {panel === "tienda" && (
           <div className="tienda-main-content">
@@ -807,7 +841,7 @@ export function TiendaPage() {
               onQueryChange={setQuery}
               onGoShop={handleGoShop}
               onOpenAffiliate={handleAffiliate}
-              onToggleSidebar={() => setSidebarOpen(true)}
+              onToggleSidebar={handleSidebarToggle}
             />
             <section className="mt-4 border-y border-border bg-background">
               <div className="max-w-[1600px] mx-auto flex items-center gap-3 px-4 py-3">
