@@ -14,9 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TiendaRouteImport } from './routes/tienda'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
+import { Route as AuthenticatedMiTiendaRouteImport } from './routes/_authenticated/mi-tienda'
 import { Route as AuthenticatedProveedorRouteImport } from './routes/_authenticated/proveedor'
 import { Route as PlataformasIndexRouteImport } from './routes/plataformas/index'
 import { Route as PlataformasSlugRouteImport } from './routes/plataformas/$slug'
+import { Route as VSlugRouteImport } from './routes/v/$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 import { Route as AuthenticatedAdminInventarioRouteImport } from './routes/_authenticated/admin/inventario'
@@ -59,6 +61,11 @@ const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMiTiendaRoute = AuthenticatedMiTiendaRouteImport.update({
+  id: '/mi-tienda',
+  path: '/mi-tienda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProveedorRoute = AuthenticatedProveedorRouteImport.update({
   id: '/proveedor',
   path: '/proveedor',
@@ -72,6 +79,11 @@ const PlataformasIndexRoute = PlataformasIndexRouteImport.update({
 const PlataformasSlugRoute = PlataformasSlugRouteImport.update({
   id: '/plataformas/$slug',
   path: '/plataformas/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VSlugRoute = VSlugRouteImport.update({
+  id: '/v/$slug',
+  path: '/v/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -179,8 +191,10 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tienda': typeof TiendaRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/mi-tienda': typeof AuthenticatedMiTiendaRoute
   '/proveedor': typeof AuthenticatedProveedorRouteWithChildren
   '/plataformas/$slug': typeof PlataformasSlugRoute
+  '/v/$slug': typeof VSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
@@ -204,7 +218,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tienda': typeof TiendaRoute
+  '/mi-tienda': typeof AuthenticatedMiTiendaRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
+  '/v/$slug': typeof VSlugRoute
   '/plataformas': typeof PlataformasIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
@@ -231,8 +247,10 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tienda': typeof TiendaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
+  '/_authenticated/mi-tienda': typeof AuthenticatedMiTiendaRoute
   '/_authenticated/proveedor': typeof AuthenticatedProveedorRouteWithChildren
   '/plataformas/$slug': typeof PlataformasSlugRoute
+  '/v/$slug': typeof VSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/inventario': typeof AuthenticatedAdminInventarioRoute
@@ -259,8 +277,10 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tienda'
     | '/admin'
+    | '/mi-tienda'
     | '/proveedor'
     | '/plataformas/$slug'
+    | '/v/$slug'
     | '/plataformas/'
     | '/admin/analytics'
     | '/admin/inventario'
@@ -284,7 +304,9 @@ export interface FileRouteTypes {
     | '/'
     | '/sitemap.xml'
     | '/tienda'
+    | '/mi-tienda'
     | '/plataformas/$slug'
+    | '/v/$slug'
     | '/plataformas'
     | '/admin/analytics'
     | '/admin/inventario'
@@ -310,8 +332,10 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tienda'
     | '/_authenticated/admin'
+    | '/_authenticated/mi-tienda'
     | '/_authenticated/proveedor'
     | '/plataformas/$slug'
+    | '/v/$slug'
     | '/plataformas/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/inventario'
@@ -338,6 +362,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TiendaRoute: typeof TiendaRoute
   PlataformasSlugRoute: typeof PlataformasSlugRoute
+  VSlugRoute: typeof VSlugRoute
   PlataformasIndexRoute: typeof PlataformasIndexRoute
   ApiPublicWebhooksFloidRoute: typeof ApiPublicWebhooksFloidRoute
 }
@@ -379,6 +404,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mi-tienda': {
+      id: '/_authenticated/mi-tienda'
+      path: '/mi-tienda'
+      fullPath: '/mi-tienda'
+      preLoaderRoute: typeof AuthenticatedMiTiendaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/proveedor': {
       id: '/_authenticated/proveedor'
       path: '/proveedor'
@@ -398,6 +430,13 @@ declare module '@tanstack/react-router' {
       path: '/plataformas/$slug'
       fullPath: '/plataformas/$slug'
       preLoaderRoute: typeof PlataformasSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/v/$slug': {
+      id: '/v/$slug'
+      path: '/v/$slug'
+      fullPath: '/v/$slug'
+      preLoaderRoute: typeof VSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -582,11 +621,13 @@ const AuthenticatedProveedorRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
+  AuthenticatedMiTiendaRoute: typeof AuthenticatedMiTiendaRoute
   AuthenticatedProveedorRoute: typeof AuthenticatedProveedorRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
+  AuthenticatedMiTiendaRoute: AuthenticatedMiTiendaRoute,
   AuthenticatedProveedorRoute: AuthenticatedProveedorRouteWithChildren,
 }
 
@@ -599,6 +640,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TiendaRoute: TiendaRoute,
   PlataformasSlugRoute: PlataformasSlugRoute,
+  VSlugRoute: VSlugRoute,
   PlataformasIndexRoute: PlataformasIndexRoute,
   ApiPublicWebhooksFloidRoute: ApiPublicWebhooksFloidRoute,
 }

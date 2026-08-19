@@ -24,6 +24,7 @@ type StoreSidebarProps = {
   open: boolean;
   collapsed: boolean;
   sessionActive: boolean;
+  canManageStore: boolean;
   displayName: string;
   initials: string;
   avatarUrl?: string | null;
@@ -32,6 +33,7 @@ type StoreSidebarProps = {
   onClose: () => void;
   onCategorySelect: (categoryId: string) => void;
   onPanelSelect: (panel: StorePanel) => void;
+  onOpenSellerStore: () => void;
   onOpenWallet: () => void;
   onOpenAuth: () => void;
   onUnavailable: (feature: string) => void;
@@ -44,6 +46,7 @@ export function StoreSidebar({
   open,
   collapsed,
   sessionActive,
+  canManageStore,
   displayName,
   initials,
   avatarUrl,
@@ -52,6 +55,7 @@ export function StoreSidebar({
   onClose,
   onCategorySelect,
   onPanelSelect,
+  onOpenSellerStore,
   onOpenWallet,
   onOpenAuth,
   onUnavailable,
@@ -207,10 +211,14 @@ export function StoreSidebar({
             >
               <button
                 type="button"
-                onClick={() => (sessionActive ? selectPanel("tienda") : onOpenAuth())}
+                onClick={() => {
+                  if (!sessionActive) onOpenAuth();
+                  else if (canManageStore) onOpenSellerStore();
+                  else onUnavailable("Mi Tienda requiere una cuenta Vendedor");
+                }}
                 className={cn(
                   "flex min-h-7 w-full items-center gap-2 rounded-lg px-2 text-left text-[10px] font-semibold transition-colors",
-                  activePanel === "tienda" ? "text-white" : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
+                  "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
                 )}
               >
                 <ShoppingBag className="h-3 w-3" aria-hidden="true" /> Mi Tienda

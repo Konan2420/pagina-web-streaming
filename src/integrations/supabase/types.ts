@@ -20,6 +20,7 @@ export type Database = {
           password: string;
           payment_verified: boolean | null;
           product_id: string;
+          seller_id: string | null;
           status: string;
           supplier_id: string | null;
         };
@@ -34,6 +35,7 @@ export type Database = {
           password: string;
           payment_verified?: boolean | null;
           product_id: string;
+          seller_id?: string | null;
           status?: string;
           supplier_id?: string | null;
         };
@@ -48,6 +50,7 @@ export type Database = {
           password?: string;
           payment_verified?: boolean | null;
           product_id?: string;
+          seller_id?: string | null;
           status?: string;
           supplier_id?: string | null;
         };
@@ -423,6 +426,158 @@ export type Database = {
         };
         Relationships: [];
       };
+      seller_combo_items: {
+        Row: {
+          combo_id: string;
+          id: string;
+          quantity: number;
+          seller_listing_id: string;
+        };
+        Insert: {
+          combo_id: string;
+          id?: string;
+          quantity?: number;
+          seller_listing_id: string;
+        };
+        Update: {
+          combo_id?: string;
+          id?: string;
+          quantity?: number;
+          seller_listing_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "seller_combo_items_combo_id_fkey";
+            columns: ["combo_id"];
+            isOneToOne: false;
+            referencedRelation: "seller_combos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "seller_combo_items_seller_listing_id_fkey";
+            columns: ["seller_listing_id"];
+            isOneToOne: false;
+            referencedRelation: "seller_listings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      seller_combos: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: string;
+          is_visible: boolean;
+          name: string;
+          price_sale: number;
+          promo_price: number | null;
+          seller_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_visible?: boolean;
+          name: string;
+          price_sale: number;
+          promo_price?: number | null;
+          seller_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          is_visible?: boolean;
+          name?: string;
+          price_sale?: number;
+          promo_price?: number | null;
+          seller_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      seller_listings: {
+        Row: {
+          created_at: string;
+          custom_description: string | null;
+          custom_name: string | null;
+          id: string;
+          is_visible: boolean;
+          price_sale: number;
+          product_id: string;
+          promo_price: number | null;
+          seller_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          custom_description?: string | null;
+          custom_name?: string | null;
+          id?: string;
+          is_visible?: boolean;
+          price_sale: number;
+          product_id: string;
+          promo_price?: number | null;
+          seller_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          custom_description?: string | null;
+          custom_name?: string | null;
+          id?: string;
+          is_visible?: boolean;
+          price_sale?: number;
+          product_id?: string;
+          promo_price?: number | null;
+          seller_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "seller_listings_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      seller_profiles: {
+        Row: {
+          banner_url: string | null;
+          created_at: string;
+          display_name: string;
+          id: string;
+          slug: string;
+          status: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          banner_url?: string | null;
+          created_at?: string;
+          display_name: string;
+          id?: string;
+          slug: string;
+          status?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          banner_url?: string | null;
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          slug?: string;
+          status?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           avatar_url: string | null;
@@ -690,7 +845,7 @@ export type Database = {
       };
     };
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "editor" | "proveedor";
+      app_role: "admin" | "moderator" | "user" | "editor" | "proveedor" | "vendedor";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -812,7 +967,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "editor", "proveedor"],
+      app_role: ["admin", "moderator", "user", "editor", "proveedor", "vendedor"],
     },
   },
 } as const;

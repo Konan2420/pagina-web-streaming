@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type AuthDestination = "/tienda" | "/proveedor" | "/admin";
+export type AuthDestination = "/tienda" | "/mi-tienda" | "/proveedor" | "/admin";
 
 /**
  * Resolves the least-privileged destination for an authenticated account.
@@ -17,5 +17,6 @@ export async function getAuthDestination(userId: string): Promise<AuthDestinatio
   const roles = new Set((data ?? []).map(({ role }) => role));
   if (roles.has("admin")) return "/admin";
   if (roles.has("proveedor")) return "/proveedor";
+  if (roles.has("vendedor")) return "/mi-tienda";
   return "/tienda";
 }

@@ -34,3 +34,16 @@ export async function assertSupplier(supabase: SupabaseClient<Database>, userId:
   if (error) throw new Error("No se pudo verificar los permisos.");
   if (!isSupplier) throw new Error("Acceso restringido a proveedores.");
 }
+
+export async function assertSeller(supabase: SupabaseClient<Database>, userId: string) {
+  if (!userId) throw new Error("No autenticado.");
+
+  const [{ data: isAdmin, error: adminError }, { data: isSeller, error: sellerError }] =
+    await Promise.all([
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      supabase.rpc("has_role", { _user_id: userId, _role: "vendedor" }),
+    ]);
+
+  if (adminError || sellerError) throw new Error("No se pudo verificar los permisos.");
+  if (!isAdmin && !isSeller) throw new Error("Acceso restringido a vendedores.");
+}

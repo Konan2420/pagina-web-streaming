@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Menu, Shield, User, X } from "lucide-react";
+import { Menu, Shield, Store, User, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { navLinks } from "./data";
 import { useAnalytics } from "@/hooks/useAnalytics";
@@ -10,7 +10,9 @@ export function Navbar({ onOpenAuth }: { onOpenAuth?: (mode?: "login" | "signup"
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const track = useAnalytics();
-  const { isAuthorized } = useIsAdmin();
+  const { isAdmin, isSeller, isSupplier } = useIsAdmin();
+  const panelTarget = isAdmin ? "/admin" : isSupplier ? "/proveedor" : "/mi-tienda";
+  const panelLabel = isAdmin ? "Panel Admin" : isSupplier ? "Panel Proveedor" : "Mi Tienda";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -79,13 +81,13 @@ export function Navbar({ onOpenAuth }: { onOpenAuth?: (mode?: "login" | "signup"
         </ul>
 
         <div className="flex items-center gap-2">
-          {isAuthorized && (
+          {(isAdmin || isSupplier || isSeller) && (
             <Link
-              to="/admin"
+              to={panelTarget}
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary text-primary text-sm hover:bg-primary/10 transition-all"
             >
-              <Shield className="w-4 h-4" />
-              Panel Admin
+              {isSeller && !isAdmin && !isSupplier ? <Store className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+              {panelLabel}
             </Link>
           )}
           <button

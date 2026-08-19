@@ -63,6 +63,7 @@ import { getAuthDestination } from "@/lib/auth-destination";
 import { cn } from "@/lib/utils";
 import { PlatformNavigation } from "@/components/tienda/PlatformNavigation";
 import { StoreSidebar } from "@/components/tienda/StoreSidebar";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 export const Route = createFileRoute("/tienda")({
   head: () => ({
@@ -239,6 +240,7 @@ export function TiendaPage() {
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const track = useAnalytics();
   const createOrdersFn = useServerFn(createOrders);
+  const { isAdmin, isSeller } = useIsAdmin();
 
   const { playHover, playClick } = useFuturisticSound();
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryDetails | null>(null);
@@ -810,6 +812,7 @@ export function TiendaPage() {
         open={sidebarOpen}
         collapsed={sidebarCollapsed}
         sessionActive={!!session}
+        canManageStore={isSeller || isAdmin}
         displayName={displayName}
         initials={initials}
         avatarUrl={profile?.avatar_url ? getAvatarUrl(profile.avatar_url) : null}
@@ -818,6 +821,7 @@ export function TiendaPage() {
         onClose={() => setSidebarOpen(false)}
         onCategorySelect={handleCategorySelect}
         onPanelSelect={handleSidebarPanel}
+        onOpenSellerStore={() => void router.navigate({ to: "/mi-tienda" })}
         onOpenWallet={handleWallet}
         onOpenAuth={openAuth}
         onUnavailable={handleUnavailableSection}

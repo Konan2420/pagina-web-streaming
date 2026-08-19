@@ -198,11 +198,15 @@ export const getUsersWithRoles = createServerFn({ method: "GET" })
 
     if (rError) throw new Error(rError.message);
 
-    return (profiles as Tables<"profiles">[]).map((p) => ({
-      ...p,
-      email: "",
-      role: roles.find((r) => r.user_id === p.id)?.role || "user",
-    }));
+    const rolePriority = ["admin", "proveedor", "vendedor", "editor", "moderator", "user"] as const;
+    return (profiles as Tables<"profiles">[]).map((p) => {
+      const assigned = roles.filter((r) => r.user_id === p.id).map((r) => r.role);
+      return {
+        ...p,
+        email: "",
+        role: rolePriority.find((role) => assigned.includes(role)) || "user",
+      };
+    });
   });
 
 export const updateUserRole = createServerFn({ method: "POST" })
@@ -211,7 +215,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
     z
       .object({
         user_id: z.string(),
-        role: z.enum(["admin", "user", "proveedor"]),
+        role: z.enum(["admin", "user", "proveedor", "vendedor"]),
       })
       .parse(d),
   )
@@ -224,16 +228,24 @@ export const updateUserRole = createServerFn({ method: "POST" })
       throw new Error("No puedes cambiar tu propio rol.");
     }
 
+    const { error: baselineError } = await supabaseAdmin
+      .from("user_roles")
+      .upsert({ user_id: data.user_id, role: "user" }, { onConflict: "user_id,role" });
+    if (baselineError) throw new Error(baselineError.message);
+
     const { error: deleteError } = await supabaseAdmin
       .from("user_roles")
       .delete()
-      .eq("user_id", data.user_id);
+      .eq("user_id", data.user_id)
+      .in("role", ["admin", "proveedor", "vendedor"]);
     if (deleteError) throw new Error(deleteError.message);
 
-    const { error: insertError } = await supabaseAdmin
-      .from("user_roles")
-      .insert({ user_id: data.user_id, role: data.role });
-    if (insertError) throw new Error(insertError.message);
+    if (data.role !== "user") {
+      const { error: insertError } = await supabaseAdmin
+        .from("user_roles")
+        .upsert({ user_id: data.user_id, role: data.role }, { onConflict: "user_id,role" });
+      if (insertError) throw new Error(insertError.message);
+    }
 
     // Auto-create a supplier profile when an administrator promotes an account.
     if (data.role === "proveedor") {
@@ -256,6 +268,20 @@ export const updateUserRole = createServerFn({ method: "POST" })
 
       if (supplierError)
         throw new Error(`No se pudo crear el perfil del proveedor: ${supplierError.message}`);
+    }
+    if (data.role === "vendedor") {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("nombre_completo, email")
+        .eq("id", data.user_id)
+        .single();
+      const displayName = profile?.nombre_completo?.trim() || profile?.email?.split("@")[0] || "Mi tienda";
+      const slug = `tienda-${data.user_id.replaceAll("-", "").slice(0, 10)}`;
+      const { error: sellerError } = await supabaseAdmin.from("seller_profiles").upsert(
+        { user_id: data.user_id, display_name: displayName, slug },
+        { onConflict: "user_id" },
+      );
+      if (sellerError) throw new Error(`No se pudo crear la tienda del vendedor: ${sellerError.message}`);
     }
     return { success: true };
   });

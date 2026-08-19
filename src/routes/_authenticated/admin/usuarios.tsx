@@ -16,7 +16,7 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-type AssignableRole = "admin" | "user" | "proveedor";
+type AssignableRole = "admin" | "user" | "proveedor" | "vendedor";
 
 const usersQueryOptions = queryOptions({
   queryKey: ["admin-users-roles"],
@@ -88,6 +88,12 @@ function UsersManagement() {
             <ShieldCheck className="w-3 h-3" /> Proveedor
           </span>
         );
+      case "vendedor":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+            <ShieldCheck className="w-3 h-3" /> Vendedor
+          </span>
+        );
       default:
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/5 text-white/40 border border-white/10">
@@ -156,7 +162,7 @@ function UsersManagement() {
                           value={user.role}
                           onChange={(e) => {
                             const role = e.target.value;
-                            if (role === "admin" || role === "user" || role === "proveedor") {
+                            if (role === "admin" || role === "user" || role === "proveedor" || role === "vendedor") {
                               void handleUpdateRole(user.id, role);
                             }
                           }}
@@ -164,6 +170,7 @@ function UsersManagement() {
                         >
                           <option value="user">Usuario</option>
                           <option value="proveedor">Proveedor</option>
+                          <option value="vendedor">Vendedor</option>
                           <option value="admin">Administrador</option>
                         </select>
                       )}

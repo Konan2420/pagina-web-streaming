@@ -6,6 +6,7 @@ export function useIsAdmin() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isEditor, setIsEditor] = useState(false);
   const [isSupplier, setIsSupplier] = useState(false);
+  const [isSeller, setIsSeller] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export function useIsAdmin() {
           setIsAdmin(false);
           setIsEditor(false);
           setIsSupplier(false);
+          setIsSeller(false);
           setLoading(false);
         }
         return;
@@ -37,11 +39,13 @@ export function useIsAdmin() {
         const admin = roles.includes("admin");
         const editor = roles.includes("editor");
         const supplier = roles.includes("proveedor");
+        const seller = roles.includes("vendedor");
 
         if (!cancelled) {
           setIsAdmin(admin);
           setIsEditor(editor);
           setIsSupplier(supplier);
+          setIsSeller(seller);
           setLoading(false);
         }
       } catch (err) {
@@ -65,5 +69,12 @@ export function useIsAdmin() {
     };
   }, []);
 
-  return { isAdmin, isEditor, isSupplier, isAuthorized: isAdmin || isSupplier, loading };
+  return {
+    isAdmin,
+    isEditor,
+    isSupplier,
+    isSeller,
+    isAuthorized: isAdmin || isSupplier || isSeller,
+    loading,
+  };
 }
