@@ -7,12 +7,35 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { Toaster } from "sonner";
+import { createServerOnlyFn } from "@tanstack/react-start";
 
 import appCss from "../styles.css?url";
 import { usePageView } from "@/hooks/useAnalytics";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { configurePublicSupabase, type PublicSupabaseConfig } from "@/integrations/supabase/client";
+
+/**
+ * The browser needs only these two public values for Supabase Auth and RLS.
+ * They are resolved at request time from Nitro, avoiding a fragile VITE_ build
+ * dependency. Service-role credentials remain server-only.
+ */
+const getPublicSupabaseConfig = createServerOnlyFn(
+  async (): Promise<PublicSupabaseConfig | null> => {
+    const { useRuntimeConfig } = await import("nitro/runtime-config");
+    const config = useRuntimeConfig();
+    const url = config.supabaseUrl || process.env.NITRO_SUPABASE_URL || process.env.SUPABASE_URL;
+    const publishableKey =
+      config.supabasePublishableKey ||
+      process.env.NITRO_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_PUBLISHABLE_KEY;
+
+    if (!url || !publishableKey) return null;
+
+    return { url, publishableKey };
+  },
+);
 
 function NotFoundComponent() {
   return (
@@ -37,10 +60,12 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
   const router = useRouter();
+
   useEffect(() => {
-    console.error("[CMD Streaming] Error de ruta:", error);
+    if (import.meta.env.DEV) {
+      console.error("[CMD Streaming] Error de ruta o renderizado:", error);
+    }
   }, [error]);
 
   return (
@@ -62,12 +87,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           >
             Try again
           </button>
-          <a
-            href="/"
+          <Link
+            to="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Go home
-          </a>
+          </Link>
         </div>
       </div>
     </div>
@@ -75,10 +100,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  loader: () => getPublicSupabaseConfig(),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "theme-color", content: "#090914" },
       { name: "author", content: "CMD Streaming" },
       { property: "og:site_name", content: "CMD Streaming" },
       { property: "og:type", content: "website" },
@@ -92,7 +119,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "icon", href: "/cmd-logo.png", type: "image/png" },
     ],
   }),
   shellComponent: RootShell,
@@ -117,6 +144,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const supabaseConfig = Route.useLoaderData();
+  if (supabaseConfig) configurePublicSupabase(supabaseConfig);
   usePageView();
 
   return (
