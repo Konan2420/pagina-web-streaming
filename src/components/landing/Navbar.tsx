@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Menu, Shield, Store, User, X } from "lucide-react";
+import { LayoutDashboard, Menu, Shield, User, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { navLinks } from "./data";
 import { useAnalytics } from "@/hooks/useAnalytics";
@@ -10,9 +10,14 @@ export function Navbar({ onOpenAuth }: { onOpenAuth?: (mode?: "login" | "signup"
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const track = useAnalytics();
-  const { isAdmin, isSeller, isSupplier } = useIsAdmin();
-  const panelTarget = isAdmin ? "/admin" : isSupplier ? "/proveedor" : "/mi-tienda";
-  const panelLabel = isAdmin ? "Panel Admin" : isSupplier ? "Panel Proveedor" : "Mi Tienda";
+  const { isAdmin, isProvider, isDistributor } = useIsAdmin();
+  const panelDestination = isAdmin
+    ? { to: "/admin" as const, label: "Panel Admin" }
+    : isProvider
+      ? { to: "/proveedor" as const, label: "Mi Panel" }
+      : isDistributor
+        ? { to: "/distribuidor" as const, label: "Mi Panel" }
+        : null;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -54,7 +59,7 @@ export function Navbar({ onOpenAuth }: { onOpenAuth?: (mode?: "login" | "signup"
           className="group flex items-center gap-2 sm:gap-2.5 shrink-0 min-w-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-2/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         >
           <img
-            src="/favicon.png"
+            src="/cmd-logo.png"
             alt="CMD Streaming"
             className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl object-contain transition-transform group-hover:scale-105"
           />
@@ -81,13 +86,13 @@ export function Navbar({ onOpenAuth }: { onOpenAuth?: (mode?: "login" | "signup"
         </ul>
 
         <div className="flex items-center gap-2">
-          {(isAdmin || isSupplier || isSeller) && (
+          {panelDestination && (
             <Link
-              to={panelTarget}
+              to={panelDestination.to}
               className="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary text-primary text-sm hover:bg-primary/10 transition-all"
             >
-              {isSeller && !isAdmin && !isSupplier ? <Store className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
-              {panelLabel}
+              {isAdmin ? <Shield className="w-4 h-4" /> : <LayoutDashboard className="w-4 h-4" />}
+              {panelDestination.label}
             </Link>
           )}
           <button

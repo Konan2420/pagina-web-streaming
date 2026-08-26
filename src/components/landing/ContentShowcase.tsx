@@ -1,17 +1,12 @@
-import nf1 from "@/assets/e2026-nf-1.jpg";
-import nf2 from "@/assets/e2026-nf-2.jpg";
-import hbo1 from "@/assets/e2026-hbo-1.jpg";
-import hbo2 from "@/assets/e2026-hbo-2.jpg";
-import dis1 from "@/assets/e2026-dis-1.jpg";
-import dis2 from "@/assets/e2026-dis-2.jpg";
-import ap1 from "@/assets/e2026-appl-1.jpg";
-import ap2 from "@/assets/e2026-appl-2.jpg";
-import liveDeportes from "@/assets/e2026-live-deportes.jpg";
-import liveNoticias from "@/assets/e2026-live-noticias.jpg";
-import liveInfantil from "@/assets/e2026-live-infantil.jpg";
-import liveDocs from "@/assets/e2026-live-docs.jpg";
 import { CardImageSlideshow } from "@/components/landing/CardImageSlideshow";
 import { useInView } from "@/hooks/useInView";
+
+// These public assets are versioned with the landing. Avoid source imports here:
+// a missing local asset would crash the complete root route during SSR.
+const LANDING_MEDIA = [
+  "/landing/auth-platforms-collage.png",
+  "/landing/cmd-red-background-desktop.jpg",
+] as const;
 
 type RowItem = {
   images: string[];
@@ -33,21 +28,21 @@ const ROWS: Row[] = [
     title: "Películas",
     kicker: "Estrenos 2026 por plataforma",
     items: [
-      { images: [nf1, nf2], title: "Órbita Cero", meta: "Sci-fi · 4K · 2026", platform: "Netflix" },
+      { images: [...LANDING_MEDIA], title: "Órbita Cero", meta: "Sci-fi · 4K · 2026", platform: "Netflix" },
       {
-        images: [hbo1, hbo2],
+        images: [...LANDING_MEDIA].reverse(),
         title: "Ciudad de Lluvia",
         meta: "Thriller · HDR · 2026",
         platform: "HBO Max",
       },
       {
-        images: [dis1, dis2],
+        images: [...LANDING_MEDIA],
         title: "El Valle Dorado",
         meta: "Aventura · 4K · 2026",
         platform: "Disney+",
       },
       {
-        images: [ap1, ap2],
+        images: [...LANDING_MEDIA].reverse(),
         title: "Código Silencio",
         meta: "Drama · 4K · 2026",
         platform: "Apple TV+",
@@ -60,25 +55,25 @@ const ROWS: Row[] = [
     kicker: "Temporadas nuevas 2026",
     items: [
       {
-        images: [nf2, nf1],
+        images: [...LANDING_MEDIA].reverse(),
         title: "Invierno Final",
         meta: "T1 · 2026 · Netflix Original",
         platform: "Netflix",
       },
       {
-        images: [hbo2, hbo1],
+        images: [...LANDING_MEDIA],
         title: "La Mansión Chandler",
         meta: "T2 · 2026 · HDR",
         platform: "HBO Max",
       },
       {
-        images: [dis2, dis1],
+        images: [...LANDING_MEDIA].reverse(),
         title: "Guardianes del Norte",
         meta: "T1 · 2026 · 4K",
         platform: "Disney+",
       },
       {
-        images: [ap2, ap1],
+        images: [...LANDING_MEDIA],
         title: "Estación Meridiano",
         meta: "T3 · 2026 · 4K",
         platform: "Apple TV+",
@@ -91,14 +86,14 @@ const ROWS: Row[] = [
     kicker: "Deportes, noticias e infantil",
     items: [
       {
-        images: [liveDeportes],
+        images: [...LANDING_MEDIA],
         title: "Fútbol en directo",
         meta: "+120 canales",
         platform: "Deportes",
       },
-      { images: [liveNoticias], title: "Noticias 24h", meta: "+40 canales", platform: "Noticias" },
-      { images: [liveInfantil], title: "Infantil", meta: "+60 canales", platform: "Kids" },
-      { images: [liveDocs], title: "Documentales", meta: "+50 canales", platform: "Docs" },
+      { images: [...LANDING_MEDIA].reverse(), title: "Noticias 24h", meta: "+40 canales", platform: "Noticias" },
+      { images: [...LANDING_MEDIA], title: "Infantil", meta: "+60 canales", platform: "Kids" },
+      { images: [...LANDING_MEDIA].reverse(), title: "Documentales", meta: "+50 canales", platform: "Docs" },
     ],
   },
 ];

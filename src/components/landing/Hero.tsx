@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Play, ShieldCheck, Store, UserPlus, Zap } from "lucide-react";
-import landingBg from "@/assets/hero.jpg";
 import { SocialProof } from "./SocialProof";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { heroCopy } from "./data";
@@ -20,16 +19,19 @@ export function Hero({ onOpenAuth }: { onOpenAuth?: (mode?: "login" | "signup") 
       id="inicio"
       className="relative flex min-h-[82svh] items-center overflow-hidden sm:min-h-[92svh] sm:items-end"
     >
-      <img
-        src={landingBg}
-        alt="Escena cinematográfica de una película en streaming"
-        className="absolute inset-0 h-full w-full object-cover object-center pointer-events-none"
-        width={1920}
-        height={1080}
-        decoding="async"
-        loading="eager"
-        fetchPriority="high"
-      />
+      <picture className="pointer-events-none absolute inset-0">
+        <source media="(max-width: 639px)" srcSet="/landing/cmd-red-background-mobile.jpg" />
+        <img
+          src="/landing/cmd-red-background-desktop.jpg"
+          alt="Escena cinematográfica de una película en streaming"
+          className="h-full w-full object-cover object-center"
+          width={1672}
+          height={941}
+          decoding="async"
+          loading="eager"
+          fetchPriority="high"
+        />
+      </picture>
       <div className="absolute inset-0 bg-[linear-gradient(to_top,var(--background)_6%,rgba(9,9,14,0.7)_45%,rgba(9,9,14,0.4)_100%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(9,9,14,0.8)_0%,rgba(9,9,14,0.3)_55%,transparent_100%)] pointer-events-none" />
 

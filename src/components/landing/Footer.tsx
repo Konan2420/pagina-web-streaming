@@ -12,7 +12,7 @@ export function Footer() {
         <div>
           <div className="flex items-center gap-2.5">
             <img
-              src="/favicon.png"
+              src="/cmd-logo.png"
               alt="CMD Streaming"
               className="h-10 w-10 rounded-xl object-contain opacity-90 transition-opacity hover:opacity-100"
             />
