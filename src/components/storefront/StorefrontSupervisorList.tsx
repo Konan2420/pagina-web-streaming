@@ -86,7 +86,7 @@ export function StorefrontSupervisorList({
                 <td className="px-4 py-3"><span className="inline-flex items-center gap-1.5 text-white/75"><span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: template.accent }} />{template.name}</span></td>
                 <td className="px-4 py-3"><span className={store.is_public ? "rounded-full bg-emerald-500/10 px-2.5 py-1 text-[11px] font-bold text-emerald-300" : "rounded-full bg-white/5 px-2.5 py-1 text-[11px] font-bold text-white/50"}>{store.is_public ? "Activa" : "Inactiva"}</span></td>
                 <td className="px-4 py-3 text-xs text-white/55">{formatDate(store.last_published_at)}</td><td className="px-4 py-3 font-semibold text-white">{store.product_count}</td><td className="px-4 py-3 font-semibold text-white">{store.total_sales}</td>
-                <td className="px-4 py-3 text-right"><button type="button" onClick={() => onOpen(store.owner_id)} className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-bold text-white/80 transition hover:border-primary/60 hover:text-white"><Eye className="h-3.5 w-3.5" /> Gestionar</button></td>
+                <td className="px-4 py-3 text-right"><button type="button" onClick={() => onOpen(store.owner_id)} className="inline-flex h-11 items-center gap-1.5 rounded-md border border-border px-2.5 text-xs font-bold text-white/80 transition hover:border-primary/60 hover:text-white sm:h-8"><Eye className="h-3.5 w-3.5" /> Gestionar</button></td>
               </tr>;
             })}
           </tbody>

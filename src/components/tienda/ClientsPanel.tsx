@@ -436,7 +436,7 @@ export function ClientsPanel({
         <button
           type="button"
           onClick={onGoShop}
-          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-border bg-background px-3.5 text-xs font-bold text-white/80 transition hover:border-primary/55 hover:text-white sm:self-auto"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-border bg-background px-3.5 text-xs font-bold text-white/80 transition hover:border-primary/55 hover:text-white sm:h-10 sm:self-auto"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Volver al catálogo
@@ -541,7 +541,7 @@ export function ClientsPanel({
                       <span className="grid h-11 w-11 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary"><Users className="h-5 w-5" aria-hidden="true" /></span>
                       <p className="mt-3 font-semibold text-white">{clients.length === 0 ? "Aún no registras clientes" : "No hay resultados para estos filtros"}</p>
                       <p className="mt-1 text-xs leading-relaxed text-white/45">{clients.length === 0 ? "Crea tu primer cliente para agilizar la asignación de pedidos y conservar su historial." : "Prueba cambiando la búsqueda, el estado o la fecha de registro."}</p>
-                      {clients.length === 0 && <button type="button" onClick={openCreate} className="mt-4 inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:bg-primary/90"><Plus className="h-3.5 w-3.5" /> Registrar cliente</button>}
+                      {clients.length === 0 && <button type="button" onClick={openCreate} className="mt-4 inline-flex h-11 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:bg-primary/90 sm:h-9"><Plus className="h-3.5 w-3.5" /> Registrar cliente</button>}
                     </div>
                   </td>
                 </tr>
@@ -557,7 +557,7 @@ export function ClientsPanel({
                   <td className="px-4 py-3.5"><p className="font-semibold text-white">{client.total_purchases} {client.total_purchases === 1 ? "pedido" : "pedidos"}</p><p className="mt-0.5 text-xs text-white/50">{formatCurrency(client.total_spent_pen, hideAmounts)}</p></td>
                   <td className="px-4 py-3.5 text-white/65">{formatDate(client.last_purchase)}</td>
                   <td className="px-4 py-3.5"><div className="flex flex-wrap gap-1.5">{client.tags.length ? client.tags.map((tag) => <span key={tag.id} style={{ borderColor: `${tag.color}80`, color: tag.color }} className="rounded-full border px-2 py-0.5 text-[10px] font-bold">{tag.name}</span>) : <span className="text-white/35">—</span>}</div></td>
-                  <td className="px-4 py-3.5"><div className="flex justify-end gap-1.5"><button type="button" onClick={() => openEdit(client)} className="rounded-md border border-border p-2 text-white/60 transition hover:border-primary/60 hover:text-white" aria-label={`Editar ${client.nombre}`}><Pencil className="h-3.5 w-3.5" /></button><button type="button" onClick={() => void toggleBlocked(client)} className="rounded-md border border-border p-2 text-white/60 transition hover:border-primary/60 hover:text-white" aria-label={client.is_blocked ? `Desbloquear ${client.nombre}` : `Bloquear ${client.nombre}`}>{client.is_blocked ? <ShieldCheck className="h-3.5 w-3.5" /> : <ShieldBan className="h-3.5 w-3.5" />}</button><button type="button" onClick={() => void deleteClient(client)} className="rounded-md border border-border p-2 text-white/60 transition hover:border-red-400/60 hover:text-red-300" aria-label={`Eliminar ${client.nombre}`}><Trash2 className="h-3.5 w-3.5" /></button></div></td>
+                  <td className="px-4 py-3.5"><div className="flex justify-end gap-1.5"><button type="button" onClick={() => openEdit(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/60 transition hover:border-primary/60 hover:text-white sm:h-9 sm:w-9" aria-label={`Editar ${client.nombre}`}><Pencil className="h-3.5 w-3.5" /></button><button type="button" onClick={() => void toggleBlocked(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/60 transition hover:border-primary/60 hover:text-white sm:h-9 sm:w-9" aria-label={client.is_blocked ? `Desbloquear ${client.nombre}` : `Bloquear ${client.nombre}`}>{client.is_blocked ? <ShieldCheck className="h-3.5 w-3.5" /> : <ShieldBan className="h-3.5 w-3.5" />}</button><button type="button" onClick={() => void deleteClient(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/60 transition hover:border-red-400/60 hover:text-red-300 sm:h-9 sm:w-9" aria-label={`Eliminar ${client.nombre}`}><Trash2 className="h-3.5 w-3.5" /></button></div></td>
                 </tr>;
               })}
             </tbody>
@@ -573,7 +573,7 @@ export function ClientsPanel({
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setPage((value) => Math.max(1, value - 1))}
-                className="grid h-8 w-8 place-items-center rounded-md border border-border text-white/70 transition hover:border-primary/55 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/70 transition hover:border-primary/55 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:h-8 sm:w-8"
                 aria-label="Página anterior"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
@@ -583,7 +583,7 @@ export function ClientsPanel({
                 type="button"
                 disabled={currentPage === totalPages}
                 onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
-                className="grid h-8 w-8 place-items-center rounded-md border border-border text-white/70 transition hover:border-primary/55 hover:text-white disabled:cursor-not-allowed disabled:opacity-35"
+                className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/70 transition hover:border-primary/55 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:h-8 sm:w-8"
                 aria-label="Página siguiente"
               >
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -610,8 +610,8 @@ export function ClientsPanel({
       <Dialog open={tagsDialogOpen} onOpenChange={setTagsDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Etiquetas</DialogTitle><DialogDescription>Categoriza tus clientes, por ejemplo VIP, Mayorista o Nuevo.</DialogDescription></DialogHeader>
-          <div className="flex gap-2"><input value={newTagName} onChange={(event) => setNewTagName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void createTag(); } }} placeholder="Nueva etiqueta" className="crm-input" /><button type="button" onClick={() => void createTag()} className="rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground">Crear</button></div>
-          <div className="max-h-64 space-y-2 overflow-y-auto py-2">{tags.length ? tags.map((tag) => <div key={tag.id} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2"><span style={{ color: tag.color }} className="text-sm font-bold">{tag.name}</span><span className="flex gap-1"><button type="button" onClick={() => void renameTag(tag)} className="rounded p-1 text-white/45 hover:text-white" aria-label={`Editar etiqueta ${tag.name}`}><Pencil className="h-4 w-4" /></button><button type="button" onClick={() => void deleteTag(tag.id)} className="rounded p-1 text-white/45 hover:text-red-300" aria-label={`Eliminar etiqueta ${tag.name}`}><Trash2 className="h-4 w-4" /></button></span></div>) : <p className="py-5 text-center text-sm text-white/45">Aún no hay etiquetas.</p>}</div>
+          <div className="flex gap-2"><input value={newTagName} onChange={(event) => setNewTagName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void createTag(); } }} placeholder="Nueva etiqueta" className="crm-input" /><button type="button" onClick={() => void createTag()} className="h-11 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground">Crear</button></div>
+          <div className="max-h-64 space-y-2 overflow-y-auto py-2">{tags.length ? tags.map((tag) => <div key={tag.id} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2"><span style={{ color: tag.color }} className="text-sm font-bold">{tag.name}</span><span className="flex gap-1"><button type="button" onClick={() => void renameTag(tag)} className="grid h-11 w-11 place-items-center rounded text-white/45 hover:text-white sm:h-8 sm:w-8" aria-label={`Editar etiqueta ${tag.name}`}><Pencil className="h-4 w-4" /></button><button type="button" onClick={() => void deleteTag(tag.id)} className="grid h-11 w-11 place-items-center rounded text-white/45 hover:text-red-300 sm:h-8 sm:w-8" aria-label={`Eliminar etiqueta ${tag.name}`}><Trash2 className="h-4 w-4" /></button></span></div>) : <p className="py-5 text-center text-sm text-white/45">Aún no hay etiquetas.</p>}</div>
         </DialogContent>
       </Dialog>
     </section>

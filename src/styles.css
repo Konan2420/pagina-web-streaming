@@ -438,8 +438,10 @@
 /* Accesos de plataformas: celdas fijas para que no crezcan en pantallas anchas. */
 .catalog-platform-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 3rem);
+  /* En móvil las columnas comparten el ancho disponible: evita el gran hueco al final de cada fila. */
+  grid-template-columns: repeat(auto-fit, minmax(3rem, 1fr));
   gap: 0.375rem;
+  justify-items: center;
 }
 
 /* Las filas se estiran de forma pareja y el bloque de acciones queda alineado. */

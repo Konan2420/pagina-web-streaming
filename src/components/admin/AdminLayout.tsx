@@ -16,6 +16,7 @@ import {
   Tv,
   Users,
   WalletCards,
+  X,
 } from "lucide-react";
 import { AppTopbar } from "@/components/layout/AppTopbar";
 import { cn } from "@/lib/utils";
@@ -48,33 +49,63 @@ const menuItems = [
   { label: "Analítica", href: "/admin/analytics", icon: BarChart3, role: "any", accent: "text-teal-300" },
 ] as const;
 
-function AdminSidebar({ collapsed }: { collapsed: boolean }) {
+function AdminSidebar({
+  collapsed,
+  mobileOpen,
+  onClose,
+}: {
+  collapsed: boolean;
+  mobileOpen: boolean;
+  onClose: () => void;
+}) {
   const location = useLocation();
   const { isAdmin } = useIsAdmin();
   const items = menuItems.filter((item) => item.role === "any" || isAdmin);
 
   return (
-    <aside className={cn("shrink-0 border-b border-white/5 bg-ink/50 transition-[width] duration-300 md:sticky md:top-0 md:flex md:h-screen md:flex-col md:border-b-0 md:border-r", collapsed ? "md:w-20" : "md:w-64")}>
-      <div className={cn("p-4 md:p-6", collapsed && "md:px-3")}>
-        <Link to="/" className="mb-8 flex items-center gap-2 group" title="Volver a la tienda">
-          <ArrowLeft className="h-4 w-4 shrink-0 text-white/40 transition-colors group-hover:text-primary" />
-          <span className={cn("font-display text-xl tracking-tighter text-white", collapsed && "md:sr-only")}>CMD <span className="text-primary">ADMIN</span></span>
-        </Link>
-        <nav className="grid grid-cols-2 gap-2 md:block md:space-y-1" aria-label="Panel administrativo">
-          {items.map((item) => {
-            const active = location.pathname === item.href;
-            const Icon = item.icon;
-            return <Link key={item.href} to={item.href} title={item.label} className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200", active ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-white/60 hover:bg-white/5 hover:text-white", collapsed && "md:justify-center md:px-2")}><Icon className={cn("h-5 w-5 shrink-0", active ? "text-white" : item.accent)} /><span className={collapsed ? "md:sr-only" : "truncate"}>{item.label}</span></Link>;
-          })}
-        </nav>
-      </div>
-      <div className={cn("mt-auto border-t border-white/5 p-4 md:p-6", collapsed && "md:px-3")}>
-        <div className={cn("flex items-center gap-3", collapsed && "md:justify-center")}>
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-primary/30 bg-primary/20"><Users className="h-5 w-5 text-primary" /></div>
-          <div className={collapsed ? "md:sr-only" : "overflow-hidden"}><p className="truncate text-sm font-semibold text-white">Admin Panel</p><p className="truncate text-xs text-white/40">CMD Streaming</p></div>
+    <>
+      <button
+        type="button"
+        aria-label="Cerrar menú administrativo"
+        onClick={onClose}
+        className={cn(
+          "fixed inset-0 z-40 bg-black/70 transition-opacity md:hidden",
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+      />
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[min(84vw,20rem)] flex-col overflow-y-auto border-r border-white/5 bg-ink/95 shadow-2xl transition-[transform,width] duration-300 md:sticky md:top-0 md:h-screen md:w-64 md:translate-x-0 md:bg-ink/50 md:shadow-none",
+          mobileOpen ? "translate-x-0" : "-translate-x-full",
+          collapsed && "md:w-20",
+        )}
+      >
+        <div className={cn("p-4 md:p-6", collapsed && "md:px-3")}>
+          <div className="mb-5 flex items-center justify-between gap-3 md:mb-8">
+            <Link to="/" onClick={onClose} className="group flex min-w-0 items-center gap-2" title="Volver a la tienda">
+              <ArrowLeft className="h-4 w-4 shrink-0 text-white/40 transition-colors group-hover:text-primary" />
+              <span className={cn("truncate font-display text-xl tracking-tighter text-white", collapsed && "md:sr-only")}>CMD <span className="text-primary">ADMIN</span></span>
+            </Link>
+            <button type="button" onClick={onClose} className="grid h-11 w-11 shrink-0 place-items-center rounded-lg text-white/65 transition hover:bg-white/5 hover:text-white md:hidden" aria-label="Cerrar menú administrativo">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <nav className="space-y-1" aria-label="Panel administrativo">
+            {items.map((item) => {
+              const active = location.pathname === item.href;
+              const Icon = item.icon;
+              return <Link key={item.href} to={item.href} onClick={onClose} title={item.label} className={cn("flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 md:min-h-0", active ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-white/60 hover:bg-white/5 hover:text-white", collapsed && "md:justify-center md:px-2")}><Icon className={cn("h-5 w-5 shrink-0", active ? "text-white" : item.accent)} /><span className={collapsed ? "md:sr-only" : "truncate"}>{item.label}</span></Link>;
+            })}
+          </nav>
         </div>
-      </div>
-    </aside>
+        <div className={cn("mt-auto border-t border-white/5 p-4 md:p-6", collapsed && "md:px-3")}>
+          <div className={cn("flex items-center gap-3", collapsed && "md:justify-center")}>
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-primary/30 bg-primary/20"><Users className="h-5 w-5 text-primary" /></div>
+            <div className={collapsed ? "md:sr-only" : "overflow-hidden"}><p className="truncate text-sm font-semibold text-white">Admin Panel</p><p className="truncate text-xs text-white/40">CMD Streaming</p></div>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }
 
@@ -85,12 +116,30 @@ function AdminPageFrame({ children, title, subtitle }: AdminLayoutProps) {
 /** Layout de ruta: se monta una sola vez para todas las rutas /admin/* y contiene el Outlet. */
 export function AdminRouteShell() {
   const [collapsed, setCollapsed] = React.useState(false);
-  return <AdminRouteShellContext.Provider value><div className="min-h-screen bg-background text-foreground md:flex"><AdminSidebar collapsed={collapsed} /><div className="flex min-w-0 flex-1 flex-col"><AppTopbar onToggleSidebar={() => setCollapsed((value) => !value)} /><Outlet /></div></div></AdminRouteShellContext.Provider>;
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const toggleNavigation = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+      setMobileOpen((value) => !value);
+      return;
+    }
+    setCollapsed((value) => !value);
+  };
+
+  return <AdminRouteShellContext.Provider value><div className="min-h-screen bg-background text-foreground md:flex"><AdminSidebar collapsed={collapsed} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} /><div className="flex min-w-0 flex-1 flex-col"><AppTopbar onToggleSidebar={toggleNavigation} /><Outlet /></div></div></AdminRouteShellContext.Provider>;
 }
 
 /** Marco de contenido retrocompatible: dentro de AdminRouteShell ya no duplica chrome. */
 export function AdminLayout(props: AdminLayoutProps) {
   const insideRouteShell = React.useContext(AdminRouteShellContext);
+  const [collapsed, setCollapsed] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const toggleNavigation = () => {
+    if (typeof window !== "undefined" && window.matchMedia("(max-width: 767px)").matches) {
+      setMobileOpen((value) => !value);
+      return;
+    }
+    setCollapsed((value) => !value);
+  };
   if (insideRouteShell) return <AdminPageFrame {...props} />;
-  return <div className="min-h-screen bg-background text-foreground md:flex"><AdminSidebar collapsed={false} /><div className="flex min-w-0 flex-1 flex-col"><AppTopbar /><AdminPageFrame {...props} /></div></div>;
+  return <div className="min-h-screen bg-background text-foreground md:flex"><AdminSidebar collapsed={collapsed} mobileOpen={mobileOpen} onClose={() => setMobileOpen(false)} /><div className="flex min-w-0 flex-1 flex-col"><AppTopbar onToggleSidebar={toggleNavigation} /><AdminPageFrame {...props} /></div></div>;
 }

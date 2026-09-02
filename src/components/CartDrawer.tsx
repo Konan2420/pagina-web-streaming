@@ -203,7 +203,7 @@ export function CartDrawer({
                           type="button"
                           onClick={() => cartStore.decrement(it.id)}
                           aria-label={`Disminuir cantidad de ${it.name}`}
-                          className="w-9 h-9 rounded-full grid place-items-center text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-2/70 transition"
+                          className="grid h-11 w-11 place-items-center rounded-full text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-2/70 sm:h-9 sm:w-9"
                         >
                           <Minus aria-hidden="true" className="w-3.5 h-3.5" />
                         </button>
@@ -217,7 +217,7 @@ export function CartDrawer({
                           type="button"
                           onClick={() => cartStore.increment(it.id)}
                           aria-label={`Aumentar cantidad de ${it.name}`}
-                          className="w-9 h-9 rounded-full grid place-items-center text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-2/70 transition"
+                          className="grid h-11 w-11 place-items-center rounded-full text-white transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-2/70 sm:h-9 sm:w-9"
                         >
                           <Plus aria-hidden="true" className="w-3.5 h-3.5" />
                         </button>

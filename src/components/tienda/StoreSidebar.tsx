@@ -146,7 +146,7 @@ export function StoreSidebar({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-2 top-1 grid h-8 w-8 place-items-center rounded-lg text-white/55 hover:bg-white/5 hover:text-white lg:hidden"
+            className="absolute right-2 top-1 grid h-11 w-11 place-items-center rounded-lg text-white/55 hover:bg-white/5 hover:text-white lg:hidden"
             aria-label="Cerrar menú lateral"
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -173,7 +173,7 @@ export function StoreSidebar({
           <button
             type="button"
             onClick={onOpenWallet}
-            className="mt-3 flex h-8 w-full items-center justify-center gap-1.5 rounded-lg bg-red-accent text-[10px] font-black text-white transition hover:brightness-110"
+            className="mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-red-accent text-[10px] font-black text-white transition hover:brightness-110 sm:h-8"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
             Recargar saldo
@@ -210,7 +210,7 @@ export function StoreSidebar({
                       href={catalogOnly ? "/catalogo" : "/tienda"}
                       onClick={onClose}
                       className={cn(
-                        "flex min-h-9 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors",
+                        "flex min-h-11 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
                         active
                           ? "bg-primary/10 text-white"
                           : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
@@ -227,7 +227,7 @@ export function StoreSidebar({
                     type="button"
                     onClick={() => selectCategory(category.id)}
                     className={cn(
-                      "flex min-h-9 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors",
+                      "flex min-h-11 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
                       active
                         ? "bg-primary/10 text-white"
                         : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
@@ -394,7 +394,7 @@ export function StoreSidebar({
               onClick={onSignOut}
               title={collapsed ? "Cerrar sesión" : undefined}
               className={cn(
-                "mb-2 flex min-h-10 w-full items-center gap-2.5 rounded-lg border border-red-accent/30 px-3 text-left text-xs font-bold text-red-200 transition hover:border-red-accent hover:bg-red-accent/10 hover:text-white",
+                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-red-accent/30 px-3 text-left text-xs font-bold text-red-200 transition hover:border-red-accent hover:bg-red-accent/10 hover:text-white sm:min-h-10",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
@@ -419,7 +419,7 @@ export function StoreSidebar({
                 else selectPanel("perfil");
               }}
               className={cn(
-                "flex w-full items-center gap-2 rounded-lg border border-transparent p-1.5 text-left transition hover:border-border hover:bg-white/[0.05]",
+                "flex min-h-11 w-full items-center gap-2 rounded-lg border border-transparent p-1.5 text-left transition hover:border-border hover:bg-white/[0.05]",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
@@ -499,7 +499,7 @@ function SidebarSubItem({
   onClick?: () => void;
 }) {
   const className = cn(
-    "flex min-h-9 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13px] font-semibold transition-colors",
+    "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
     disabled
       ? "cursor-not-allowed text-white/30"
       : active
@@ -556,7 +556,7 @@ function SidebarButton({
       title={collapsed ? label : undefined}
       aria-expanded={expanded}
       className={cn(
-        "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out",
+        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out sm:min-h-10",
         collapsed && "lg:justify-center lg:gap-0 lg:px-0",
         active
           ? "bg-primary/10 text-white"

@@ -307,7 +307,7 @@ export function StorefrontManagement() {
           {data.mode === "supervision" ? "Consulta y administra las tiendas de proveedores y distribuidores de la plataforma." : "Personaliza los productos de la tienda seleccionada, edita nombres, descripciones y gestiona su stock."}
         </p>
         </div>
-        {data.isAdmin && data.mode === "management" && <button type="button" onClick={() => { setSelectedOwnerId(undefined); setSettingsOpen(false); }} className="h-9 rounded-lg border border-border bg-background px-3 text-xs font-bold text-white/80 transition hover:border-primary/55 hover:text-white">Volver a supervisión</button>}
+        {data.isAdmin && data.mode === "management" && <button type="button" onClick={() => { setSelectedOwnerId(undefined); setSettingsOpen(false); }} className="h-11 rounded-lg border border-border bg-background px-3 text-xs font-bold text-white/80 transition hover:border-primary/55 hover:text-white sm:h-9">Volver a supervisión</button>}
       </header>
 
       {data.isAdmin && (salesNotificationsQuery.data?.length ?? 0) > 0 && (
@@ -335,7 +335,7 @@ export function StorefrontManagement() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar productos..."
-            className="h-9 w-full rounded-lg border border-border bg-card pl-10 pr-3 text-xs text-white outline-none transition placeholder:text-white/35 focus:border-red-accent/70"
+            className="h-11 w-full rounded-lg border border-border bg-card pl-10 pr-3 text-xs text-white outline-none transition placeholder:text-white/35 focus:border-red-accent/70 sm:h-9"
           />
         </label>
         <FilterSelect
@@ -360,35 +360,35 @@ export function StorefrontManagement() {
                 "noopener,noreferrer",
               )
             }
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30"
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
           >
             <Eye className="h-3.5 w-3.5" /> Ver mi tienda
           </button>
           <button
             type="button"
             onClick={() => void copyList()}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30"
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
           >
             <Copy className="h-3.5 w-3.5" /> Copiar Lista
           </button>
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30"
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
           >
             <Settings2 className="h-3.5 w-3.5" /> Configurar Tienda
           </button>
           <button
             type="button"
             onClick={() => setComboOpen(true)}
-            className="inline-flex h-9 items-center gap-2 rounded-lg border border-red-accent/45 bg-red-accent/10 px-3 text-xs font-bold text-red-100 transition hover:bg-red-accent/20"
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-red-accent/45 bg-red-accent/10 px-3 text-xs font-bold text-red-100 transition hover:bg-red-accent/20 sm:h-9"
           >
             <PackagePlus className="h-3.5 w-3.5" /> Crear Combo
           </button>
           <button
             type="button"
             onClick={() => void refresh()}
-            className="inline-flex h-9 items-center gap-2 rounded-lg bg-red-accent px-3 text-xs font-bold text-white transition hover:brightness-110"
+            className="inline-flex h-11 items-center gap-2 rounded-lg bg-red-accent px-3 text-xs font-bold text-white transition hover:brightness-110 sm:h-9"
           >
             {isSaving ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -516,7 +516,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-9 min-w-40 appearance-none rounded-lg border border-border bg-card px-3 pr-8 text-xs font-semibold text-white outline-none focus:border-red-accent/70"
+        className="h-11 min-w-40 appearance-none rounded-lg border border-border bg-card px-3 pr-8 text-xs font-semibold text-white outline-none focus:border-red-accent/70 sm:h-9"
       >
         <option value="all">{label}</option>
         {items.map((item) => (

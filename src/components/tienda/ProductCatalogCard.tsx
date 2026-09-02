@@ -215,7 +215,7 @@ export function ProductCatalogCard({
                 type="button"
                 onClick={handleAdd}
                 onMouseEnter={onHover}
-                className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 font-sans text-[9px] font-semibold text-white shadow-sm shadow-emerald-500/25 transition hover:brightness-110 active:scale-[0.97]"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 font-sans text-[9px] font-semibold text-white shadow-sm shadow-emerald-500/25 transition hover:brightness-110 active:scale-[0.97] sm:min-h-0"
                 aria-label={
                   justAdded
                     ? `${product.name} agregado al carrito`
