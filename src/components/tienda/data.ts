@@ -1,4 +1,5 @@
 import type { ProductDetail } from "@/components/ProductModal";
+import { platformIcons } from "@/lib/platformIcons";
 import { supabase } from "@/integrations/supabase/client";
 export type Category = {
   id: string;
@@ -10,7 +11,7 @@ export type Category = {
 export const WA_NUMBER = "51970097715";
 
 export const categories: Category[] = [
-  { id: "todo", label: "Todos", accent: "#f8fafc" },
+  { id: "todo", label: "Plataformas", accent: "#f8fafc" },
   { id: "combos", label: "Packs Premium", accent: "#fbbf24" },
   { id: "streaming", label: "Streaming", accent: "#f43f5e" },
   { id: "ia", label: "Inteligencia Artificial", accent: "#a78bfa" },
@@ -21,7 +22,6 @@ export const categories: Category[] = [
   { id: "videojuegos", label: "Juegos", accent: "#8b5cf6" },
   { id: "giftcards", label: "Giftcards", accent: "#ec4899" },
   { id: "invitaciones", label: "Invitaciones", accent: "#60a5fa" },
-  { id: "redes", label: "Redes Sociales", accent: "#22c55e" },
   { id: "music", label: "Música", accent: "#f472b6" },
   { id: "adult", label: "Adultos", accent: "#ef4444" },
   { id: "iptv", label: "IPTV", accent: "#06b6d4" },
@@ -31,144 +31,28 @@ export type PlatformShortcut = {
   label: string;
   categoryId: Category["id"];
   searchTerm: string;
-  logoUrl: string;
   fallback: string;
+  /** Identificador de un ícono incluido en el catálogo visual centralizado. */
+  iconId?: string | null;
+  isAiHub?: boolean;
+  /** Identificador opcional de una plataforma configurada desde CMD ADMIN. */
+  serviceId?: string;
+  /** URL pública del ícono configurado desde CMD ADMIN. */
+  iconUrl?: string | null;
 };
-
-const platformIcon = (name: string) => `/platforms/${name}.png`;
 
 /**
  * Accesos rápidos visibles en la navegación de plataformas. Cada uno apunta a
  * un producto real del catálogo mediante los filtros existentes de categoría y búsqueda.
  */
-export const platformShortcuts: PlatformShortcut[] = [
-  {
-    label: "Netflix",
-    categoryId: "streaming",
-    searchTerm: "Netflix",
-    logoUrl: platformIcon("netflix"),
-    fallback: "N",
-  },
-  {
-    label: "Prime Video",
-    categoryId: "streaming",
-    searchTerm: "Prime Video",
-    logoUrl: platformIcon("prime-video"),
-    fallback: "P",
-  },
-  {
-    label: "Disney+",
-    categoryId: "streaming",
-    searchTerm: "Disney+",
-    logoUrl: platformIcon("disney-plus"),
-    fallback: "D",
-  },
-  {
-    label: "HBO Max",
-    categoryId: "streaming",
-    searchTerm: "HBO Max",
-    logoUrl: platformIcon("hbo-max"),
-    fallback: "H",
-  },
-  {
-    label: "Paramount+",
-    categoryId: "streaming",
-    searchTerm: "Paramount",
-    logoUrl: platformIcon("paramount-plus"),
-    fallback: "P+",
-  },
-  {
-    label: "Crunchyroll",
-    categoryId: "streaming",
-    searchTerm: "Crunchyroll",
-    logoUrl: platformIcon("crunchyroll"),
-    fallback: "C",
-  },
-  {
-    label: "YouTube Premium",
-    categoryId: "streaming",
-    searchTerm: "YouTube Premium",
-    logoUrl: platformIcon("youtube-premium"),
-    fallback: "Y",
-  },
-  {
-    label: "Spotify",
-    categoryId: "music",
-    searchTerm: "Spotify",
-    logoUrl: platformIcon("spotify"),
-    fallback: "S",
-  },
-  {
-    label: "Apple Music",
-    categoryId: "music",
-    searchTerm: "Apple Music",
-    logoUrl: platformIcon("apple-music"),
-    fallback: "A",
-  },
-  {
-    label: "Deezer",
-    categoryId: "music",
-    searchTerm: "Deezer",
-    logoUrl: platformIcon("deezer"),
-    fallback: "D",
-  },
-  {
-    label: "ChatGPT Plus",
-    categoryId: "ia",
-    searchTerm: "ChatGPT Plus",
-    logoUrl: platformIcon("chatgpt-plus"),
-    fallback: "AI",
-  },
-  {
-    label: "Claude Pro",
-    categoryId: "ia",
-    searchTerm: "Claude Pro",
-    logoUrl: platformIcon("claude-pro"),
-    fallback: "C",
-  },
-  {
-    label: "Gemini Advanced",
-    categoryId: "ia",
-    searchTerm: "Gemini",
-    logoUrl: platformIcon("gemini-advanced"),
-    fallback: "G",
-  },
-  {
-    label: "Microsoft Copilot",
-    categoryId: "ia",
-    searchTerm: "Copilot",
-    logoUrl: platformIcon("microsoft-copilot"),
-    fallback: "M",
-  },
-  {
-    label: "Adobe Creative Cloud",
-    categoryId: "apps",
-    searchTerm: "Adobe Creative Cloud",
-    logoUrl: platformIcon("adobe-creative-cloud"),
-    fallback: "A",
-  },
-  {
-    label: "Canva Pro",
-    categoryId: "apps",
-    searchTerm: "Canva Pro",
-    logoUrl: platformIcon("canva-pro"),
-    fallback: "C",
-  },
-  {
-    label: "Dropbox",
-    categoryId: "apps",
-    searchTerm: "Dropbox",
-    logoUrl: platformIcon("dropbox"),
-    fallback: "D",
-  },
-  {
-    label: "ESET NOD32",
-    categoryId: "licencias",
-    searchTerm: "ESET NOD32",
-    logoUrl: platformIcon("eset-nod32"),
-    fallback: "E",
-  },
-];
+export const platformShortcuts: PlatformShortcut[] = platformIcons.map((icon) => ({
+  label: icon.name,
+  categoryId: icon.categoryId as Category["id"],
+  searchTerm: icon.searchTerm,
+  fallback: icon.fallback,
+  iconId: icon.id,
+  isAiHub: icon.isAiHub,
+}));
 
 const baseDesc = `🔒 Producto de acceso digital. No compartir credenciales.
 
@@ -182,7 +66,6 @@ const common = {
   horario_atencion_inicio: "09:00",
   horario_atencion_fin: "22:00",
   whatsapp_contacto: WA_NUMBER,
-  vendedor: "camd",
 } as const;
 
 export const products: ProductDetail[] = [
@@ -694,7 +577,17 @@ export const catalogPriceById: Record<string, number> = Object.fromEntries(
 );
 
 export type Product = ProductDetail;
-export type PanelTab = "tienda" | "compras" | "perfil";
+export type PanelTab =
+  | "tienda"
+  | "mi-tienda"
+  | "compras"
+  | "perfil"
+  | "clientes"
+  | "buzon"
+  | "soporte"
+  | "publicidad"
+  | "cursos"
+  | "meets";
 
 export type Order = {
   id: string;
@@ -724,7 +617,6 @@ const categoryGreeting: Record<string, string> = {
   videojuegos: "quiero comprar",
   giftcards: "quiero comprar la tarjeta de regalo",
   invitaciones: "quiero adquirir invitaciones para",
-  redes: "quiero contratar",
   adult: "quiero contratar",
   iptv: "quiero contratar",
 };

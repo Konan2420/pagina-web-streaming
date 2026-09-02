@@ -1,8 +1,11 @@
 node_modules
 dist
 .output
+.tanstack
+.vercel
 .vinxi
 pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+public/robots.txt

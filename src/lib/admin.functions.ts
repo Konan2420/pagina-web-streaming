@@ -15,20 +15,20 @@ export const getAdminDashboardStats = createServerFn({ method: "GET" })
       .select("*", { count: "exact", head: true });
 
     const { count: totalStock } = await supabaseAdmin
-      .from("cuentas_stock")
+      .from("account_inventory")
       .select("*", { count: "exact", head: true });
 
     const { count: availableStock } = await supabaseAdmin
-      .from("cuentas_stock")
+      .from("account_inventory")
       .select("*", { count: "exact", head: true })
-      .eq("estado", "disponible");
+      .in("status", ["available", "disponible"]);
 
     const { count: totalSales } = await supabaseAdmin
-      .from("ventas")
+      .from("orders")
       .select("*", { count: "exact", head: true });
 
     const { data: recentSales, error: recentSalesError } = await supabaseAdmin
-      .from("ventas")
+      .from("orders")
       .select("*")
       .order("created_at", { ascending: false })
       .limit(10);
@@ -72,7 +72,11 @@ export const getServicios = createServerFn({ method: "GET" })
     const { assertAdmin } = await import("@/lib/admin.server");
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin.from("servicios_streaming").select("*").order("nombre");
+    const { data } = await supabaseAdmin
+      .from("servicios_streaming")
+      .select("*")
+      .order("display_order")
+      .order("nombre");
     return data || [];
   });
 
@@ -83,8 +87,8 @@ export const getStock = createServerFn({ method: "GET" })
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin
-      .from("cuentas_stock")
-      .select("*, servicios_streaming(nombre)")
+      .from("account_inventory")
+      .select("*, products(name)")
       .order("created_at", { ascending: false });
     return data || [];
   });
@@ -94,11 +98,11 @@ export const addStock = createServerFn({ method: "POST" })
   .validator((d) =>
     z
       .object({
-        servicio_id: z.string(),
+        product_id: z.string().uuid(),
         email: z.string(),
         password: z.string(),
-        perfil: z.string().optional(),
-        vencimiento: z.string().optional(),
+        access_link: z.string().url().optional(),
+        notes: z.string().optional(),
       })
       .parse(d),
   )
@@ -106,7 +110,9 @@ export const addStock = createServerFn({ method: "POST" })
     const { assertAdmin } = await import("@/lib/admin.server");
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("cuentas_stock").insert([data]);
+    const { error } = await supabaseAdmin
+      .from("account_inventory")
+      .insert([{ ...data, status: "available" }]);
     if (error) throw new Error(error.message);
     return { success: true };
   });
@@ -120,6 +126,9 @@ export const addServicio = createServerFn({ method: "POST" })
         slug: z.string(),
         categoria: z.string(),
         icono: z.string().optional(),
+        icon_url: z.string().url().nullable().optional(),
+        display_order: z.number().int().min(0).default(0),
+        is_visible: z.boolean().default(true),
       })
       .parse(d),
   )
@@ -142,6 +151,9 @@ export const updateServicio = createServerFn({ method: "POST" })
         slug: z.string().min(1),
         categoria: z.string().min(1),
         icono: z.string().optional(),
+        icon_url: z.string().url().nullable().optional(),
+        display_order: z.number().int().min(0).default(0),
+        is_visible: z.boolean().default(true),
       })
       .parse(d),
   )
@@ -174,7 +186,11 @@ export const deleteStock = createServerFn({ method: "POST" })
     const { assertAdmin } = await import("@/lib/admin.server");
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin.from("cuentas_stock").delete().eq("id", data.id);
+    const { error } = await supabaseAdmin
+      .from("account_inventory")
+      .delete()
+      .eq("id", data.id)
+      .in("status", ["available", "disponible"]);
     if (error) throw new Error(error.message);
     return { success: true };
   });
@@ -198,7 +214,7 @@ export const getUsersWithRoles = createServerFn({ method: "GET" })
 
     if (rError) throw new Error(rError.message);
 
-    const rolePriority = ["admin", "proveedor", "vendedor", "editor", "moderator", "user"] as const;
+    const rolePriority = ["admin", "proveedor", "distribuidor", "user"] as const;
     return (profiles as Tables<"profiles">[]).map((p) => {
       const assigned = roles.filter((r) => r.user_id === p.id).map((r) => r.role);
       return {
@@ -215,7 +231,7 @@ export const updateUserRole = createServerFn({ method: "POST" })
     z
       .object({
         user_id: z.string(),
-        role: z.enum(["admin", "user", "proveedor", "vendedor"]),
+        role: z.enum(["admin", "proveedor", "distribuidor", "user"]),
       })
       .parse(d),
   )
@@ -233,11 +249,13 @@ export const updateUserRole = createServerFn({ method: "POST" })
       .upsert({ user_id: data.user_id, role: "user" }, { onConflict: "user_id,role" });
     if (baselineError) throw new Error(baselineError.message);
 
+    // Mantiene el rol base "user" y una única elevación explícita.
+    // Los roles heredados editor/moderador/vendedor no conservan privilegios.
     const { error: deleteError } = await supabaseAdmin
       .from("user_roles")
       .delete()
       .eq("user_id", data.user_id)
-      .in("role", ["admin", "proveedor", "vendedor"]);
+      .neq("role", "user");
     if (deleteError) throw new Error(deleteError.message);
 
     if (data.role !== "user") {
@@ -247,42 +265,46 @@ export const updateUserRole = createServerFn({ method: "POST" })
       if (insertError) throw new Error(insertError.message);
     }
 
-    // Auto-create a supplier profile when an administrator promotes an account.
     if (data.role === "proveedor") {
-      const { data: profile } = await supabaseAdmin
-        .from("profiles")
-        .select("nombre_completo")
-        .eq("id", data.user_id)
-        .single();
-
-      const { error: supplierError } = await supabaseAdmin.from("supplier_profiles").upsert(
-        {
-          user_id: data.user_id,
-          display_name: profile?.nombre_completo || "Nuevo Proveedor",
-          is_verified: true,
-          total_sales: 0,
-          rating: 5.0,
-        },
-        { onConflict: "user_id" },
-      );
-
-      if (supplierError)
-        throw new Error(`No se pudo crear el perfil del proveedor: ${supplierError.message}`);
-    }
-    if (data.role === "vendedor") {
-      const { data: profile } = await supabaseAdmin
+      const { data: profile, error: profileError } = await supabaseAdmin
         .from("profiles")
         .select("nombre_completo, email")
         .eq("id", data.user_id)
-        .single();
-      const displayName = profile?.nombre_completo?.trim() || profile?.email?.split("@")[0] || "Mi tienda";
-      const slug = `tienda-${data.user_id.replaceAll("-", "").slice(0, 10)}`;
-      const { error: sellerError } = await supabaseAdmin.from("seller_profiles").upsert(
-        { user_id: data.user_id, display_name: displayName, slug },
-        { onConflict: "user_id" },
+        .maybeSingle();
+      if (profileError) throw new Error(profileError.message);
+
+      const displayName =
+        profile?.nombre_completo?.trim() || profile?.email?.split("@")[0] || "Proveedor";
+      const { error: supplierError } = await supabaseAdmin.from("supplier_profiles").upsert(
+        {
+          user_id: data.user_id,
+          display_name: displayName,
+        },
+        { onConflict: "user_id", ignoreDuplicates: true },
       );
-      if (sellerError) throw new Error(`No se pudo crear la tienda del vendedor: ${sellerError.message}`);
+      if (supplierError) throw new Error(supplierError.message);
     }
+
+    if (data.role === "distribuidor") {
+      const { data: profile, error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .select("nombre_completo, email")
+        .eq("id", data.user_id)
+        .maybeSingle();
+      if (profileError) throw new Error(profileError.message);
+
+      const displayName =
+        profile?.nombre_completo?.trim() || profile?.email?.split("@")[0] || "Distribuidor";
+      const { error: distributorError } = await supabaseAdmin.from("distributor_profiles").upsert(
+        {
+          user_id: data.user_id,
+          display_name: displayName,
+        },
+        { onConflict: "user_id", ignoreDuplicates: true },
+      );
+      if (distributorError) throw new Error(distributorError.message);
+    }
+
     return { success: true };
   });
 
@@ -311,9 +333,14 @@ export const upsertProduct = createServerFn({ method: "POST" })
         name: z.string().min(1, "El nombre es obligatorio"),
         description: z.string().optional(),
         price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
+        icon_id: z.string().trim().min(1).nullable().optional(),
         image_url: z.string().optional(),
         category: z.string().optional(),
+        service_id: z.string().uuid().nullable().optional(),
         is_active: z.boolean().default(true),
+        is_catalog_available: z.boolean().default(true),
+        is_renewable: z.boolean().default(true),
+        duration_days: z.number().int().positive().default(30),
         descripcion_larga: z.string().optional(),
       })
       .parse(d),
@@ -348,6 +375,61 @@ export const deleteProduct = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.from("products").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };
+  });
+
+/** Approves a pending order and returns only the credentials assigned to that order. */
+export const approvePaymentAndDeliver = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d) => z.object({ orderId: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context.supabase, context.userId);
+
+    const { data: order, error: orderError } = await context.supabase
+      .from("orders")
+      .select("id, producto_id, producto_nombre")
+      .eq("id", data.orderId)
+      .maybeSingle();
+
+    if (orderError) throw new Error(orderError.message);
+    if (!order) throw new Error("No se encontró el pedido.");
+
+    const parsedProductId = z.string().uuid().safeParse(order.producto_id);
+    if (!parsedProductId.success) {
+      throw new Error("Este pedido no está asociado a un producto de inventario válido.");
+    }
+
+    const { data: assigned, error: assignError } = await context.supabase.rpc(
+      "assign_inventory_to_order",
+      {
+        _order_id: order.id,
+        _product_id: parsedProductId.data,
+      },
+    );
+
+    if (assignError) {
+      if (assignError.message.toLowerCase().includes("stock")) {
+        throw new Error("No hay cuentas disponibles para este producto.");
+      }
+      throw new Error(assignError.message);
+    }
+    if (!assigned) throw new Error("No fue posible asignar una cuenta al pedido.");
+
+    const { data: delivery, error: deliveryError } = await context.supabase
+      .from("delivered_accounts")
+      .select("email, password, access_link, notes")
+      .eq("order_id", order.id)
+      .maybeSingle();
+
+    if (deliveryError) throw new Error(deliveryError.message);
+    if (!delivery)
+      throw new Error("La entrega se completó, pero no se pudieron recuperar sus credenciales.");
+
+    return {
+      orderId: order.id,
+      productName: order.producto_nombre,
+      delivery,
+    };
   });
 
 // Manual Orders Management
@@ -436,26 +518,108 @@ export const updateManualOrder = createServerFn({ method: "POST" })
     return { success: true };
   });
 
-/** Actualiza el porcentaje de comisión de un proveedor (solo admin). */
-export const setSupplierCommission = createServerFn({ method: "POST" })
+type UpcomingExpiration = {
+  id: string;
+  source: "order" | "manual_order";
+  customerName: string | null;
+  whatsapp: string | null;
+  productName: string;
+  expirationDate: string;
+};
+
+function limaDateOffset(days: number) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Lima",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const values = Object.fromEntries(
+    parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value]),
+  );
+  const date = new Date(`${values.year}-${values.month}-${values.day}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+/** Upcoming automatic and manual expirations, available only to administrators. */
+export const getUpcomingExpirations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .validator((d) =>
-    z
-      .object({
-        user_id: z.string().uuid(),
-        commission_rate: z.number().min(0).max(100),
-      })
-      .parse(d),
-  )
-  .handler(async ({ data, context }) => {
+  .handler(async ({ context }) => {
     const { assertAdmin } = await import("@/lib/admin.server");
     await assertAdmin(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { error } = await supabaseAdmin
-      .from("supplier_profiles")
-      .update({ commission_rate: data.commission_rate })
-      .eq("user_id", data.user_id);
+    const from = limaDateOffset(0);
+    const to = limaDateOffset(7);
 
-    if (error) throw new Error(error.message);
-    return { success: true };
+    const [{ data: orders, error: ordersError }, { data: manualOrders, error: manualOrdersError }] =
+      await Promise.all([
+        supabaseAdmin
+          .from("orders")
+          .select("id, user_id, producto_nombre, fecha_vencimiento")
+          .gte("fecha_vencimiento", from)
+          .lte("fecha_vencimiento", to)
+          .in("estado", ["entregado", "delivered", "pagado"]),
+        supabaseAdmin
+          .from("manual_orders")
+          .select(
+            "id, user_id, producto_nombre, fecha_vencimiento, nombre_cliente, whatsapp_cliente",
+          )
+          .gte("fecha_vencimiento", from)
+          .lte("fecha_vencimiento", to)
+          .eq("estado", "verificado"),
+      ]);
+    if (ordersError) throw new Error(ordersError.message);
+    if (manualOrdersError) throw new Error(manualOrdersError.message);
+
+    const userIds = [
+      ...new Set(
+        [...(orders ?? []), ...(manualOrders ?? [])]
+          .map((order) => order.user_id)
+          .filter((userId): userId is string => Boolean(userId)),
+      ),
+    ];
+    const { data: profiles, error: profilesError } = userIds.length
+      ? await supabaseAdmin
+          .from("profiles")
+          .select("id, nombre_completo, whatsapp")
+          .in("id", userIds)
+      : { data: [], error: null };
+    if (profilesError) throw new Error(profilesError.message);
+
+    const profilesById = Object.fromEntries(
+      (profiles ?? []).map((profile) => [profile.id, profile]),
+    );
+    const automatic: UpcomingExpiration[] = (orders ?? []).flatMap((order) => {
+      if (!order.fecha_vencimiento) return [];
+      const profile = profilesById[order.user_id];
+      return [
+        {
+          id: order.id,
+          source: "order",
+          customerName: profile?.nombre_completo ?? null,
+          whatsapp: profile?.whatsapp ?? null,
+          productName: order.producto_nombre,
+          expirationDate: order.fecha_vencimiento,
+        },
+      ];
+    });
+    const manual: UpcomingExpiration[] = (manualOrders ?? []).flatMap((order) => {
+      if (!order.fecha_vencimiento) return [];
+      const profile = order.user_id ? profilesById[order.user_id] : undefined;
+      return [
+        {
+          id: order.id,
+          source: "manual_order",
+          customerName: profile?.nombre_completo || order.nombre_cliente || null,
+          whatsapp: profile?.whatsapp || order.whatsapp_cliente || null,
+          productName: order.producto_nombre,
+          expirationDate: order.fecha_vencimiento,
+        },
+      ];
+    });
+
+    return [...automatic, ...manual].sort((left, right) =>
+      left.expirationDate.localeCompare(right.expirationDate),
+    );
   });

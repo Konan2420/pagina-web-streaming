@@ -2,6 +2,7 @@
 import { createMiddleware } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { createClient } from "@supabase/supabase-js";
+import { useRuntimeConfig } from "nitro/runtime-config";
 import type { Database } from "./types";
 
 function isNewSupabaseApiKey(value: string): boolean {
@@ -33,8 +34,13 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
 
 export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
   async ({ next }) => {
-    const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+    const config = useRuntimeConfig();
+    const SUPABASE_URL =
+      config.supabaseUrl || process.env.NITRO_SUPABASE_URL || process.env.SUPABASE_URL;
+    const SUPABASE_PUBLISHABLE_KEY =
+      config.supabasePublishableKey ||
+      process.env.NITRO_SUPABASE_PUBLISHABLE_KEY ||
+      process.env.SUPABASE_PUBLISHABLE_KEY;
 
     if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
       const missing = [
@@ -42,7 +48,6 @@ export const requireSupabaseAuth = createMiddleware({ type: "function" }).server
         ...(!SUPABASE_PUBLISHABLE_KEY ? ["SUPABASE_PUBLISHABLE_KEY"] : []),
       ];
       const message = `Missing Supabase environment variable(s): ${missing.join(", ")}. Configura las variables de Supabase en .env.local o en tu proveedor de despliegue.`;
-      console.error(`[Supabase] ${message}`);
       throw new Error(message);
     }
 
@@ -52,19 +57,16 @@ export const requireSupabaseAuth = createMiddleware({ type: "function" }).server
       throw new Error("Unauthorized: No request headers available");
     }
 
-    const authHeader = request.headers.get("authorization");
+    // Prefer the token supplied by the browser authentication middleware.
+    // It avoids collisions with proxy/framework `Authorization` headers while
+    // retaining the standard Bearer fallback for direct API consumers.
+    const attachedToken = request.headers.get("x-supabase-access-token")?.trim();
+    const authHeader = request.headers.get("authorization")?.trim();
+    const bearerMatch = authHeader ? /^Bearer\s+(.+)$/i.exec(authHeader) : null;
+    const token = attachedToken || bearerMatch?.[1].trim();
 
-    if (!authHeader) {
-      throw new Error("Unauthorized: No authorization header provided");
-    }
-
-    if (!authHeader.startsWith("Bearer ")) {
-      throw new Error("Unauthorized: Only Bearer tokens are supported");
-    }
-
-    const token = authHeader.replace("Bearer ", "");
     if (!token) {
-      throw new Error("Unauthorized: No token provided");
+      throw new Error("Unauthorized: No valid session token was provided");
     }
 
     if (token.split(".").length !== 3) {
@@ -85,20 +87,21 @@ export const requireSupabaseAuth = createMiddleware({ type: "function" }).server
       },
     });
 
-    const { data, error } = await supabase.auth.getClaims(token);
-    if (error || !data?.claims) {
+    // `getClaims` relies on local/JWKS claim verification and can reject a
+    // freshly refreshed Supabase access token in some Nitro runtimes. Ask
+    // Supabase Auth to validate this exact token instead. This remains a
+    // server-side, fail-closed authentication check; a user id is accepted
+    // only when Auth returns the authenticated user.
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data.user) {
       throw new Error("Unauthorized: Invalid token");
-    }
-
-    if (!data.claims.sub) {
-      throw new Error("Unauthorized: No user ID found in token");
     }
 
     return next({
       context: {
         supabase,
-        userId: data.claims.sub,
-        claims: data.claims,
+        userId: data.user.id,
+        claims: { sub: data.user.id },
       },
     });
   },

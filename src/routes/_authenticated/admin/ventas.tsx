@@ -18,15 +18,17 @@ import { AdminLayout } from "@/components/admin/AdminLayout";
 import type { Tables } from "@/integrations/supabase/types";
 
 type SaleProfile = Pick<Tables<"profiles">, "id" | "nombre_completo" | "whatsapp">;
-type SaleWithProfile = Tables<"ventas"> & { profiles: SaleProfile | null };
+type SaleWithProfile = Pick<
+  Tables<"orders">,
+  "id" | "user_id" | "producto_nombre" | "precio" | "estado" | "created_at"
+> & { profiles: SaleProfile | null };
 
 const ventasQueryOptions = queryOptions({
   queryKey: ["admin-ventas-list"],
   queryFn: async () => {
-    // No hay FK declarada entre ventas.user_id y profiles, así que unimos manualmente.
     const { data, error } = await supabase
-      .from("ventas")
-      .select("*")
+      .from("orders")
+      .select("id, user_id, producto_nombre, precio, estado, created_at")
       .order("created_at", { ascending: false });
     if (error) throw error;
 
@@ -101,12 +103,12 @@ function VentasManagement() {
               <div className="absolute top-0 right-0 p-4">
                 <span
                   className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                    venta.estado_pago === "completado"
+                    venta.estado === "entregado"
                       ? "bg-green-500/10 text-green-400 border border-green-500/20"
                       : "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"
                   }`}
                 >
-                  {venta.estado_pago}
+                  {venta.estado}
                 </span>
               </div>
 
@@ -135,11 +137,11 @@ function VentasManagement() {
                     <p className="text-sm font-medium text-white/80">{venta.producto_nombre}</p>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-xs font-mono text-primary font-bold">
-                        S/ {Number(venta.monto ?? 0).toFixed(2)}
+                        S/ {Number(venta.precio ?? 0).toFixed(2)}
                       </span>
                       <span className="text-[10px] text-white/20 flex items-center gap-1">
                         <CreditCard className="w-3 h-3" />
-                        {venta.metodo_pago || "Directo"}
+                        Entrega automática
                       </span>
                     </div>
                   </div>
@@ -177,7 +179,7 @@ function VentasManagement() {
             role="dialog"
             aria-modal="true"
             aria-labelledby="venta-details-title"
-            className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-ink p-6 shadow-2xl"
+            className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-white/10 bg-ink p-5 shadow-2xl sm:p-6"
           >
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -219,13 +221,12 @@ function VentasManagement() {
               <div>
                 <dt className="text-white/40">Monto y método</dt>
                 <dd className="mt-1 text-white">
-                  S/ {Number(selectedVenta.monto ?? 0).toFixed(2)} ·{" "}
-                  {selectedVenta.metodo_pago || "Directo"}
+                  S/ {Number(selectedVenta.precio ?? 0).toFixed(2)} · Entrega automática
                 </dd>
               </div>
               <div>
                 <dt className="text-white/40">Estado</dt>
-                <dd className="mt-1 text-white">{selectedVenta.estado_pago || "Pendiente"}</dd>
+                <dd className="mt-1 text-white">{selectedVenta.estado || "Pendiente"}</dd>
               </div>
               <div>
                 <dt className="text-white/40">Fecha</dt>

@@ -35,3 +35,9 @@ dist-ssr
 .env
 .env.local
 .env.*.local
+
+.vercel
+.env*
+
+# Estado temporal generado por la CLI de Supabase.
+supabase/.temp/

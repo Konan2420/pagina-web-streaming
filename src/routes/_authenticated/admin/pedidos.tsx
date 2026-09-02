@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { queryOptions } from "@tanstack/react-query";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Search,
   User,
-  ArrowRight,
   Package,
   Clock,
   CheckCircle2,
@@ -13,11 +13,16 @@ import {
   Key,
   ExternalLink,
   Loader2,
+  Smartphone,
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import type { Tables, TablesInsert } from "@/integrations/supabase/types";
+import type { Tables } from "@/integrations/supabase/types";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { DeliveryCelebrationModal } from "@/components/admin/DeliveryCelebrationModal";
+import { approvePaymentAndDeliver } from "@/lib/admin.functions";
+import { buildCredentialsWhatsAppMessage } from "@/lib/whatsapp-messages";
+import { createWhatsAppUrl, openWhatsAppUrl } from "@/lib/whatsapp";
 import { toast } from "sonner";
 
 type OrderProfile = Pick<Tables<"profiles">, "id" | "nombre_completo" | "whatsapp">;
@@ -29,10 +34,26 @@ type OrderWithDetails = Tables<"orders"> & {
   profile: OrderProfile | null;
   delivery: OrderDelivery | null;
 };
-type DeliveryInput = Pick<
-  TablesInsert<"delivered_accounts">,
-  "order_id" | "user_id" | "email" | "password" | "access_link" | "notes"
+type DeliveryCredentials = Pick<
+  Tables<"delivered_accounts">,
+  "email" | "password" | "access_link" | "notes"
 >;
+type CompletedDelivery = {
+  orderId: string;
+  productName: string;
+  delivery: DeliveryCredentials;
+};
+
+async function copyCredential(value: string, label: string) {
+  try {
+    await navigator.clipboard.writeText(value);
+    toast.success(`${label} copiado`);
+    return true;
+  } catch {
+    toast.error("No se pudo copiar. Selecciona el dato manualmente.");
+    return false;
+  }
+}
 
 const pedidosQueryOptions = queryOptions({
   queryKey: ["admin-pedidos-list"],
@@ -56,11 +77,10 @@ const pedidosQueryOptions = queryOptions({
     }
 
     // Fetch delivered accounts to check status
-    const { data: delivered, error: deliveredError } = await supabase
+    const { data: delivered } = await supabase
       .from("delivered_accounts")
       .select("order_id, user_id, email, password, access_link, notes");
 
-    if (deliveredError) console.error("Error fetching delivered accounts:", deliveredError);
     const deliveredMap = Object.fromEntries(
       (delivered || []).map((delivery) => [delivery.order_id, delivery]),
     );
@@ -83,7 +103,9 @@ function PedidosManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [selectedPedido, setSelectedPedido] = useState<OrderWithDetails | null>(null);
+  const [completedDelivery, setCompletedDelivery] = useState<CompletedDelivery | null>(null);
   const queryClient = useQueryClient();
+  const approvePaymentAndDeliverFn = useServerFn(approvePaymentAndDeliver);
 
   const filteredPedidos = pedidos.filter((p) => {
     const matchesSearch =
@@ -98,39 +120,45 @@ function PedidosManagement() {
     return matchesSearch;
   });
 
-  const deliverMutation = useMutation({
-    mutationFn: async (deliveryData: DeliveryInput) => {
-      const { order_id, user_id, email, password, access_link, notes } = deliveryData;
-
-      // 1. Insert into delivered_accounts
-      const { error: deliveryError } = await supabase.from("delivered_accounts").insert({
-        order_id,
-        user_id,
-        email,
-        password,
-        access_link,
-        notes,
-      });
-
-      if (deliveryError) throw deliveryError;
-
-      // 2. Update order status
-      const { error: orderError } = await supabase
-        .from("orders")
-        .update({ estado: "delivered" })
-        .eq("id", order_id);
-
-      if (orderError) throw orderError;
-    },
-    onSuccess: () => {
-      toast.success("Cuenta asignada y pedido marcado como entregado");
+  const approveMutation = useMutation({
+    mutationFn: (orderId: string) => approvePaymentAndDeliverFn({ data: { orderId } }),
+    onSuccess: (result) => {
+      toast.success("Pago aprobado y cuenta entregada correctamente");
       queryClient.invalidateQueries({ queryKey: ["admin-pedidos-list"] });
       setSelectedPedido(null);
+      setCompletedDelivery(result);
     },
     onError: (error) => {
       toast.error(`Error: ${error instanceof Error ? error.message : "Desconocido"}`);
     },
   });
+
+  function getCredentialsWhatsAppUrl(pedido: OrderWithDetails) {
+    if (!pedido.delivery) return;
+    return createWhatsAppUrl(
+      pedido.profile?.whatsapp,
+      buildCredentialsWhatsAppMessage({
+        customerName: pedido.profile?.nombre_completo,
+        productName: pedido.producto_nombre,
+        username: pedido.delivery.email,
+        password: pedido.delivery.password,
+        accessLink: pedido.delivery.access_link,
+        notes: pedido.delivery.notes,
+        expirationDate: pedido.fecha_vencimiento,
+      }),
+    );
+  }
+
+  function sendCredentialsByWhatsApp(pedido: OrderWithDetails) {
+    const url = getCredentialsWhatsAppUrl(pedido);
+    if (!url) {
+      toast.error("Sin número de WhatsApp registrado");
+      return;
+    }
+    if (!openWhatsAppUrl(url)) {
+      toast.info("Permite las ventanas emergentes para abrir WhatsApp.");
+    }
+  }
 
   return (
     <AdminLayout
@@ -180,6 +208,7 @@ function PedidosManagement() {
           filteredPedidos.map((pedido) => {
             const isDelivered =
               pedido.estado === "delivered" || pedido.estado === "entregado" || !!pedido.delivery;
+            const credentialsWhatsAppUrl = getCredentialsWhatsAppUrl(pedido);
 
             return (
               <div
@@ -234,14 +263,14 @@ function PedidosManagement() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex items-center gap-3 md:w-40 justify-end shrink-0">
+                  <div className="flex flex-col items-stretch gap-2 md:w-48 shrink-0">
                     {!isDelivered ? (
                       <button
                         onClick={() => setSelectedPedido(pedido)}
                         className="w-full py-2 px-4 rounded-xl bg-primary text-white text-xs font-bold hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                       >
                         <Key className="w-3.5 h-3.5" />
-                        Asignar Cuenta
+                        Aprobar pago
                       </button>
                     ) : (
                       <button
@@ -252,6 +281,26 @@ function PedidosManagement() {
                         Ver Entrega
                       </button>
                     )}
+                    {pedido.delivery && (
+                      <button
+                        type="button"
+                        onClick={() => sendCredentialsByWhatsApp(pedido)}
+                        disabled={!credentialsWhatsAppUrl}
+                        title={
+                          credentialsWhatsAppUrl
+                            ? "Abrir WhatsApp con las credenciales pre-escritas"
+                            : "Sin número de WhatsApp registrado"
+                        }
+                        className="w-full rounded-xl border border-green-400/25 bg-green-400/10 px-3 py-2 text-[11px] font-bold text-green-200 transition hover:bg-green-400/20 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/5 disabled:text-white/35"
+                      >
+                        <span className="flex items-center justify-center gap-1.5">
+                          <Smartphone className="h-3.5 w-3.5" />
+                          {credentialsWhatsAppUrl
+                            ? "Enviar credenciales"
+                            : "Sin número de WhatsApp registrado"}
+                        </span>
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -260,138 +309,97 @@ function PedidosManagement() {
         )}
       </div>
 
-      {/* Modal de Asignación/Detalles */}
-      {selectedPedido && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+      {selectedPedido?.delivery && (
+        <DeliveryCelebrationModal
+          open
+          celebrate={false}
+          orderId={selectedPedido.id}
+          productName={selectedPedido.producto_nombre}
+          delivery={selectedPedido.delivery}
+          onClose={() => setSelectedPedido(null)}
+          onCopy={copyCredential}
+        />
+      )}
+
+      {selectedPedido && !selectedPedido.delivery && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="approval-title"
+        >
+          <button
+            type="button"
+            aria-label="Cerrar aprobación"
             onClick={() => setSelectedPedido(null)}
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
           />
-          <div className="relative w-full max-w-xl bg-[#0d0d14] border border-white/10 rounded-3xl overflow-hidden animate-scale-in">
-            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+          <section className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-white/10 bg-[#0d0d14] shadow-2xl animate-in zoom-in-95 duration-200">
+            <header className="flex items-start justify-between gap-4 border-b border-white/10 bg-white/[0.02] p-6">
               <div>
-                <h3 className="text-lg font-bold text-white">
-                  {selectedPedido.delivery ? "Detalles de Entrega" : "Asignar Credenciales"}
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
+                  Pedido pendiente
+                </p>
+                <h3 id="approval-title" className="mt-1 text-xl font-black text-white">
+                  Aprobar pago y entregar
                 </h3>
-                <p className="text-xs text-white/40 mt-1">
-                  Pedido #{selectedPedido.id.slice(0, 8)} • {selectedPedido.producto_nombre}
+                <p className="mt-1 text-xs text-white/45">
+                  Pedido #{selectedPedido.id.slice(0, 8)} · {selectedPedido.producto_nombre}
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedPedido(null)}
-                className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-colors"
+                aria-label="Cerrar"
+                className="grid h-9 w-9 place-items-center rounded-full bg-white/5 text-white/50 transition hover:bg-white/10 hover:text-white"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
+              </button>
+            </header>
+
+            <div className="space-y-5 p-6">
+              <div className="flex items-start gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-300" />
+                <p className="text-sm leading-relaxed text-amber-50">
+                  Se verificará el pago, se reservará una única cuenta disponible y las credenciales
+                  se entregarán al cliente. Esta acción no se puede duplicar.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 text-sm text-white/75">
+                Producto:{" "}
+                <span className="font-bold text-white">{selectedPedido.producto_nombre}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => approveMutation.mutate(selectedPedido.id)}
+                disabled={approveMutation.isPending}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 text-sm font-black text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {approveMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Procesando entrega...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" /> Aprobar pago y entregar cuenta
+                  </>
+                )}
               </button>
             </div>
-
-            <div className="p-6">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (selectedPedido.delivery) return;
-                  const formData = new FormData(e.currentTarget);
-                  deliverMutation.mutate({
-                    order_id: selectedPedido.id,
-                    user_id: selectedPedido.user_id,
-                    email: String(formData.get("email") ?? ""),
-                    password: String(formData.get("password") ?? ""),
-                    access_link: String(formData.get("access_link") ?? ""),
-                    notes: String(formData.get("notes") ?? ""),
-                  });
-                }}
-                className="space-y-4"
-              >
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-white/40 font-bold ml-1">
-                      Email / Usuario
-                    </label>
-                    <input
-                      name="email"
-                      defaultValue={selectedPedido.delivery?.email || ""}
-                      readOnly={!!selectedPedido.delivery}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-50"
-                      placeholder="ejemplo@correo.com"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-white/40 font-bold ml-1">
-                      Contraseña
-                    </label>
-                    <input
-                      name="password"
-                      defaultValue={selectedPedido.delivery?.password || ""}
-                      readOnly={!!selectedPedido.delivery}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-50"
-                      placeholder="••••••••"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-wider text-white/40 font-bold ml-1">
-                    Link de Acceso (Opcional)
-                  </label>
-                  <input
-                    name="access_link"
-                    defaultValue={selectedPedido.delivery?.access_link || ""}
-                    readOnly={!!selectedPedido.delivery}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all disabled:opacity-50"
-                    placeholder="https://..."
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-wider text-white/40 font-bold ml-1">
-                    Notas / Instrucciones (PIN, Perfil, etc.)
-                  </label>
-                  <textarea
-                    name="notes"
-                    defaultValue={selectedPedido.delivery?.notes || ""}
-                    readOnly={!!selectedPedido.delivery}
-                    rows={3}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all resize-none disabled:opacity-50"
-                    placeholder="Escribe aquí instrucciones adicionales para el cliente..."
-                  />
-                </div>
-
-                {!selectedPedido.delivery && (
-                  <div className="pt-4 flex flex-col gap-3">
-                    <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-start gap-3">
-                      <AlertCircle className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
-                      <p className="text-[11px] text-blue-300 leading-relaxed">
-                        Al asignar la cuenta, el estado del pedido cambiará a "Entregado" y el
-                        cliente podrá ver estas credenciales inmediatamente en su panel.
-                      </p>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={deliverMutation.isPending}
-                      className="w-full py-3.5 rounded-xl bg-primary text-white text-sm font-bold hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {deliverMutation.isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Procesando...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle2 className="w-4 h-4" />
-                          Confirmar Entrega
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </form>
-            </div>
-          </div>
+          </section>
         </div>
+      )}
+
+      {completedDelivery && (
+        <DeliveryCelebrationModal
+          open
+          orderId={completedDelivery.orderId}
+          productName={completedDelivery.productName}
+          delivery={completedDelivery.delivery}
+          onClose={() => setCompletedDelivery(null)}
+          onCopy={copyCredential}
+        />
       )}
     </AdminLayout>
   );
 }
-
-export default PedidosManagement;

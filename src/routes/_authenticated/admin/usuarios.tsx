@@ -1,22 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  Users,
-  Search,
-  Shield,
-  ShieldAlert,
-  ShieldCheck,
-  User as UserIcon,
-  MoreVertical,
-  Check,
-} from "lucide-react";
+import { Handshake, Search, ShieldAlert, Store, User as UserIcon } from "lucide-react";
 import { getUsersWithRoles, updateUserRole } from "@/lib/admin.functions";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
-type AssignableRole = "admin" | "user" | "proveedor" | "vendedor";
+type AssignableRole = "admin" | "proveedor" | "distribuidor" | "user";
 
 const usersQueryOptions = queryOptions({
   queryKey: ["admin-users-roles"],
@@ -36,7 +27,6 @@ function UsersManagement() {
 
   const queryClient = useQueryClient();
   const updateRoleMutation = useServerFn(updateUserRole);
-  const navigate = Route.useNavigate();
 
   const filteredUsers = users.filter(
     (u) =>
@@ -50,15 +40,6 @@ function UsersManagement() {
       await updateRoleMutation({ data: { user_id: userId, role } });
       toast.success("Rol actualizado correctamente");
       queryClient.invalidateQueries({ queryKey: ["admin-users-roles"] });
-
-      if (role === "proveedor") {
-        toast("Redirigiendo a proveedores...", {
-          description: "El usuario ahora es un proveedor y su perfil ha sido creado.",
-        });
-        setTimeout(() => {
-          navigate({ to: "/admin/proveedores" });
-        }, 1500);
-      }
     } catch (err) {
       toast.error(
         "Error al actualizar rol: " + (err instanceof Error ? err.message : "Error desconocido"),
@@ -76,22 +57,16 @@ function UsersManagement() {
             <ShieldAlert className="w-3 h-3" /> Admin
           </span>
         );
-      case "editor":
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-400 border border-blue-500/20">
-            <Shield className="w-3 h-3" /> Editor
-          </span>
-        );
       case "proveedor":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
-            <ShieldCheck className="w-3 h-3" /> Proveedor
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-300 border border-amber-500/20">
+            <Store className="w-3 h-3" /> Proveedor
           </span>
         );
-      case "vendedor":
+      case "distribuidor":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
-            <ShieldCheck className="w-3 h-3" /> Vendedor
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-300 border border-sky-500/20">
+            <Handshake className="w-3 h-3" /> Distribuidor
           </span>
         );
       default:
@@ -162,7 +137,12 @@ function UsersManagement() {
                           value={user.role}
                           onChange={(e) => {
                             const role = e.target.value;
-                            if (role === "admin" || role === "user" || role === "proveedor" || role === "vendedor") {
+                            if (
+                              role === "admin" ||
+                              role === "proveedor" ||
+                              role === "distribuidor" ||
+                              role === "user"
+                            ) {
                               void handleUpdateRole(user.id, role);
                             }
                           }}
@@ -170,7 +150,7 @@ function UsersManagement() {
                         >
                           <option value="user">Usuario</option>
                           <option value="proveedor">Proveedor</option>
-                          <option value="vendedor">Vendedor</option>
+                          <option value="distribuidor">Distribuidor</option>
                           <option value="admin">Administrador</option>
                         </select>
                       )}

@@ -1,0 +1,12 @@
+# Las credenciales locales nunca deben viajar al build remoto.
+# Vercel usa las variables configuradas en Project Settings durante el despliegue.
+.env
+.env.local
+.env.*.local
+
+# Los artefactos locales de Nitro/Vercel se regeneran en el build remoto.
+# No deben subirse: pueden contener una salida obsoleta y no heredan el
+# entorno Production de la nueva Function.
+.vercel
+.output
+.tanstack

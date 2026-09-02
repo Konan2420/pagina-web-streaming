@@ -35,28 +35,30 @@
   --font-display: "Anton", "Archivo Black", Impact, sans-serif;
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Space Grotesk", ui-monospace, monospace;
+  --font-product: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
   --radius: 1rem;
 
-  --background: oklch(0.09 0.02 285);
-  --foreground: oklch(0.98 0.005 285);
+  /* Capas oscuras neutras: base, superficies y tarjetas se distinguen sin teñirse de violeta. */
+  --background: #080809;
+  --foreground: #fafafa;
 
-  --card: oklch(0.14 0.025 285);
-  --card-foreground: oklch(0.98 0.005 285);
+  --card: #111113;
+  --card-foreground: #fafafa;
 
-  --popover: oklch(0.12 0.02 285);
-  --popover-foreground: oklch(0.98 0.005 285);
+  --popover: #151517;
+  --popover-foreground: #fafafa;
 
   --primary: #dc2626;
   --primary-foreground: oklch(0.98 0.005 285);
 
-  --secondary: oklch(0.2 0.03 285);
-  --secondary-foreground: oklch(0.98 0.005 285);
+  --secondary: #1a1a1d;
+  --secondary-foreground: #fafafa;
 
-  --muted: oklch(0.18 0.02 285);
-  --muted-foreground: oklch(0.8 0.018 285);
+  --muted: #17171a;
+  --muted-foreground: #c5c5c8;
 
   --accent: #dc2626;
   --accent-foreground: oklch(0.98 0.005 285);
@@ -64,14 +66,236 @@
   --destructive: #dc2626;
   --destructive-foreground: oklch(0.98 0.005 285);
 
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
+  --border: rgb(255 255 255 / 9%);
+  --input: rgb(255 255 255 / 12%);
   --ring: #dc2626;
 
   --violet: #dc2626;
   --violet-2: #dc2626;
   --red-accent: #dc2626;
-  --ink: oklch(0.06 0.015 285);
+  --ink: #050506;
+
+  /* Una sola escala para el panel lateral y el espacio que reserva el catálogo. */
+  --store-sidebar-mobile-width: min(84vw, 20rem);
+  --store-sidebar-width: 13.5rem;
+  --store-sidebar-collapsed-width: 4.5rem;
+}
+
+/* El modo se conserva en localStorage mediante AppChromeProvider. Las variables cubren
+   las superficies compartidas sin alterar la jerarquía visual de los paneles. */
+:root[data-cmd-theme="light"] {
+  --background: #f5f6f8;
+  --foreground: #15161a;
+  --card: #ffffff;
+  --card-foreground: #15161a;
+  --popover: #ffffff;
+  --popover-foreground: #15161a;
+  --secondary: #e9ebef;
+  --secondary-foreground: #15161a;
+  --muted: #eef0f3;
+  --muted-foreground: #5c6370;
+  --border: rgb(21 22 26 / 14%);
+  --input: rgb(21 22 26 / 14%);
+  --ink: #e7e9ed;
+}
+
+/*
+ * Light-theme compatibility layer
+ *
+ * The application predates the theme switcher and several feature panels use
+ * Tailwind's white opacity utilities directly.  Those values are correct on
+ * the dark canvas, but become unreadable on a white canvas.  Keeping this
+ * translation in one place means existing pages, lazy-loaded panels and
+ * dialogs all follow the selected theme without changing their behaviour.
+ */
+:root[data-cmd-theme="light"] {
+  color-scheme: light;
+  --cmd-light-strong: #151922;
+  --cmd-light-default: #263142;
+  --cmd-light-muted: #5d697b;
+  --cmd-light-subtle: #778397;
+  --cmd-light-line: rgb(27 39 58 / 16%);
+  --cmd-light-surface: rgb(27 39 58 / 4%);
+}
+
+:root[data-cmd-theme="light"] body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Direct `text-white` classes, including arbitrary opacity utilities. */
+:root[data-cmd-theme="light"] [class*="text-white"] {
+  color: var(--cmd-light-default) !important;
+}
+
+:root[data-cmd-theme="light"] :is(
+  [class~="text-white"],
+  [class~="text-white/95"],
+  [class~="text-white/90"],
+  [class~="text-white/85"],
+  [class~="text-white/80"],
+  [class~="text-white/[0.96]"],
+  [class~="text-white/[0.95]"],
+  [class~="text-white/[0.92]"]
+) {
+  color: var(--cmd-light-strong) !important;
+}
+
+:root[data-cmd-theme="light"] :is(
+  [class~="text-white/78"],
+  [class~="text-white/75"],
+  [class~="text-white/70"],
+  [class~="text-white/65"],
+  [class~="text-white/[0.78]"],
+  [class~="text-white/[0.72]"],
+  [class~="text-white/[0.68]"]
+) {
+  color: #354155 !important;
+}
+
+:root[data-cmd-theme="light"] :is(
+  [class~="text-white/60"],
+  [class~="text-white/55"],
+  [class~="text-white/50"],
+  [class~="text-white/45"],
+  [class~="text-white/[0.6]"],
+  [class~="text-white/[0.55]"]
+) {
+  color: var(--cmd-light-muted) !important;
+}
+
+:root[data-cmd-theme="light"] :is(
+  [class~="text-white/40"],
+  [class~="text-white/35"],
+  [class~="text-white/30"],
+  [class~="text-white/25"],
+  [class~="text-white/[0.4]"],
+  [class~="text-white/[0.35]"]
+) {
+  color: var(--cmd-light-subtle) !important;
+}
+
+:root[data-cmd-theme="light"] [class*="placeholder:text-white"]::placeholder {
+  color: var(--cmd-light-subtle) !important;
+  opacity: 1;
+}
+
+:root[data-cmd-theme="light"] [class*="border-white"],
+:root[data-cmd-theme="light"] [class*="divide-white"] > * {
+  border-color: var(--cmd-light-line) !important;
+}
+
+:root[data-cmd-theme="light"] [class*="ring-white"] {
+  --tw-ring-color: var(--cmd-light-line) !important;
+}
+
+:root[data-cmd-theme="light"] [class*="bg-white/"] {
+  background-color: var(--cmd-light-surface) !important;
+}
+
+/* Legacy neutral surfaces used by panels before semantic tokens were added. */
+:root[data-cmd-theme="light"] :is(
+  [class*="bg-black"],
+  [class*="bg-zinc-950"],
+  [class*="bg-neutral-950"],
+  [class*="bg-slate-950"]
+) {
+  background-color: var(--background) !important;
+}
+
+:root[data-cmd-theme="light"] :is(
+  [class*="bg-zinc-900"],
+  [class*="bg-neutral-900"],
+  [class*="bg-slate-900"],
+  [class*="bg-zinc-800"],
+  [class*="bg-neutral-800"],
+  [class*="bg-slate-800"]
+) {
+  background-color: var(--card) !important;
+}
+
+:root[data-cmd-theme="light"] :is(
+  [class~="bg-[#0d0d14]"],
+  [class~="bg-[#121212]"],
+  [class~="bg-[#111216]"],
+  [class~="bg-[#06080d]"],
+  [class~="bg-[#0c111c]"],
+  [class~="bg-[#111725]"],
+  [class~="bg-[#0e1420]"],
+  [class~="bg-[#080c14]"],
+  [class~="bg-[#070c16]"],
+  [class~="bg-[#0b1424]"],
+  [class~="bg-[#101d33]"],
+  [class~="bg-[#08101d]"],
+  [class~="bg-[#0a0a0f]"],
+  [class~="bg-[#12131d]"]
+) {
+  background-color: var(--card) !important;
+}
+
+:root[data-cmd-theme="light"] [class~="border-[#0c111c]"] {
+  border-color: var(--cmd-light-line) !important;
+}
+
+:root[data-cmd-theme="light"] :is([class*="text-[#fff"], [class*="text-[#FFF"]) {
+  color: var(--cmd-light-strong) !important;
+}
+
+/* Sonner is mounted at the root, so it is themed here as well. */
+:root[data-cmd-theme="light"] [data-sonner-toaster] [data-sonner-toast] {
+  --normal-bg: var(--card) !important;
+  --normal-text: var(--foreground) !important;
+  --normal-border: var(--cmd-light-line) !important;
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  border-color: var(--cmd-light-line) !important;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 14%) !important;
+}
+
+:root[data-cmd-theme="light"] ::selection {
+  background: rgb(220 38 38 / 22%);
+  color: var(--foreground);
+}
+
+/* Pale status shades from the dark UI need contrast on white surfaces. */
+:root[data-cmd-theme="light"] [class*="text-red-"] {
+  color: #c61f2b !important;
+}
+
+:root[data-cmd-theme="light"] [class*="text-emerald-"],
+:root[data-cmd-theme="light"] [class*="text-green-"] {
+  color: #08775a !important;
+}
+
+:root[data-cmd-theme="light"] [class*="text-amber-"],
+:root[data-cmd-theme="light"] [class*="text-yellow-"] {
+  color: #9a5a00 !important;
+}
+
+:root[data-cmd-theme="light"] [class*="text-sky-"],
+:root[data-cmd-theme="light"] [class*="text-blue-"] {
+  color: #1267b7 !important;
+}
+
+/* Keep content on accent actions legible; this wins over the compatibility
+ * mapping above when an existing button intentionally uses white text. */
+:root[data-cmd-theme="light"] :is(
+  [class*="bg-primary"],
+  [class*="bg-destructive"],
+  [class*="bg-red-"],
+  [class*="bg-emerald-"],
+  [class*="bg-green-"],
+  [class*="bg-blue-"]
+)[class*="text-white"],
+:root[data-cmd-theme="light"] :is(
+  [class*="bg-primary"],
+  [class*="bg-destructive"],
+  [class*="bg-red-"],
+  [class*="bg-emerald-"],
+  [class*="bg-green-"],
+  [class*="bg-blue-"]
+) [class*="text-white"] {
+  color: #fff !important;
 }
 
 @layer base {
@@ -177,11 +401,15 @@
   .pb-safe-offset-4 {
     padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
   }
-}
 
-.product-card {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 20rem;
+  /* iOS Safari amplía campos de menos de 16 px al enfocarlos. */
+  @media (max-width: 767px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    select,
+    textarea {
+      font-size: 16px !important;
+    }
+  }
 }
 
 @utility text-balance {
@@ -205,6 +433,90 @@
 
 @utility scrollbar-thin {
   scrollbar-width: thin;
+}
+
+/* Accesos de plataformas: celdas fijas para que no crezcan en pantallas anchas. */
+.catalog-platform-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 3rem);
+  gap: 0.375rem;
+}
+
+/* Las filas se estiran de forma pareja y el bloque de acciones queda alineado. */
+.catalog-product-card {
+  min-height: 27rem;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    transform 200ms ease;
+}
+
+@media (min-width: 640px) {
+  .catalog-platform-grid {
+    grid-template-columns: repeat(auto-fill, 3.25rem);
+    gap: 0.5rem;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .catalog-product-card:hover {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--red-accent) 72%, transparent);
+    box-shadow: 0 16px 34px rgb(0 0 0 / 38%);
+  }
+
+  .catalog-product-card:hover .catalog-product-title {
+    color: var(--red-accent);
+  }
+
+  .catalog-product-card:hover .catalog-product-image {
+    transform: scale(1.05);
+  }
+}
+
+@media (hover: none) {
+  .catalog-product-card:active {
+    transform: translateY(-1px) scale(0.995);
+    border-color: color-mix(in srgb, var(--red-accent) 55%, transparent);
+  }
+}
+
+/* Scroll propio de la navegación lateral: discreto, oscuro y coherente con CMD. */
+.cmd-sidebar-scroll,
+.cmd-dark-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.26) transparent;
+}
+
+.cmd-sidebar-scroll::-webkit-scrollbar,
+.cmd-dark-scrollbar::-webkit-scrollbar {
+  width: 9px;
+}
+
+.cmd-sidebar-scroll::-webkit-scrollbar-track,
+.cmd-dark-scrollbar::-webkit-scrollbar-track {
+  margin-block: 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.58);
+}
+
+.cmd-sidebar-scroll::-webkit-scrollbar-thumb,
+.cmd-dark-scrollbar::-webkit-scrollbar-thumb {
+  min-height: 42px;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.28);
+  background-clip: content-box;
+}
+
+.cmd-sidebar-scroll::-webkit-scrollbar-thumb:hover,
+.cmd-dark-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.46);
+}
+
+.cmd-sidebar-scroll::-webkit-scrollbar-button,
+.cmd-dark-scrollbar::-webkit-scrollbar-button {
+  display: none;
 }
 
 @utility text-gradient-violet {
@@ -291,44 +603,6 @@
   animation: fade-in-soft 1.2s ease-out both;
 }
 
-@keyframes marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-@utility animate-marquee {
-  animation: marquee 38s linear infinite;
-}
-
-@keyframes shine {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-@utility animate-shine {
-  background: linear-gradient(
-    90deg,
-    #dc2626 0%,
-    #ef4444 25%,
-    #ffffff 50%,
-    #ef4444 75%,
-    #dc2626 100%
-  );
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shine 4s linear infinite;
-}
-
 @media (hover: hover) and (pointer: fine) {
   html,
   a,
@@ -357,15 +631,6 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .animate-marquee {
-    animation: none;
-  }
-  .animate-shine {
-    animation: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
@@ -376,6 +641,78 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Estados de carga compartidos: visibles sin bloquear la interacción. */
+@keyframes cmd-loading-bar-slide {
+  0% {
+    transform: translateX(-140%) scaleX(0.55);
+  }
+  55% {
+    transform: translateX(80%) scaleX(1);
+  }
+  100% {
+    transform: translateX(290%) scaleX(0.65);
+  }
+}
+
+@keyframes cmd-red-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(160%);
+  }
+}
+
+.cmd-loading-bar-indicator {
+  width: 38%;
+  background: linear-gradient(90deg, transparent, #e81f36 25%, #ff6b78 55%, #e81f36 78%, transparent);
+  box-shadow: 0 0 14px rgba(232, 31, 54, 0.72);
+  animation: cmd-loading-bar-slide 1.25s ease-in-out infinite;
+}
+
+.cmd-red-shimmer {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: rgba(232, 31, 54, 0.09);
+}
+
+.crm-input {
+  width: 100%;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  background: hsl(var(--card) / 0.6);
+  padding: 0.68rem 0.8rem;
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.crm-input::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+
+.crm-input:focus {
+  border-color: hsl(var(--primary) / 0.7);
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.12);
+}
+
+.cmd-red-shimmer::after {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  content: "";
+  background: linear-gradient(105deg, transparent 18%, rgba(255, 96, 112, 0.08) 38%, rgba(255, 147, 157, 0.36) 50%, rgba(255, 96, 112, 0.08) 62%, transparent 82%);
+  animation: cmd-red-shimmer 1.55s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmd-loading-bar-indicator,
+  .cmd-red-shimmer::after {
+    animation: none;
   }
 }
 

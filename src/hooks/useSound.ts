@@ -8,74 +8,71 @@ function getAudioContextConstructor() {
   return window.AudioContext || (window as WindowWithWebkitAudioContext).webkitAudioContext;
 }
 
+function createAudioContext(): AudioContext | null {
+  const AudioContextConstructor = getAudioContextConstructor();
+  return AudioContextConstructor ? new AudioContextConstructor() : null;
+}
+
+function playTone(
+  context: AudioContext,
+  type: OscillatorType,
+  from: number,
+  to: number,
+  duration: number,
+  volume: number,
+) {
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(from, context.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(to, context.currentTime + duration);
+  gain.gain.setValueAtTime(volume, context.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
+
+  oscillator.connect(gain);
+  gain.connect(context.destination);
+  oscillator.start();
+  oscillator.stop(context.currentTime + duration);
+}
+
 export const useFuturisticSound = () => {
   const audioCtx = useRef<AudioContext | null>(null);
 
   const playHover = useCallback(() => {
     try {
-      if (!audioCtx.current) {
-        const AudioContextConstructor = getAudioContextConstructor();
-        if (!AudioContextConstructor) return;
-        audioCtx.current = new AudioContextConstructor();
-      }
-
-      if (audioCtx.current.state === "suspended") {
-        audioCtx.current.resume();
-      }
-
       const ctx = audioCtx.current;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      // Futuristic "blip" sound
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(800, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
-
-      gain.gain.setValueAtTime(0.15, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.1);
-    } catch (e) {
-      console.warn("Audio play failed:", e);
+      // Hover no es un gesto de usuario válido para Chrome. El contexto solo
+      // se crea desde playClick y nunca se reanuda desde aquí.
+      if (!ctx || ctx.state !== "running") return;
+      playTone(ctx, "sine", 800, 400, 0.1, 0.15);
+    } catch {
+      // El sonido es una mejora opcional y no debe afectar la interfaz.
     }
   }, []);
 
   const playClick = useCallback(() => {
     try {
-      if (!audioCtx.current) {
-        const AudioContextConstructor = getAudioContextConstructor();
-        if (!AudioContextConstructor) return;
-        audioCtx.current = new AudioContextConstructor();
+      const ctx = audioCtx.current ?? createAudioContext();
+      if (!ctx) return;
+      audioCtx.current = ctx;
+
+      const play = () => {
+        if (ctx.state !== "running") return;
+        playTone(ctx, "square", 1200, 600, 0.05, 0.1);
+      };
+
+      if (ctx.state === "suspended") {
+        // Este callback se ejecuta desde click/tap/Enter. La promesa se maneja
+        // explícitamente para que una política del navegador no genere ruido
+        // en consola ni rompa los botones.
+        void ctx.resume().then(play).catch(() => undefined);
+        return;
       }
 
-      if (audioCtx.current.state === "suspended") {
-        audioCtx.current.resume();
-      }
-
-      const ctx = audioCtx.current;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-
-      // Quick techy click/confirm
-      osc.type = "square";
-      osc.frequency.setValueAtTime(1200, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.05);
-
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start();
-      osc.stop(ctx.currentTime + 0.05);
-    } catch (e) {
-      console.warn("Audio play failed:", e);
+      play();
+    } catch {
+      // El sonido es una mejora opcional y no debe afectar la interfaz.
     }
   }, []);
 

@@ -1,4 +1,5 @@
-import { createCsrfMiddleware, createStart, createMiddleware } from "@tanstack/react-start";
+import { createStart, createMiddleware } from "@tanstack/react-start";
+import { createCsrfMiddleware } from "@/middlewares/csrf";
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { X, Minus, Plus, Trash2, ShoppingCart, ShoppingBag, Store } from "lucide-react";
+import { X, Minus, Plus, Trash2, ShoppingCart, ShoppingBag, Store, Loader2 } from "lucide-react";
 import { cartStore, useCart, type CartItem } from "@/lib/cart-store";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
@@ -258,7 +258,14 @@ export function CartDrawer({
               }}
               className="w-full inline-flex items-center justify-center gap-2 min-h-12 py-3 rounded-xl gradient-violet text-white text-sm font-bold hover:scale-[1.01] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {checkoutPending ? "Registrando pedido..." : "Finalizar Compra"}
+              {checkoutPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  Registrando pedido...
+                </>
+              ) : (
+                "Finalizar Compra"
+              )}
             </button>
             <button
               type="button"

@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import {
   Plus,
   Search,
@@ -14,37 +14,76 @@ import {
   Image as ImageIcon,
   Loader2,
   Info,
+  SlidersHorizontal,
 } from "lucide-react";
-import { getAdminProducts, upsertProduct, deleteProduct } from "@/lib/admin.functions";
+import {
+  getAdminProducts,
+  getServicios,
+  upsertProduct,
+  deleteProduct,
+} from "@/lib/admin.functions";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { IconPicker } from "@/components/admin/IconPicker";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import {
+  getCatalogPricingSettings,
+  saveCatalogPricingSettings,
+} from "@/lib/catalog-detail.functions";
 
 const productsQueryOptions = queryOptions({
   queryKey: ["admin-products"],
   queryFn: () => getAdminProducts(),
 });
 
+const servicesQueryOptions = queryOptions({
+  queryKey: ["admin-servicios-list"],
+  queryFn: () => getServicios(),
+});
+
 export const Route = createFileRoute("/_authenticated/admin/productos")({
-  loader: ({ context }) => context.queryClient.ensureQueryData(productsQueryOptions),
+  loader: ({ context }) =>
+    Promise.all([
+      context.queryClient.ensureQueryData(productsQueryOptions),
+      context.queryClient.ensureQueryData(servicesQueryOptions),
+    ]),
   component: ProductsManagement,
 });
 
 function ProductsManagement() {
   const { data: products } = useSuspenseQuery(productsQueryOptions);
+  const { data: services } = useSuspenseQuery(servicesQueryOptions);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Tables<"products"> | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedIconId, setSelectedIconId] = useState<string | null>(null);
   const [showHelper, setShowHelper] = useState(false);
+  const [showPricingSettings, setShowPricingSettings] = useState(false);
+  const [markupPercent, setMarkupPercent] = useState("20");
+  const [penPerUsd, setPenPerUsd] = useState("3.70");
+  const [savingPricing, setSavingPricing] = useState(false);
 
   const queryClient = useQueryClient();
   const upsertMutation = useServerFn(upsertProduct);
   const deleteMutation = useServerFn(deleteProduct);
+  const getPricingSettings = useServerFn(getCatalogPricingSettings);
+  const savePricingSettings = useServerFn(saveCatalogPricingSettings);
+  const pricingSettingsQuery = useQuery({
+    queryKey: ["catalog-pricing-settings"],
+    queryFn: () => getPricingSettings({}),
+    staleTime: 60_000,
+  });
+
+  useEffect(() => {
+    if (!pricingSettingsQuery.data) return;
+    setMarkupPercent(String(pricingSettingsQuery.data.default_markup_percent));
+    setPenPerUsd(String(pricingSettingsQuery.data.pen_per_usd));
+  }, [pricingSettingsQuery.data]);
 
   const filteredProducts = products.filter(
     (p) =>
@@ -87,7 +126,6 @@ function ProductsManagement() {
 
       setImagePreview(signedData.signedUrl);
     } catch (err) {
-      console.error("Upload error:", err);
       toast.error("Error al subir imagen: " + (err instanceof Error ? err.message : "Desconocido"));
     } finally {
       setIsUploading(false);
@@ -103,13 +141,18 @@ function ProductsManagement() {
       price: Number(formData.get("price")),
       description: formData.get("description") as string,
       category: formData.get("category") as string,
+      service_id: (formData.get("service_id") as string) || null,
+      icon_id: selectedIconId,
       image_url: imagePreview || (formData.get("image_url") as string),
       is_active: formData.get("is_active") === "on",
+      is_catalog_available: formData.get("is_catalog_available") === "on",
+      is_renewable: formData.get("is_renewable") === "on",
+      duration_days: Number(formData.get("duration_days")) || 30,
       descripcion_larga: formData.get("descripcion_larga") as string,
     };
 
-    if (!data.name || data.price < 0) {
-      toast.error("Nombre y precio válido son obligatorios");
+    if (!data.name || data.price < 0 || data.duration_days < 1) {
+      toast.error("Nombre, precio y duración válida son obligatorios");
       return;
     }
 
@@ -119,6 +162,7 @@ function ProductsManagement() {
       setIsModalOpen(false);
       setEditingProduct(null);
       setImagePreview(null);
+      setSelectedIconId(null);
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
     } catch (err) {
       toast.error("Error: " + (err instanceof Error ? err.message : "Desconocido"));
@@ -128,6 +172,7 @@ function ProductsManagement() {
   const openModal = (product: Tables<"products"> | null = null) => {
     setEditingProduct(product);
     setImagePreview(product?.image_url || null);
+    setSelectedIconId(product?.icon_id || null);
     setIsModalOpen(true);
   };
 
@@ -144,6 +189,31 @@ function ProductsManagement() {
       setIsDeletingId(null);
     }
   };
+
+  const handleSavePricingSettings = async () => {
+    const nextMarkup = Number(markupPercent);
+    const nextPenPerUsd = Number(penPerUsd);
+    if (!Number.isFinite(nextMarkup) || nextMarkup < 0 || !Number.isFinite(nextPenPerUsd) || nextPenPerUsd <= 0) {
+      toast.error("Ingresa valores válidos para margen y tipo de cambio.");
+      return;
+    }
+    setSavingPricing(true);
+    try {
+      await savePricingSettings({
+        data: { defaultMarkupPercent: nextMarkup, penPerUsd: nextPenPerUsd },
+      });
+      await queryClient.invalidateQueries({ queryKey: ["catalog-pricing-settings"] });
+      await queryClient.invalidateQueries({ queryKey: ["catalog-purchase-context"] });
+      toast.success("Configuración de precio sugerido actualizada.");
+      setShowPricingSettings(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo guardar la configuración.");
+    } finally {
+      setSavingPricing(false);
+    }
+  };
+
+  const serviceNames = new Map(services.map((service) => [service.id, service.nombre]));
 
   return (
     <AdminLayout title="Productos" subtitle="Gestiona el catálogo de productos disponibles">
@@ -166,6 +236,13 @@ function ProductsManagement() {
             title="Ayuda de edición"
           >
             <Info className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setShowPricingSettings(true)}
+            className="p-2.5 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all"
+            title="Configurar margen sugerido"
+          >
+            <SlidersHorizontal className="w-5 h-5" />
           </button>
 
           <button
@@ -196,6 +273,35 @@ function ProductsManagement() {
               className="ml-auto p-1 hover:bg-white/5 rounded-lg text-white/40"
             >
               <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPricingSettings && (
+        <div className="mb-8 rounded-2xl border border-sky-300/20 bg-sky-300/[0.04] p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-white">Precio sugerido de reventa</h3>
+              <p className="mt-1 text-sm text-white/60">
+                La PDP usa este margen sobre el costo privado solo para sugerir un precio a roles comerciales.
+              </p>
+            </div>
+            <button onClick={() => setShowPricingSettings(false)} className="text-white/45 hover:text-white" aria-label="Cerrar configuración de precios"><X className="h-5 w-5" /></button>
+          </div>
+          <div className="mt-5 grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-medium text-white/80">
+              Margen estándar (%)
+              <input value={markupPercent} onChange={(event) => setMarkupPercent(event.target.value)} type="number" min="0" step="0.1" className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-background px-3 text-white outline-none focus:border-sky-300/50" />
+            </label>
+            <label className="text-sm font-medium text-white/80">
+              Tipo de cambio PEN por USD
+              <input value={penPerUsd} onChange={(event) => setPenPerUsd(event.target.value)} type="number" min="0.01" step="0.0001" className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-background px-3 text-white outline-none focus:border-sky-300/50" />
+            </label>
+          </div>
+          <div className="mt-5 flex justify-end">
+            <button onClick={() => void handleSavePricingSettings()} disabled={savingPricing || pricingSettingsQuery.isLoading} className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white disabled:opacity-60">
+              {savingPricing && <Loader2 className="h-4 w-4 animate-spin" />} Guardar configuración
             </button>
           </div>
         </div>
@@ -242,7 +348,12 @@ function ProductsManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-white/50">
-                      {product.category || "General"}
+                      <span className="block">{product.category || "General"}</span>
+                      <span className="mt-1 block text-[10px] text-white/30">
+                        {product.service_id
+                          ? serviceNames.get(product.service_id) || "Ícono eliminado"
+                          : "Sin ícono asociado"}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap font-mono text-primary">
                       S/ {product.price.toFixed(2)}
@@ -299,8 +410,8 @@ function ProductsManagement() {
       {/* Modal Form */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="glass-card w-full max-w-lg rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="flex items-center justify-between p-6 border-b border-white/5">
+          <div className="glass-card flex w-full max-w-lg max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-2xl border border-white/10 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div className="flex shrink-0 items-center justify-between border-b border-white/5 p-5 sm:p-6">
               <h3 className="text-xl font-display text-white uppercase tracking-tight">
                 {editingProduct ? "Editar Producto" : "Nuevo Producto"}
               </h3>
@@ -312,7 +423,10 @@ function ProductsManagement() {
               </button>
             </div>
 
-            <form onSubmit={handleUpsert} className="p-6 space-y-4">
+            <form
+              onSubmit={handleUpsert}
+              className="min-h-0 flex-1 overflow-y-auto space-y-4 p-5 sm:p-6"
+            >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="text-xs font-bold text-white/40 uppercase tracking-widest">
@@ -338,6 +452,24 @@ function ProductsManagement() {
                     required
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
                   />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-white/40 uppercase tracking-widest">
+                    Duración (días)
+                  </label>
+                  <input
+                    name="duration_days"
+                    type="number"
+                    min="1"
+                    step="1"
+                    defaultValue={editingProduct?.duration_days ?? 30}
+                    required
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                  <p className="text-[10px] leading-relaxed text-white/35">
+                    Ej.: 30, 90, 180 o 365 días.
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -396,8 +528,35 @@ function ProductsManagement() {
 
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="text-xs font-bold text-white/40 uppercase tracking-widest">
-                    Imagen
+                    Ícono / Plataforma de la tienda
                   </label>
+                  <select
+                    name="service_id"
+                    defaultValue={editingProduct?.service_id || ""}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="" className="bg-[#121212]">
+                      Sin asociar a un ícono
+                    </option>
+                    {services.map((service) => (
+                      <option key={service.id} value={service.id} className="bg-[#121212]">
+                        {service.nombre} · {service.categoria}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] leading-relaxed text-white/35">
+                    Los productos asociados aparecerán al pulsar este ícono en la tienda.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 sm:col-span-2">
+                  <label className="text-xs font-bold text-white/40 uppercase tracking-widest">
+                    Ícono e imagen del producto
+                  </label>
+                  <IconPicker value={selectedIconId} onSelect={setSelectedIconId} />
+                  <p className="pt-1 text-[10px] font-bold uppercase tracking-widest text-white/40">
+                    Imagen de portada (opcional)
+                  </p>
                   <div className="flex items-center gap-4">
                     <div className="w-20 h-20 rounded-xl bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
                       {imagePreview ? (
@@ -460,17 +619,45 @@ function ProductsManagement() {
                   />
                 </div>
 
-                <div className="flex items-center gap-3 py-2">
-                  <input
-                    type="checkbox"
-                    id="is_active"
-                    name="is_active"
-                    defaultChecked={editingProduct ? Boolean(editingProduct.is_active) : true}
-                    className="w-5 h-5 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50"
-                  />
-                  <label htmlFor="is_active" className="text-sm text-white">
-                    Producto Activo
-                  </label>
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-3 py-2 sm:col-span-2">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="is_catalog_available"
+                      name="is_catalog_available"
+                      defaultChecked={
+                        editingProduct ? editingProduct.is_catalog_available : true
+                      }
+                      className="w-5 h-5 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50"
+                    />
+                    <label htmlFor="is_catalog_available" className="text-sm text-white">
+                      Disponible para compra
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="is_active"
+                      name="is_active"
+                      defaultChecked={editingProduct ? Boolean(editingProduct.is_active) : true}
+                      className="w-5 h-5 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50"
+                    />
+                    <label htmlFor="is_active" className="text-sm text-white">
+                      Producto Activo
+                    </label>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      id="is_renewable"
+                      name="is_renewable"
+                      defaultChecked={editingProduct ? editingProduct.is_renewable : true}
+                      className="w-5 h-5 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50"
+                    />
+                    <label htmlFor="is_renewable" className="text-sm text-white">
+                      Cuenta renovable
+                    </label>
+                  </div>
                 </div>
               </div>
 

@@ -169,7 +169,7 @@ export function KeyboardTutorial({ open, onClose }: { open: boolean; onClose: ()
         ref={dialogRef}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-lg rounded-2xl border border-white/10 bg-gradient-to-b from-[#120a15]/98 to-[#0a060c]/98 animate-in zoom-in-95 duration-200 focus:outline-none"
+        className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-white/10 bg-gradient-to-b from-[#120a15]/98 to-[#0a060c]/98 animate-in zoom-in-95 duration-200 focus:outline-none"
       >
         {/* Progress bar */}
         <div className="h-1 w-full rounded-t-2xl bg-white/[0.04] overflow-hidden">

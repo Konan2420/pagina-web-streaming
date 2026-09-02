@@ -29,26 +29,37 @@ function getReferrer(): string {
 }
 
 let currentUserId: string | null = null;
+let authTrackingStarted = false;
 
-// Seed from the existing session so events fired before any auth change are attributed.
-if (typeof window !== "undefined") {
-  supabase.auth.getSession().then(({ data }) => {
+/** Starts after hydration, once the root loader has configured Supabase. */
+function startAuthTracking(): () => void {
+  if (authTrackingStarted) return () => undefined;
+  authTrackingStarted = true;
+
+  void supabase.auth.getSession().then(({ data }) => {
     currentUserId = data.session?.user?.id ?? currentUserId;
   });
-}
 
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === "SIGNED_OUT") {
-    currentUserId = null;
-  } else {
-    currentUserId = session?.user?.id ?? null;
-  }
-});
+  const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT") {
+      currentUserId = null;
+    } else {
+      currentUserId = session?.user?.id ?? null;
+    }
+  });
+
+  return () => {
+    subscription.subscription.unsubscribe();
+    authTrackingStarted = false;
+  };
+}
 
 /** Send a single analytics event to the server. */
 export function useAnalytics() {
   const sessionIdRef = useRef<string | null>(null);
   const track = useServerFn(trackEvent);
+
+  useEffect(() => startAuthTracking(), []);
 
   const send = useCallback(
     (

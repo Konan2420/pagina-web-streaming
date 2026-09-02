@@ -1,52 +1,77 @@
 import { useState, type ReactNode } from "react";
 import {
-  BriefcaseBusiness,
+  BadgeCheck,
+  BookOpen,
+  Bot,
+  Briefcase,
   ChevronDown,
-  Download,
+  ChevronRight,
+  FileText,
   FolderTree,
+  GraduationCap,
+  Inbox,
   LayoutDashboard,
-  Newspaper,
-  Package,
+  LogOut,
+  Megaphone,
+  Phone,
   Plus,
+  Settings,
+  Share2,
   ShoppingBag,
-  Sparkles,
-  Trophy,
+  Store,
   Users,
+  Video,
   Wallet,
   X,
 } from "lucide-react";
-import { categories } from "./data";
+import { Link } from "@tanstack/react-router";
+import { categories, type PanelTab } from "./data";
 import { cn } from "@/lib/utils";
-
-type StorePanel = "tienda" | "compras" | "perfil";
 
 type StoreSidebarProps = {
   open: boolean;
   collapsed: boolean;
   sessionActive: boolean;
-  canManageStore: boolean;
+  walletBalance: number;
+  isAdmin: boolean;
+  isProvider: boolean;
+  isDistributor: boolean;
+  catalogOnly?: boolean;
+  accountRoleLabel: string;
   displayName: string;
   initials: string;
   avatarUrl?: string | null;
-  activePanel: StorePanel | "supplier_info";
+  activePanel: PanelTab;
   activeCategory: string;
   onClose: () => void;
   onCategorySelect: (categoryId: string) => void;
-  onPanelSelect: (panel: StorePanel) => void;
-  onOpenSellerStore: () => void;
+  onPanelSelect: (panel: PanelTab) => void;
+  onOpenAdmin: () => void;
+  onOpenStorefront: () => void;
   onOpenWallet: () => void;
   onOpenAuth: () => void;
+  onSignOut: () => void;
   onUnavailable: (feature: string) => void;
 };
 
 const catalogQuickLinks = ["todo", "redes", "recargas", "giftcards", "videojuegos"];
+const socialNetworksCategory = {
+  id: "redes",
+  label: "Redes Sociales",
+  accent: "#38bdf8",
+};
 
-/** Barra lateral del catálogo. Sus acciones usan los filtros y paneles reales de la tienda. */
+/** Barra lateral del catálogo con navegación comercial y accesos de cuenta. */
 export function StoreSidebar({
   open,
   collapsed,
   sessionActive,
-  canManageStore,
+  walletBalance,
+  isAdmin,
+  isProvider,
+  isDistributor,
+  catalogOnly = false,
+  accountRoleLabel,
   displayName,
   initials,
   avatarUrl,
@@ -55,18 +80,29 @@ export function StoreSidebar({
   onClose,
   onCategorySelect,
   onPanelSelect,
-  onOpenSellerStore,
+  onOpenAdmin,
+  onOpenStorefront,
   onOpenWallet,
   onOpenAuth,
+  onSignOut,
   onUnavailable,
 }: StoreSidebarProps) {
   const [catalogOpen, setCatalogOpen] = useState(true);
   const [businessOpen, setBusinessOpen] = useState(true);
+  const [academyOpen, setAcademyOpen] = useState(false);
   const profileName = sessionActive ? displayName : "Invitado";
-
-  const selectPanel = (panel: StorePanel) => {
+  const canManageStorefront = sessionActive && (isAdmin || isProvider || isDistributor);
+  const selectPanel = (panel: PanelTab) => {
     onPanelSelect(panel);
     onClose();
+  };
+
+  const selectProtectedPanel = (panel: PanelTab) => {
+    if (!sessionActive) {
+      onOpenAuth();
+      return;
+    }
+    selectPanel(panel);
   };
 
   const selectCategory = (categoryId: string) => {
@@ -87,33 +123,30 @@ export function StoreSidebar({
       />
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[190px] flex-col border-r border-border bg-background p-3 text-foreground transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[var(--store-sidebar-mobile-width)] flex-col border-r border-border bg-card p-3 text-foreground transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:w-[var(--store-sidebar-width)] lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
-          collapsed && "lg:w-[76px]",
+          collapsed && "lg:w-[var(--store-sidebar-collapsed-width)]",
         )}
         data-collapsed={collapsed ? "true" : "false"}
       >
-        <div
-          className={cn(
-            "mb-5 flex items-start justify-between px-2 pt-1 transition-[justify-content] duration-300 ease-in-out",
-            collapsed && "lg:justify-center",
-          )}
-        >
-          <div className={cn("flex flex-col items-center gap-1", collapsed && "lg:gap-0")}>
-            <img src="/favicon.png" alt="CMD Streaming" className="h-11 w-11 rounded-xl object-contain" />
-            <span
-              className={cn(
-                "max-h-4 max-w-[4rem] overflow-hidden whitespace-nowrap text-[8px] font-black tracking-[0.42em] text-white/70 transition-[max-height,max-width,opacity] duration-200 ease-out",
-                collapsed && "lg:max-h-0 lg:max-w-0 lg:opacity-0",
-              )}
-            >
-              CMD
-            </span>
-          </div>
+        <div className="relative mb-5 flex justify-center px-2 pt-1">
+          <Link
+            to="/"
+            onClick={onClose}
+            title="Volver al inicio"
+            aria-label="Volver al inicio de CMD Streaming"
+            className="rounded-2xl transition-transform duration-200 hover:scale-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-accent"
+          >
+            <img
+              src="/cmd-logo.png"
+              alt="CMD Streaming"
+              className="h-14 w-14 rounded-2xl object-contain drop-shadow-[0_6px_12px_rgba(220,38,38,0.2)] sm:h-16 sm:w-16"
+            />
+          </Link>
           <button
             type="button"
             onClick={onClose}
-            className="grid h-8 w-8 place-items-center rounded-lg text-white/55 hover:bg-white/5 hover:text-white lg:hidden"
+            className="absolute right-2 top-1 grid h-8 w-8 place-items-center rounded-lg text-white/55 hover:bg-white/5 hover:text-white lg:hidden"
             aria-label="Cerrar menú lateral"
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -123,15 +156,20 @@ export function StoreSidebar({
         <section
           className={cn(
             "mb-4 max-h-48 origin-top rounded-lg border border-border bg-background p-3 transition-[max-height,margin,opacity,transform] duration-200 ease-out",
-            collapsed && "pointer-events-none lg:mb-0 lg:max-h-0 lg:-translate-y-1 lg:overflow-hidden lg:border-transparent lg:p-0 lg:opacity-0",
+            collapsed &&
+              "pointer-events-none lg:mb-0 lg:max-h-0 lg:-translate-y-1 lg:overflow-hidden lg:border-transparent lg:p-0 lg:opacity-0",
           )}
         >
           <div className="flex items-center gap-2 text-[10px] font-semibold text-white/70">
             <Wallet className="h-3.5 w-3.5 text-red-accent" aria-hidden="true" />
             Mi Billetera
           </div>
-          <p className="mt-2 text-lg font-black tracking-tight text-white">S/ —</p>
-          <p className="text-[9px] text-white/40">Saldo disponible al iniciar sesión</p>
+          <p className="mt-2 text-lg font-black tracking-tight text-white">
+            {sessionActive ? `S/ ${walletBalance.toFixed(2)}` : "S/ —"}
+          </p>
+          <p className="text-[9px] text-white/40">
+            {sessionActive ? "Saldo disponible" : "Saldo disponible al iniciar sesión"}
+          </p>
           <button
             type="button"
             onClick={onOpenWallet}
@@ -142,10 +180,14 @@ export function StoreSidebar({
           </button>
         </section>
 
-        <nav className={cn("min-h-0 flex-1 overflow-y-auto pr-1 text-[11px]", collapsed && "lg:pr-0")}>
+        <nav
+          aria-label="Navegación principal"
+          className={cn(
+            "cmd-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1.5 text-sm",
+            collapsed && "lg:pr-0",
+          )}
+        >
           <div className="space-y-0.5">
-            <SidebarButton collapsed={collapsed} icon={<Newspaper />} label="Noticias" onClick={() => onUnavailable("Noticias")} />
-            <SidebarButton collapsed={collapsed} icon={<Trophy />} label="Ranking" onClick={() => onUnavailable("Ranking")} />
             <SidebarButton
               collapsed={collapsed}
               icon={<FolderTree />}
@@ -153,146 +195,342 @@ export function StoreSidebar({
               expanded={catalogOpen}
               onClick={() => setCatalogOpen((value) => !value)}
             />
-          </div>
-
-          {catalogOpen && (
-            <div
-              className={cn(
-                "my-1 ml-3 max-h-48 overflow-hidden border-l border-border pl-2 transition-[max-height,margin,opacity] duration-200 ease-out",
-                collapsed && "pointer-events-none lg:my-0 lg:max-h-0 lg:border-transparent lg:opacity-0",
-              )}
-            >
+            <SidebarSubmenu open={catalogOpen} collapsed={collapsed}>
               {catalogQuickLinks.map((categoryId) => {
-                const category = categories.find((item) => item.id === categoryId);
+                const category =
+                  categories.find((item) => item.id === categoryId) ??
+                  (categoryId === "redes" ? socialNetworksCategory : null);
                 if (!category) return null;
                 const active = activePanel === "tienda" && activeCategory === categoryId;
+
+                if (category.id === "todo") {
+                  return (
+                    <a
+                      key={category.id}
+                      href={catalogOnly ? "/catalogo" : "/tienda"}
+                      onClick={onClose}
+                      className={cn(
+                        "flex min-h-9 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors",
+                        active
+                          ? "bg-primary/10 text-white"
+                          : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
+                      )}
+                    >
+                      {category.label}
+                    </a>
+                  );
+                }
+
                 return (
                   <button
                     key={category.id}
                     type="button"
                     onClick={() => selectCategory(category.id)}
                     className={cn(
-                      "flex min-h-7 w-full items-center rounded-lg px-2 text-left text-[10px] font-semibold transition-colors",
+                      "flex min-h-9 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors",
                       active
                         ? "bg-primary/10 text-white"
                         : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
                     )}
                   >
+                    {category.id === "redes" && (
+                      <Share2 className="mr-2 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    )}
                     {category.label}
                   </button>
                 );
               })}
-            </div>
-          )}
+            </SidebarSubmenu>
 
-          <div className="mt-1 space-y-0.5">
             <SidebarButton
               collapsed={collapsed}
               icon={<LayoutDashboard />}
               label="Dashboard"
-              active={activePanel === "tienda" && activeCategory === "todo"}
               onClick={() => selectCategory("todo")}
             />
-            <SidebarButton
-              collapsed={collapsed}
-              icon={<BriefcaseBusiness />}
-              label="Mi Negocio"
-              expanded={businessOpen}
-              onClick={() => setBusinessOpen((value) => !value)}
-            />
           </div>
 
-          {businessOpen && (
-            <div
-              className={cn(
-                "my-1 ml-3 max-h-40 overflow-hidden border-l border-border pl-2 transition-[max-height,margin,opacity] duration-200 ease-out",
-                collapsed && "pointer-events-none lg:my-0 lg:max-h-0 lg:border-transparent lg:opacity-0",
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  if (!sessionActive) onOpenAuth();
-                  else if (canManageStore) onOpenSellerStore();
-                  else onUnavailable("Mi Tienda requiere una cuenta Vendedor");
-                }}
-                className={cn(
-                  "flex min-h-7 w-full items-center gap-2 rounded-lg px-2 text-left text-[10px] font-semibold transition-colors",
-                  "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
-                )}
-              >
-                <ShoppingBag className="h-3 w-3" aria-hidden="true" /> Mi Tienda
-              </button>
-              <button
-                type="button"
-                onClick={() => (sessionActive ? selectPanel("compras") : onOpenAuth())}
-                className={cn(
-                  "flex min-h-7 w-full items-center gap-2 rounded-lg px-2 text-left text-[10px] font-semibold transition-colors",
-                  activePanel === "compras" ? "text-white" : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
-                )}
-              >
-                <Package className="h-3 w-3" aria-hidden="true" /> Pedidos
-              </button>
-              <button
-                type="button"
-                onClick={() => (sessionActive ? selectPanel("perfil") : onOpenAuth())}
-                className={cn(
-                  "flex min-h-7 w-full items-center gap-2 rounded-lg px-2 text-left text-[10px] font-semibold transition-colors",
-                  activePanel === "perfil" ? "text-white" : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
-                )}
-              >
-                <Users className="h-3 w-3" aria-hidden="true" /> Mi Perfil
-              </button>
-            </div>
-          )}
+          {!catalogOnly && (
+            <>
+              <div className="my-2 border-t border-border/80" />
 
-          <SidebarButton collapsed={collapsed} icon={<Download />} label="Descargar App" onClick={() => onUnavailable("La app")} />
+              <div className="space-y-0.5">
+                <SidebarButton
+                  collapsed={collapsed}
+                  icon={<Briefcase />}
+                  label="Mi Negocio"
+                  expanded={businessOpen}
+                  onClick={() => setBusinessOpen((value) => !value)}
+                />
+                <SidebarSubmenu open={businessOpen} collapsed={collapsed}>
+                  {canManageStorefront && (
+                    <SidebarSubItem
+                      icon={<Store />}
+                      label="Mi Tienda"
+                      active={activePanel === "mi-tienda"}
+                      onClick={onOpenStorefront}
+                    />
+                  )}
+                  <SidebarSubItem
+                    icon={<ShoppingBag />}
+                    label="Pedidos"
+                    active={activePanel === "compras"}
+                    onClick={() => selectProtectedPanel("compras")}
+                  />
+                  {canManageStorefront && (
+                    <SidebarSubItem
+                      icon={<Users />}
+                      label="Clientes"
+                      active={activePanel === "clientes"}
+                      onClick={() => selectPanel("clientes")}
+                    />
+                  )}
+                  <SidebarSubItem icon={<Bot />} label="Bot de Códigos" disabled badge="Próx" />
+                  <SidebarSubItem
+                    icon={<Inbox />}
+                    label="Buzón"
+                    active={activePanel === "buzon"}
+                    onClick={() => selectProtectedPanel("buzon")}
+                  />
+                </SidebarSubmenu>
+
+                <SidebarButton
+                  collapsed={collapsed}
+                  icon={<Phone />}
+                  label="Soporte"
+                  active={activePanel === "soporte"}
+                  onClick={() => selectPanel("soporte")}
+                />
+
+                <SidebarButton
+                  collapsed={collapsed}
+                  icon={<GraduationCap />}
+                  label="Academia"
+                  expanded={academyOpen}
+                  onClick={() => setAcademyOpen((value) => !value)}
+                />
+                <SidebarSubmenu open={academyOpen} collapsed={collapsed}>
+                  <SidebarSubItem
+                    icon={<Megaphone />}
+                    label="Publicidad"
+                    active={activePanel === "publicidad"}
+                    onClick={() => selectPanel("publicidad")}
+                  />
+                  <SidebarSubItem
+                    icon={<BookOpen />}
+                    label="Cursos"
+                    active={activePanel === "cursos"}
+                    onClick={() => selectPanel("cursos")}
+                  />
+                  <SidebarSubItem
+                    icon={<Video />}
+                    label="Meets"
+                    active={activePanel === "meets"}
+                    onClick={() => selectPanel("meets")}
+                  />
+                </SidebarSubmenu>
+
+                <a
+                  href="/politicas"
+                  onClick={onClose}
+                  title={collapsed ? "Políticas" : undefined}
+                  className={cn(
+                    "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-white/70 transition-[background-color,color,gap,padding] duration-200 ease-out hover:bg-white/[0.045] hover:text-white",
+                    collapsed && "lg:justify-center lg:gap-0 lg:px-0",
+                  )}
+                >
+                  <span className="shrink-0 text-white/65 [&>svg]:h-4 [&>svg]:w-4">
+                    <FileText />
+                  </span>
+                  <span
+                    className={cn(
+                      "max-w-[15rem] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
+                      collapsed && "lg:max-w-0 lg:opacity-0",
+                    )}
+                  >
+                    Políticas
+                  </span>
+                </a>
+                <SidebarButton
+                  collapsed={collapsed}
+                  icon={<Settings />}
+                  label="Configuración"
+                  active={activePanel === "perfil"}
+                  onClick={() => selectProtectedPanel("perfil")}
+                />
+              </div>
+            </>
+          )}
         </nav>
 
-        <div className={cn("mt-3 border-t border-border pt-3", collapsed && "lg:border-transparent")}>
-          <div
-            className={cn(
-              "mb-3 inline-flex max-h-8 items-center gap-1 overflow-hidden rounded-lg border border-green-400/20 bg-green-400/10 px-2 py-1 text-[8px] font-black uppercase tracking-wider text-green-300 transition-[max-height,margin,opacity] duration-200 ease-out",
-              collapsed && "pointer-events-none lg:mb-0 lg:max-h-0 lg:border-transparent lg:px-0 lg:py-0 lg:opacity-0",
-            )}
-          >
-            <Sparkles className="h-3 w-3" aria-hidden="true" /> Catálogo activo
-          </div>
-          <button
-            type="button"
-            onClick={() => (sessionActive ? selectPanel("perfil") : onOpenAuth())}
-            className={cn(
-              "flex w-full items-center gap-2 rounded-lg p-1.5 text-left transition hover:bg-white/[0.05]",
-              collapsed && "lg:justify-center lg:gap-0 lg:px-0",
-            )}
-          >
-            <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-red-accent text-[10px] font-black text-white">
-              {avatarUrl ? (
-                <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
-              ) : (
-                initials || "IN"
-              )}
-            </div>
-            <span
+        <div
+          className={cn("mt-3 border-t border-border pt-3", collapsed && "lg:border-transparent")}
+        >
+          {!catalogOnly && (
+            <button
+              type="button"
+              onClick={() => onUnavailable("Vendedor PRO")}
+              title={collapsed ? "Vendedor PRO" : undefined}
               className={cn(
-                "min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
-                collapsed ? "lg:max-w-0 lg:opacity-0" : "max-w-[8rem] opacity-100",
+                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-primary/30 bg-primary/10 px-3 text-left text-xs font-black text-white transition hover:border-primary/60 hover:bg-primary/15",
+                collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
-              <span className="block truncate text-[10px] font-bold text-white">{profileName}</span>
-              <span className="block text-[9px] text-white/45">{sessionActive ? "Cliente" : "Inicia sesión"}</span>
-            </span>
-            <ChevronDown
+              <BadgeCheck className="h-[18px] w-[18px] shrink-0 text-primary" aria-hidden="true" />
+              <span
+                className={cn(
+                  "max-w-[15rem] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
+                  collapsed && "lg:max-w-0 lg:opacity-0",
+                )}
+              >
+                Vendedor PRO
+              </span>
+            </button>
+          )}
+
+          {sessionActive && (
+            <button
+              type="button"
+              onClick={onSignOut}
+              title={collapsed ? "Cerrar sesión" : undefined}
               className={cn(
-                "ml-auto h-3.5 w-3.5 -rotate-90 text-white/45 transition-[max-width,opacity] duration-200 ease-out",
-                collapsed && "lg:ml-0 lg:max-w-0 lg:opacity-0",
+                "mb-2 flex min-h-10 w-full items-center gap-2.5 rounded-lg border border-red-accent/30 px-3 text-left text-xs font-bold text-red-200 transition hover:border-red-accent hover:bg-red-accent/10 hover:text-white",
+                collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
-              aria-hidden="true"
-            />
-          </button>
+            >
+              <LogOut className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span
+                className={cn(
+                  "max-w-[15rem] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
+                  collapsed && "lg:max-w-0 lg:opacity-0",
+                )}
+              >
+                Cerrar sesión
+              </span>
+            </button>
+          )}
+
+          {!catalogOnly && (
+            <button
+              type="button"
+              onClick={() => {
+                if (!sessionActive) onOpenAuth();
+                else if (isAdmin) onOpenAdmin();
+                else selectPanel("perfil");
+              }}
+              className={cn(
+                "flex w-full items-center gap-2 rounded-lg border border-transparent p-1.5 text-left transition hover:border-border hover:bg-white/[0.05]",
+                collapsed && "lg:justify-center lg:gap-0 lg:px-0",
+              )}
+            >
+              <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-red-accent text-[10px] font-black text-white">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  initials || "IN"
+                )}
+              </div>
+              <span
+                className={cn(
+                  "min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
+                  collapsed ? "lg:max-w-0 lg:opacity-0" : "max-w-[13rem] opacity-100",
+                )}
+              >
+                <span className="block truncate text-[10px] font-bold text-white">
+                  {profileName}
+                </span>
+                <span className="block text-[9px] text-white/45">
+                  {sessionActive ? accountRoleLabel : "Inicia sesión"}
+                </span>
+              </span>
+              <ChevronRight
+                className={cn(
+                  "ml-auto h-3.5 w-3.5 text-white/45 transition-[max-width,opacity] duration-200 ease-out",
+                  collapsed && "lg:ml-0 lg:max-w-0 lg:opacity-0",
+                )}
+                aria-hidden="true"
+              />
+            </button>
+          )}
         </div>
       </aside>
     </>
+  );
+}
+
+function SidebarSubmenu({
+  children,
+  open,
+  collapsed,
+}: {
+  children: ReactNode;
+  open: boolean;
+  collapsed: boolean;
+}) {
+  return (
+    <div
+      className={cn(
+        "grid transition-[grid-template-rows,opacity,margin] duration-200 ease-out",
+        open ? "my-1 grid-rows-[1fr] opacity-100" : "my-0 grid-rows-[0fr] opacity-0",
+        collapsed && "pointer-events-none lg:hidden",
+      )}
+      aria-hidden={!open}
+    >
+      <div className="overflow-hidden">
+        <div className="ml-4 border-l border-border pl-3">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function SidebarSubItem({
+  icon,
+  label,
+  active = false,
+  disabled = false,
+  badge,
+  onClick,
+}: {
+  icon: ReactNode;
+  label: string;
+  active?: boolean;
+  disabled?: boolean;
+  badge?: string;
+  onClick?: () => void;
+}) {
+  const className = cn(
+    "flex min-h-9 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13px] font-semibold transition-colors",
+    disabled
+      ? "cursor-not-allowed text-white/30"
+      : active
+        ? "bg-primary/10 text-white"
+        : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
+  );
+
+  const content = (
+    <>
+      <span className="shrink-0 text-current [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
+      <span>{label}</span>
+      {badge && (
+        <span className="ml-auto rounded-md bg-white/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-white/55">
+          {badge}
+        </span>
+      )}
+    </>
+  );
+
+  if (disabled) {
+    return (
+      <div aria-disabled="true" title="Próximamente" className={className}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <button type="button" onClick={onClick} className={className}>
+      {content}
+    </button>
   );
 }
 
@@ -316,16 +554,19 @@ function SidebarButton({
       type="button"
       onClick={onClick}
       title={collapsed ? label : undefined}
+      aria-expanded={expanded}
       className={cn(
-        "flex min-h-8 w-full items-center gap-2 rounded-lg px-2 text-left text-[11px] font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out",
+        "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out",
         collapsed && "lg:justify-center lg:gap-0 lg:px-0",
-        active ? "bg-primary/10 text-white" : "text-white/70 hover:bg-white/[0.045] hover:text-white",
+        active
+          ? "bg-primary/10 text-white"
+          : "text-white/70 hover:bg-white/[0.045] hover:text-white",
       )}
     >
-      <span className="shrink-0 text-white/65 [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>
+      <span className="shrink-0 text-white/65 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
       <span
         className={cn(
-          "max-w-[9rem] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
+          "max-w-[15rem] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
           collapsed && "lg:max-w-0 lg:opacity-0",
         )}
       >
@@ -334,10 +575,11 @@ function SidebarButton({
       {expanded !== undefined && (
         <ChevronDown
           className={cn(
-            "ml-auto h-3.5 w-3.5 transition-[max-width,opacity,transform] duration-200 ease-out",
+            "ml-auto h-4 w-4 transition-[max-width,opacity,transform] duration-200 ease-out",
             expanded && "rotate-180",
             collapsed && "lg:ml-0 lg:max-w-0 lg:opacity-0",
           )}
+          aria-hidden="true"
         />
       )}
     </button>

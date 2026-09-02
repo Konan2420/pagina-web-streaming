@@ -2,17 +2,85 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { queryOptions, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Tv, Plus, Tag, Globe, Settings2, Trash2, Edit2 } from "lucide-react";
+import { Tv, Plus, Tag, Globe, Settings2, Trash2, Edit2, Image as ImageIcon, Loader2, Upload } from "lucide-react";
 import { getServicios, addServicio, deleteServicio, updateServicio } from "@/lib/admin.functions";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  platformIcons,
+  PlatformIconMark,
+  type PlatformIconDefinition,
+} from "@/lib/platformIcons";
 
 const serviciosQueryOptions = queryOptions({
   queryKey: ["admin-servicios-full"],
   queryFn: () => getServicios(),
 });
+
+function toServiceSlug(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+function BuiltInIconCard({
+  icon,
+  service,
+  isAdmin,
+  onEdit,
+}: {
+  icon: PlatformIconDefinition;
+  service?: Tables<"servicios_streaming">;
+  isAdmin: boolean;
+  onEdit: () => void;
+}) {
+  const hasCustomImage = Boolean(service?.icon_url);
+
+  return (
+    <div className="glass-card group rounded-2xl border border-white/5 p-5 transition-all hover:border-primary/30">
+      <div className="flex items-start justify-between gap-3">
+        {hasCustomImage ? (
+          <div className="grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl border border-primary/25 bg-primary/10">
+            <img src={service!.icon_url!} alt="" className="h-full w-full object-contain p-2" />
+          </div>
+        ) : (
+          <PlatformIconMark iconId={icon.id} className="h-12 w-12 shrink-0 border border-white/15" iconClassName="h-6 w-6" />
+        )}
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-2 text-[10px] font-bold text-white/65 transition hover:border-primary/50 hover:bg-primary/10 hover:text-white"
+          >
+            <Edit2 className="h-3.5 w-3.5" aria-hidden="true" />
+            Cambiar
+          </button>
+        )}
+      </div>
+      <h3 className="mt-4 truncate text-base font-bold text-white">{icon.name}</h3>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-white/55">
+          {icon.categoryId}
+        </span>
+        <span
+          className={`rounded-md border px-2 py-1 text-[9px] font-bold uppercase tracking-wide ${
+            hasCustomImage
+              ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
+              : "border-primary/25 bg-primary/10 text-primary"
+          }`}
+        >
+          {hasCustomImage ? "Imagen personalizada" : "Predefinido"}
+        </span>
+      </div>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/admin/servicios")({
   loader: ({ context }) => context.queryClient.ensureQueryData(serviciosQueryOptions),
@@ -24,6 +92,9 @@ function ServicesManagement() {
   const { isAdmin } = Route.useRouteContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingService, setEditingService] = useState<Tables<"servicios_streaming"> | null>(null);
+  const [editingPreset, setEditingPreset] = useState<PlatformIconDefinition | null>(null);
+  const [iconPreview, setIconPreview] = useState<string | null>(null);
+  const [isUploadingIcon, setIsUploadingIcon] = useState(false);
 
   const queryClient = useQueryClient();
   const addServicioMutation = useServerFn(addServicio);
@@ -32,17 +103,74 @@ function ServicesManagement() {
 
   const openCreateModal = () => {
     setEditingService(null);
+    setEditingPreset(null);
+    setIconPreview(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (service: Tables<"servicios_streaming">) => {
     setEditingService(service);
+    setEditingPreset(null);
+    setIconPreview(service.icon_url);
+    setIsModalOpen(true);
+  };
+
+  const openPresetEditModal = (
+    preset: PlatformIconDefinition,
+    service: Tables<"servicios_streaming"> | undefined,
+  ) => {
+    setEditingService(service ?? null);
+    setEditingPreset(preset);
+    setIconPreview(service?.icon_url ?? null);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setEditingService(null);
+    setEditingPreset(null);
+    setIconPreview(null);
+  };
+
+  const handleIconUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      toast.error('Usa una imagen PNG, JPG o WebP.');
+      event.target.value = '';
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('El ícono no puede superar 2 MB.');
+      event.target.value = '';
+      return;
+    }
+
+    setIsUploadingIcon(true);
+    try {
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData.user) throw new Error('Tu sesión de administrador no es válida.');
+
+      const extension = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+      const path = `${authData.user.id}/${crypto.randomUUID()}.${extension}`;
+      const { error: uploadError } = await supabase.storage
+        .from('platform-icons')
+        .upload(path, file, { contentType: file.type, cacheControl: '3600', upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { data: publicUrlData } = supabase.storage.from('platform-icons').getPublicUrl(path);
+      if (!publicUrlData.publicUrl) throw new Error('No se pudo generar la URL del ícono.');
+
+      setIconPreview(publicUrlData.publicUrl);
+      toast.success('Ícono cargado. Guarda la plataforma para publicarlo.');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      toast.error(`No se pudo cargar el ícono: ${message}`);
+    } finally {
+      setIsUploadingIcon(false);
+      event.target.value = '';
+    }
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -57,6 +185,7 @@ function ServicesManagement() {
       toast.success("Servicio eliminado");
       queryClient.invalidateQueries({ queryKey: ["admin-servicios-full"] });
       queryClient.invalidateQueries({ queryKey: ["admin-servicios-list"] });
+      queryClient.invalidateQueries({ queryKey: ["public-managed-platforms"] });
     } catch (err) {
       toast.error(
         "Error al eliminar: " + (err instanceof Error ? err.message : "Error desconocido"),
@@ -67,11 +196,15 @@ function ServicesManagement() {
   const handleSaveServicio = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const preset = editingPreset;
     const data = {
-      nombre: formData.get("nombre") as string,
-      slug: (formData.get("nombre") as string).toLowerCase().replace(/\s+/g, "-"),
-      categoria: formData.get("categoria") as string,
+      nombre: preset?.name ?? (formData.get("nombre") as string),
+      slug: toServiceSlug(preset?.name ?? (formData.get("nombre") as string)),
+      categoria: preset?.categoryId ?? (formData.get("categoria") as string),
       icono: (formData.get("icono") as string) || undefined,
+      icon_url: iconPreview,
+      display_order: Number(formData.get("display_order") || 0),
+      is_visible: preset ? true : formData.get("is_visible") === "on",
     };
 
     try {
@@ -85,6 +218,7 @@ function ServicesManagement() {
       closeModal();
       queryClient.invalidateQueries({ queryKey: ["admin-servicios-full"] });
       queryClient.invalidateQueries({ queryKey: ["admin-servicios-list"] });
+      queryClient.invalidateQueries({ queryKey: ["public-managed-platforms"] });
     } catch (err) {
       toast.error(
         "Error al guardar el servicio: " +
@@ -93,8 +227,15 @@ function ServicesManagement() {
     }
   };
 
+  const builtInServicesBySlug = new Map(servicios.map((service) => [service.slug, service]));
+  const builtInSlugs = new Set(platformIcons.map((icon) => toServiceSlug(icon.name)));
+  const customServicios = servicios.filter((service) => !builtInSlugs.has(service.slug));
+
   return (
-    <AdminLayout title="Servicios" subtitle="Gestión de plataformas y categorías">
+    <AdminLayout
+      title="Íconos y plataformas"
+      subtitle="Crea un ícono una sola vez y vincula sus productos desde el catálogo"
+    >
       {isAdmin && (
         <div className="flex justify-end mb-6">
           <button
@@ -102,25 +243,53 @@ function ServicesManagement() {
             className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
           >
             <Plus className="w-4 h-4" />
-            Nuevo Servicio
+            Nuevo ícono
           </button>
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {servicios.length === 0 ? (
-          <div className="col-span-full py-12 text-center text-white/30 italic glass-card rounded-2xl border border-white/5">
-            Aún no has creado ningún servicio.
+      <section>
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-bold text-white">Íconos predefinidos</h2>
+            <p className="mt-1 text-xs text-white/45">
+              Cambia su imagen sin alterar el nombre, categoría ni los productos asociados.
+            </p>
           </div>
-        ) : (
-          servicios.map((s) => (
+          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-[10px] font-bold text-white/50">
+            {platformIcons.length} disponibles
+          </span>
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {platformIcons.map((icon) => (
+            <BuiltInIconCard
+              key={icon.id}
+              icon={icon}
+              service={builtInServicesBySlug.get(toServiceSlug(icon.name))}
+              isAdmin={isAdmin}
+              onEdit={() => openPresetEditModal(icon, builtInServicesBySlug.get(toServiceSlug(icon.name)))}
+            />
+          ))}
+        </div>
+      </section>
+
+      {customServicios.length > 0 && (
+        <h2 className="mb-4 mt-10 text-lg font-bold text-white">Plataformas personalizadas</h2>
+      )}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {customServicios.length === 0 ? null : (
+          customServicios.map((s) => (
             <div
               key={s.id}
               className="glass-card rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-all group"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 grid place-items-center text-primary group-hover:scale-110 transition-transform">
-                  <Tv className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 grid place-items-center overflow-hidden text-primary group-hover:scale-110 transition-transform">
+                  {s.icon_url ? (
+                    <img src={s.icon_url} alt="" className="h-full w-full object-contain p-2" />
+                  ) : (
+                    <span className="text-sm font-black uppercase">{s.nombre.slice(0, 2)}</span>
+                  )}
                 </div>
                 {isAdmin && (
                   <div className="flex gap-2">
@@ -154,6 +323,15 @@ function ServicesManagement() {
                   <Tag className="w-3 h-3 text-primary" />
                   {s.categoria}
                 </span>
+                <span
+                  className={`px-2.5 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-wider ${
+                    s.is_visible
+                      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-300"
+                      : "border-white/10 bg-white/5 text-white/35"
+                  }`}
+                >
+                  {s.is_visible ? "Visible" : "Oculto"}
+                </span>
               </div>
 
               <div className="pt-4 border-t border-white/5 flex items-center justify-between">
@@ -164,7 +342,7 @@ function ServicesManagement() {
                   to="/admin/stock"
                   className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
                 >
-                  Ver stock <Settings2 className="w-3 h-3" />
+                  Asignar productos <Settings2 className="w-3 h-3" />
                 </Link>
               </div>
             </div>
@@ -176,27 +354,37 @@ function ServicesManagement() {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full max-w-md bg-ink border border-white/10 rounded-2xl p-8 shadow-2xl">
+          <div className="relative w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-white/10 bg-ink p-5 shadow-2xl sm:p-6">
             <h2 className="text-2xl font-display text-white uppercase tracking-tight mb-6">
-              {editingService ? "Editar Servicio" : "Nuevo Servicio"}
+              {editingPreset
+                ? `Cambiar imagen · ${editingPreset.name}`
+                : editingService
+                  ? "Editar ícono"
+                  : "Nuevo ícono"}
             </h2>
             <form
-              key={editingService?.id ?? "new"}
+              key={editingService?.id ?? editingPreset?.id ?? "new"}
               onSubmit={handleSaveServicio}
               className="space-y-4"
             >
               <div>
                 <label className="block text-xs font-bold text-white/40 uppercase mb-2">
-                  Nombre de la Plataforma
+                  Nombre de la plataforma
                 </label>
                 <input
                   name="nombre"
                   type="text"
                   required
-                  defaultValue={editingService?.nombre ?? ""}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  readOnly={Boolean(editingPreset)}
+                  defaultValue={editingPreset?.name ?? editingService?.nombre ?? ""}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all read-only:cursor-default read-only:text-white/60"
                   placeholder="Ej: Netflix, HBO Max, etc."
                 />
+                {editingPreset && (
+                  <p className="mt-1.5 text-[10px] text-white/35">
+                    El nombre se mantiene para que el ícono continúe vinculado a sus productos.
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-white/40 uppercase mb-2">
@@ -205,37 +393,90 @@ function ServicesManagement() {
                 <select
                   name="categoria"
                   required
-                  defaultValue={editingService?.categoria ?? "streaming"}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all appearance-none"
+                  disabled={Boolean(editingPreset)}
+                  defaultValue={editingPreset?.categoryId ?? editingService?.categoria ?? "streaming"}
+                  className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white transition-all focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:cursor-not-allowed disabled:text-white/50"
                 >
                   <option value="streaming" className="bg-ink">
                     Streaming
                   </option>
-                  <option value="musica" className="bg-ink">
+                  <option value="music" className="bg-ink">
                     Música
                   </option>
                   <option value="ia" className="bg-ink">
                     IA & Herramientas
                   </option>
-                  <option value="juegos" className="bg-ink">
+                  <option value="videojuegos" className="bg-ink">
                     Juegos
                   </option>
-                  <option value="redes" className="bg-ink">
-                    Redes Sociales
+                  <option value="apps" className="bg-ink">
+                    Aplicaciones
+                  </option>
+                  <option value="licencias" className="bg-ink">
+                    Licencias
+                  </option>
+                  <option value="recargas" className="bg-ink">
+                    Recargas
+                  </option>
+                  <option value="giftcards" className="bg-ink">
+                    Giftcards
                   </option>
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-bold text-white/40 uppercase mb-2">
-                  Icono Lucide (opcional)
+                  Imagen del ícono
                 </label>
-                <input
-                  name="icono"
-                  type="text"
-                  defaultValue={editingService?.icono ?? ""}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono"
-                  placeholder="tv, play, zap, etc."
-                />
+                <div className="flex items-center gap-4 rounded-xl border border-white/10 bg-white/[0.025] p-3">
+                  <div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-primary/20 bg-primary/10">
+                    {iconPreview ? (
+                      <img src={iconPreview} alt="Vista previa del ícono" className="h-full w-full object-contain p-2" />
+                    ) : editingPreset ? (
+                      <PlatformIconMark iconId={editingPreset.id} className="h-full w-full rounded-none border-0 shadow-none" iconClassName="h-6 w-6" />
+                    ) : (
+                      <ImageIcon className="h-6 w-6 text-primary/60" aria-hidden="true" />
+                    )}
+                  </div>
+                  <label className="flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.05] px-3 text-xs font-bold text-white transition hover:border-primary/50 hover:bg-primary/10">
+                    {isUploadingIcon ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    {isUploadingIcon ? 'Cargando imagen…' : iconPreview ? 'Cambiar imagen' : 'Subir imagen'}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={handleIconUpload}
+                      disabled={isUploadingIcon}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+                <p className="mt-1.5 text-[11px] leading-relaxed text-white/35">
+                  PNG, JPG o WebP · máximo 2 MB. Se ajusta automáticamente dentro del círculo del ícono.
+                  {editingPreset && " Al guardar, sustituirá el ícono predefinido en la tienda."}
+                </p>
+              </div>
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-white/40 uppercase mb-2">
+                    Orden de aparición
+                  </label>
+                  <input
+                    name="display_order"
+                    type="number"
+                    min="0"
+                    defaultValue={editingService?.display_order ?? 0}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+                  />
+                </div>
+                <label className="flex items-center gap-2.5 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-semibold text-white/75">
+                  <input
+                    name="is_visible"
+                    type="checkbox"
+                    disabled={Boolean(editingPreset)}
+                    defaultChecked={editingPreset ? true : editingService ? editingService.is_visible : true}
+                    className="h-4 w-4 accent-[var(--color-primary,#dc2626)]"
+                  />
+                  Visible
+                </label>
               </div>
 
               <div className="flex gap-3 pt-4">
@@ -250,7 +491,7 @@ function ServicesManagement() {
                   type="submit"
                   className="flex-1 bg-primary text-white px-4 py-3 rounded-xl font-semibold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
                 >
-                  {editingService ? "Guardar cambios" : "Crear Servicio"}
+                  {editingPreset ? "Guardar imagen" : editingService ? "Guardar cambios" : "Crear Servicio"}
                 </button>
               </div>
             </form>

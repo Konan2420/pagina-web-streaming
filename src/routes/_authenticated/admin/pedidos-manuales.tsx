@@ -234,7 +234,7 @@ function ManualOrdersManagement() {
       {/* Modal de Registro */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-ink border border-white/10 rounded-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-2xl border border-white/10 bg-ink p-5 sm:p-6">
             <h2 className="text-xl font-display text-white uppercase mb-6">
               Registrar Venta WhatsApp
             </h2>

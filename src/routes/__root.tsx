@@ -8,34 +8,54 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { type ReactNode, useEffect } from "react";
-import { Toaster } from "sonner";
-import { createServerOnlyFn } from "@tanstack/react-start";
 
 import appCss from "../styles.css?url";
 import { usePageView } from "@/hooks/useAnalytics";
 import { ConsentBanner } from "@/components/ConsentBanner";
+import { GlobalLoadingBar } from "@/components/ui/loading-states";
 import { configurePublicSupabase, type PublicSupabaseConfig } from "@/integrations/supabase/client";
+import { AppChromeProvider } from "@/components/layout/AppChromeProvider";
 
 /**
  * The browser needs only these two public values for Supabase Auth and RLS.
  * They are resolved at request time from Nitro, avoiding a fragile VITE_ build
  * dependency. Service-role credentials remain server-only.
  */
-const getPublicSupabaseConfig = createServerOnlyFn(
-  async (): Promise<PublicSupabaseConfig | null> => {
-    const { useRuntimeConfig } = await import("nitro/runtime-config");
-    const config = useRuntimeConfig();
-    const url = config.supabaseUrl || process.env.NITRO_SUPABASE_URL || process.env.SUPABASE_URL;
+async function loadPublicSupabaseConfig(): Promise<PublicSupabaseConfig | null> {
+  // En local las variables VITE_* están disponibles tanto para SSR como para
+  // el navegador. No se debe usar una Server Function en el loader raíz: en
+  // Vercel Dev ese salto deja un stream SSR abierto y retrasa la hidratación.
+  const bundledUrl = import.meta.env.VITE_SUPABASE_URL;
+  const bundledPublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  let config: PublicSupabaseConfig | null =
+    bundledUrl && bundledPublishableKey
+      ? { url: bundledUrl, publishableKey: bundledPublishableKey }
+      : null;
+
+  // En producción se conserva el soporte de configuración de Nitro sin
+  // exponer secretos al cliente. Evitamos importar `nitro/runtime-config` en
+  // este módulo compartido: Vite lo llegaba a incluir en el grafo del navegador
+  // y demoraba/corrompía la hidratación durante el arranque local.
+  if (!config && typeof window === "undefined") {
+    const serverEnv = (globalThis as typeof globalThis & {
+      process?: { env?: Record<string, string | undefined> };
+    }).process?.env;
+    const url = serverEnv?.NITRO_SUPABASE_URL || serverEnv?.SUPABASE_URL;
     const publishableKey =
-      config.supabasePublishableKey ||
-      process.env.NITRO_SUPABASE_PUBLISHABLE_KEY ||
-      process.env.SUPABASE_PUBLISHABLE_KEY;
+      serverEnv?.NITRO_SUPABASE_PUBLISHABLE_KEY || serverEnv?.SUPABASE_PUBLISHABLE_KEY;
 
-    if (!url || !publishableKey) return null;
+    if (url && publishableKey) config = { url, publishableKey };
+  }
 
-    return { url, publishableKey };
-  },
-);
+  // Child route guards can run before RootComponent renders on client-side
+  // navigation. Configure the public client here so those guards never race
+  // the root component for Supabase initialization.
+  if (typeof window !== "undefined" && config) {
+    configurePublicSupabase(config);
+  }
+
+  return config;
+}
 
 function NotFoundComponent() {
   return (
@@ -64,7 +84,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.error("[CMD Streaming] Error de ruta o renderizado:", error);
+      const errorWithDigest = error as Error & { digest?: string };
+      console.error(
+        "ERROR CAPTURADO:",
+        errorWithDigest,
+        errorWithDigest.stack,
+        errorWithDigest.digest,
+      );
     }
   }, [error]);
 
@@ -100,7 +126,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  loader: () => getPublicSupabaseConfig(),
+  loader: loadPublicSupabaseConfig,
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -145,15 +171,18 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const supabaseConfig = Route.useLoaderData();
+
   if (supabaseConfig) configurePublicSupabase(supabaseConfig);
   usePageView();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster theme="dark" position="top-center" richColors />
-      <ConsentBanner />
+      <AppChromeProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <GlobalLoadingBar />
+        <Outlet />
+        <ConsentBanner />
+      </AppChromeProvider>
     </QueryClientProvider>
   );
 }

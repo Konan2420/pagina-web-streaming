@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { Footer } from "@/components/landing/Footer";
-import { Navbar } from "@/components/landing/Navbar";
-import { platformPages } from "@/components/landing/platform-pages";
+import { platformPages } from "@/lib/platform-pages";
+import { AppTopbar } from "@/components/layout/AppTopbar";
 
 export const Route = createFileRoute("/plataformas/")({
   head: () => ({
@@ -20,7 +19,21 @@ export const Route = createFileRoute("/plataformas/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://cmdstreaming.pe/plataformas" },
+      {
+        property: "og:image",
+        content: "https://cmdstreaming.pe/cmd-logo.png",
+      },
+      { property: "og:image:alt", content: "Plataformas disponibles en CMD Streaming" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Plataformas de streaming y precios — CMD Streaming" },
+      {
+        name: "twitter:description",
+        content: "Compara plataformas, precios y qué incluye cada plan de CMD Streaming.",
+      },
+      {
+        name: "twitter:image",
+        content: "https://cmdstreaming.pe/cmd-logo.png",
+      },
     ],
     links: [{ rel: "canonical", href: "https://cmdstreaming.pe/plataformas" }],
     scripts: [
@@ -46,8 +59,8 @@ export const Route = createFileRoute("/plataformas/")({
 function PlatformsIndex() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <Navbar />
-      <main className="mx-auto max-w-6xl px-4 pt-28 pb-20 sm:px-6">
+      <AppTopbar />
+      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
         <p className="text-[11px] uppercase tracking-[0.28em] text-red-accent">Catálogo</p>
         <h1 className="mt-3 text-4xl sm:text-5xl">Plataformas y precios</h1>
         <p className="mt-4 max-w-2xl text-white/75">
@@ -79,7 +92,6 @@ function PlatformsIndex() {
           ))}
         </ul>
       </main>
-      <Footer />
     </div>
   );
 }

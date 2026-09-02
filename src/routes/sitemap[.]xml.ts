@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { platformPages } from "@/components/landing/platform-pages";
+import { platformPages } from "@/lib/platform-pages";
 
 const BASE_URL = "https://cmdstreaming.pe";
 

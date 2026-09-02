@@ -1,11 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Check, ShoppingBag } from "lucide-react";
-import { Footer } from "@/components/landing/Footer";
-import { Navbar } from "@/components/landing/Navbar";
-import {
-  getPlatformPage,
-  type PlatformPage as PlatformPageData,
-} from "@/components/landing/platform-pages";
+import { getPlatformPage, type PlatformPage as PlatformPageData } from "@/lib/platform-pages";
+import { AppTopbar } from "@/components/layout/AppTopbar";
 
 export const Route = createFileRoute("/plataformas/$slug")({
   loader: ({ params }): PlatformPageData => {
@@ -25,7 +21,18 @@ export const Route = createFileRoute("/plataformas/$slug")({
         { property: "og:description", content: loaderData.tagline },
         { property: "og:type", content: "product" },
         { property: "og:url", content: url },
+        {
+          property: "og:image",
+          content: "https://cmdstreaming.pe/cmd-logo.png",
+        },
+        { property: "og:image:alt", content: `${loaderData.name} en CMD Streaming` },
         { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: loaderData.tagline },
+        {
+          name: "twitter:image",
+          content: "https://cmdstreaming.pe/cmd-logo.png",
+        },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [
@@ -81,8 +88,8 @@ function PlatformPage() {
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
-      <Navbar />
-      <main className="mx-auto max-w-5xl px-4 pt-28 pb-20 sm:px-6">
+      <AppTopbar />
+      <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-14">
         <nav aria-label="Ruta de navegación" className="text-xs text-white/60">
           <ol className="flex flex-wrap items-center gap-2">
             <li>
@@ -110,7 +117,7 @@ function PlatformPage() {
             <span className="text-sm font-normal text-white/70">/ {page.duracion}</span>
           </p>
           <Link
-            to="/tienda"
+            to="/"
             className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-red-accent px-6 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
             <ShoppingBag className="size-4" aria-hidden="true" />
@@ -146,7 +153,6 @@ function PlatformPage() {
           </dl>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

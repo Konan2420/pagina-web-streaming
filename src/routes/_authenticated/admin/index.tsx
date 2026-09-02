@@ -96,7 +96,7 @@ function AdminDashboard() {
                         </p>
                       </td>
                       <td className="py-4 text-white/50">{sale.producto_nombre}</td>
-                      <td className="py-4 font-mono text-primary">S/ {sale.monto.toFixed(2)}</td>
+                      <td className="py-4 font-mono text-primary">S/ {sale.precio.toFixed(2)}</td>
                       <td className="py-4 text-right text-xs text-white/30 group-hover:text-white/60 transition-colors">
                         {new Date(sale.created_at).toLocaleDateString()}
                       </td>

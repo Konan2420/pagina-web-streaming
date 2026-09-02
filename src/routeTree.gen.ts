@@ -11,29 +11,39 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as PoliticasRouteImport } from './routes/politicas'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TiendaRouteImport } from './routes/tienda'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
-import { Route as AuthenticatedMiTiendaRouteImport } from './routes/_authenticated/mi-tienda'
+import { Route as AuthenticatedCatalogoRouteImport } from './routes/_authenticated/catalogo'
+import { Route as AuthenticatedDistribuidorRouteImport } from './routes/_authenticated/distribuidor'
 import { Route as AuthenticatedProveedorRouteImport } from './routes/_authenticated/proveedor'
+import { Route as AuthenticatedRedesSocialesRouteImport } from './routes/_authenticated/redes-sociales'
 import { Route as PlataformasIndexRouteImport } from './routes/plataformas/index'
 import { Route as PlataformasSlugRouteImport } from './routes/plataformas/$slug'
-import { Route as VSlugRouteImport } from './routes/v/$slug'
+import { Route as TiendaPublicaSlugRouteImport } from './routes/tienda-publica/$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 import { Route as AuthenticatedAdminInventarioRouteImport } from './routes/_authenticated/admin/inventario'
+import { Route as AuthenticatedAdminMiTiendaRouteImport } from './routes/_authenticated/admin/mi-tienda'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin/payouts'
 import { Route as AuthenticatedAdminPedidosRouteImport } from './routes/_authenticated/admin/pedidos'
 import { Route as AuthenticatedAdminPedidosManualesRouteImport } from './routes/_authenticated/admin/pedidos-manuales'
 import { Route as AuthenticatedAdminProductosRouteImport } from './routes/_authenticated/admin/productos'
-import { Route as AuthenticatedAdminProveedoresRouteImport } from './routes/_authenticated/admin/proveedores'
+import { Route as AuthenticatedAdminRecargasRouteImport } from './routes/_authenticated/admin/recargas'
 import { Route as AuthenticatedAdminServiciosRouteImport } from './routes/_authenticated/admin/servicios'
 import { Route as AuthenticatedAdminStockRouteImport } from './routes/_authenticated/admin/stock'
+import { Route as AuthenticatedAdminTicketsRouteImport } from './routes/_authenticated/admin/tickets'
 import { Route as AuthenticatedAdminUsuariosRouteImport } from './routes/_authenticated/admin/usuarios'
+import { Route as AuthenticatedAdminVencimientosRouteImport } from './routes/_authenticated/admin/vencimientos'
 import { Route as AuthenticatedAdminVentasRouteImport } from './routes/_authenticated/admin/ventas'
+import { Route as AuthenticatedDistribuidorIndexRouteImport } from './routes/_authenticated/distribuidor/index'
+import { Route as AuthenticatedDistribuidorMiTiendaRouteImport } from './routes/_authenticated/distribuidor/mi-tienda'
 import { Route as AuthenticatedProveedorIndexRouteImport } from './routes/_authenticated/proveedor/index'
 import { Route as AuthenticatedProveedorInventarioRouteImport } from './routes/_authenticated/proveedor/inventario'
-import { Route as AuthenticatedProveedorPerfilRouteImport } from './routes/_authenticated/proveedor/perfil'
+import { Route as AuthenticatedProveedorMiTiendaRouteImport } from './routes/_authenticated/proveedor/mi-tienda'
+import { Route as AuthenticatedProveedorProductosRouteImport } from './routes/_authenticated/proveedor/productos'
 import { Route as AuthenticatedProveedorVentasRouteImport } from './routes/_authenticated/proveedor/ventas'
 import { Route as ApiPublicWebhooksFloidRouteImport } from './routes/api/public/webhooks/floid'
 
@@ -44,6 +54,16 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PoliticasRoute = PoliticasRouteImport.update({
+  id: '/politicas',
+  path: '/politicas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -61,16 +81,28 @@ const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMiTiendaRoute = AuthenticatedMiTiendaRouteImport.update({
-  id: '/mi-tienda',
-  path: '/mi-tienda',
+const AuthenticatedCatalogoRoute = AuthenticatedCatalogoRouteImport.update({
+  id: '/catalogo',
+  path: '/catalogo',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDistribuidorRoute =
+  AuthenticatedDistribuidorRouteImport.update({
+    id: '/distribuidor',
+    path: '/distribuidor',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProveedorRoute = AuthenticatedProveedorRouteImport.update({
   id: '/proveedor',
   path: '/proveedor',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRedesSocialesRoute =
+  AuthenticatedRedesSocialesRouteImport.update({
+    id: '/redes-sociales',
+    path: '/redes-sociales',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const PlataformasIndexRoute = PlataformasIndexRouteImport.update({
   id: '/plataformas/',
   path: '/plataformas/',
@@ -81,9 +113,9 @@ const PlataformasSlugRoute = PlataformasSlugRouteImport.update({
   path: '/plataformas/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VSlugRoute = VSlugRouteImport.update({
-  id: '/v/$slug',
-  path: '/v/$slug',
+const TiendaPublicaSlugRoute = TiendaPublicaSlugRouteImport.update({
+  id: '/tienda-publica/$slug',
+  path: '/tienda-publica/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -101,6 +133,12 @@ const AuthenticatedAdminInventarioRoute =
   AuthenticatedAdminInventarioRouteImport.update({
     id: '/inventario',
     path: '/inventario',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminMiTiendaRoute =
+  AuthenticatedAdminMiTiendaRouteImport.update({
+    id: '/mi-tienda',
+    path: '/mi-tienda',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminPayoutsRoute =
@@ -127,10 +165,10 @@ const AuthenticatedAdminProductosRoute =
     path: '/productos',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
-const AuthenticatedAdminProveedoresRoute =
-  AuthenticatedAdminProveedoresRouteImport.update({
-    id: '/proveedores',
-    path: '/proveedores',
+const AuthenticatedAdminRecargasRoute =
+  AuthenticatedAdminRecargasRouteImport.update({
+    id: '/recargas',
+    path: '/recargas',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminServiciosRoute =
@@ -144,10 +182,22 @@ const AuthenticatedAdminStockRoute = AuthenticatedAdminStockRouteImport.update({
   path: '/stock',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminTicketsRoute =
+  AuthenticatedAdminTicketsRouteImport.update({
+    id: '/tickets',
+    path: '/tickets',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const AuthenticatedAdminUsuariosRoute =
   AuthenticatedAdminUsuariosRouteImport.update({
     id: '/usuarios',
     path: '/usuarios',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminVencimientosRoute =
+  AuthenticatedAdminVencimientosRouteImport.update({
+    id: '/vencimientos',
+    path: '/vencimientos',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminVentasRoute =
@@ -155,6 +205,18 @@ const AuthenticatedAdminVentasRoute =
     id: '/ventas',
     path: '/ventas',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedDistribuidorIndexRoute =
+  AuthenticatedDistribuidorIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedDistribuidorRoute,
+  } as any)
+const AuthenticatedDistribuidorMiTiendaRoute =
+  AuthenticatedDistribuidorMiTiendaRouteImport.update({
+    id: '/mi-tienda',
+    path: '/mi-tienda',
+    getParentRoute: () => AuthenticatedDistribuidorRoute,
   } as any)
 const AuthenticatedProveedorIndexRoute =
   AuthenticatedProveedorIndexRouteImport.update({
@@ -168,10 +230,16 @@ const AuthenticatedProveedorInventarioRoute =
     path: '/inventario',
     getParentRoute: () => AuthenticatedProveedorRoute,
   } as any)
-const AuthenticatedProveedorPerfilRoute =
-  AuthenticatedProveedorPerfilRouteImport.update({
-    id: '/perfil',
-    path: '/perfil',
+const AuthenticatedProveedorMiTiendaRoute =
+  AuthenticatedProveedorMiTiendaRouteImport.update({
+    id: '/mi-tienda',
+    path: '/mi-tienda',
+    getParentRoute: () => AuthenticatedProveedorRoute,
+  } as any)
+const AuthenticatedProveedorProductosRoute =
+  AuthenticatedProveedorProductosRouteImport.update({
+    id: '/productos',
+    path: '/productos',
     getParentRoute: () => AuthenticatedProveedorRoute,
   } as any)
 const AuthenticatedProveedorVentasRoute =
@@ -188,55 +256,74 @@ const ApiPublicWebhooksFloidRoute = ApiPublicWebhooksFloidRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/politicas': typeof PoliticasRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tienda': typeof TiendaRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
-  '/mi-tienda': typeof AuthenticatedMiTiendaRoute
+  '/catalogo': typeof AuthenticatedCatalogoRoute
+  '/distribuidor': typeof AuthenticatedDistribuidorRouteWithChildren
   '/proveedor': typeof AuthenticatedProveedorRouteWithChildren
+  '/redes-sociales': typeof AuthenticatedRedesSocialesRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
-  '/v/$slug': typeof VSlugRoute
+  '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
+  '/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/admin/pedidos-manuales': typeof AuthenticatedAdminPedidosManualesRoute
   '/admin/productos': typeof AuthenticatedAdminProductosRoute
-  '/admin/proveedores': typeof AuthenticatedAdminProveedoresRoute
+  '/admin/recargas': typeof AuthenticatedAdminRecargasRoute
   '/admin/servicios': typeof AuthenticatedAdminServiciosRoute
   '/admin/stock': typeof AuthenticatedAdminStockRoute
+  '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
+  '/admin/vencimientos': typeof AuthenticatedAdminVencimientosRoute
   '/admin/ventas': typeof AuthenticatedAdminVentasRoute
+  '/distribuidor/mi-tienda': typeof AuthenticatedDistribuidorMiTiendaRoute
   '/proveedor/inventario': typeof AuthenticatedProveedorInventarioRoute
-  '/proveedor/perfil': typeof AuthenticatedProveedorPerfilRoute
+  '/proveedor/mi-tienda': typeof AuthenticatedProveedorMiTiendaRoute
+  '/proveedor/productos': typeof AuthenticatedProveedorProductosRoute
   '/proveedor/ventas': typeof AuthenticatedProveedorVentasRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/distribuidor/': typeof AuthenticatedDistribuidorIndexRoute
   '/proveedor/': typeof AuthenticatedProveedorIndexRoute
   '/api/public/webhooks/floid': typeof ApiPublicWebhooksFloidRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/politicas': typeof PoliticasRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tienda': typeof TiendaRoute
-  '/mi-tienda': typeof AuthenticatedMiTiendaRoute
+  '/catalogo': typeof AuthenticatedCatalogoRoute
+  '/redes-sociales': typeof AuthenticatedRedesSocialesRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
-  '/v/$slug': typeof VSlugRoute
+  '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas': typeof PlataformasIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
+  '/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/admin/pedidos-manuales': typeof AuthenticatedAdminPedidosManualesRoute
   '/admin/productos': typeof AuthenticatedAdminProductosRoute
-  '/admin/proveedores': typeof AuthenticatedAdminProveedoresRoute
+  '/admin/recargas': typeof AuthenticatedAdminRecargasRoute
   '/admin/servicios': typeof AuthenticatedAdminServiciosRoute
   '/admin/stock': typeof AuthenticatedAdminStockRoute
+  '/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
+  '/admin/vencimientos': typeof AuthenticatedAdminVencimientosRoute
   '/admin/ventas': typeof AuthenticatedAdminVentasRoute
+  '/distribuidor/mi-tienda': typeof AuthenticatedDistribuidorMiTiendaRoute
   '/proveedor/inventario': typeof AuthenticatedProveedorInventarioRoute
-  '/proveedor/perfil': typeof AuthenticatedProveedorPerfilRoute
+  '/proveedor/mi-tienda': typeof AuthenticatedProveedorMiTiendaRoute
+  '/proveedor/productos': typeof AuthenticatedProveedorProductosRoute
   '/proveedor/ventas': typeof AuthenticatedProveedorVentasRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/distribuidor': typeof AuthenticatedDistribuidorIndexRoute
   '/proveedor': typeof AuthenticatedProveedorIndexRoute
   '/api/public/webhooks/floid': typeof ApiPublicWebhooksFloidRoute
 }
@@ -244,29 +331,39 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/politicas': typeof PoliticasRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tienda': typeof TiendaRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
-  '/_authenticated/mi-tienda': typeof AuthenticatedMiTiendaRoute
+  '/_authenticated/catalogo': typeof AuthenticatedCatalogoRoute
+  '/_authenticated/distribuidor': typeof AuthenticatedDistribuidorRouteWithChildren
   '/_authenticated/proveedor': typeof AuthenticatedProveedorRouteWithChildren
+  '/_authenticated/redes-sociales': typeof AuthenticatedRedesSocialesRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
-  '/v/$slug': typeof VSlugRoute
+  '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/inventario': typeof AuthenticatedAdminInventarioRoute
+  '/_authenticated/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/_authenticated/admin/pedidos-manuales': typeof AuthenticatedAdminPedidosManualesRoute
   '/_authenticated/admin/productos': typeof AuthenticatedAdminProductosRoute
-  '/_authenticated/admin/proveedores': typeof AuthenticatedAdminProveedoresRoute
+  '/_authenticated/admin/recargas': typeof AuthenticatedAdminRecargasRoute
   '/_authenticated/admin/servicios': typeof AuthenticatedAdminServiciosRoute
   '/_authenticated/admin/stock': typeof AuthenticatedAdminStockRoute
+  '/_authenticated/admin/tickets': typeof AuthenticatedAdminTicketsRoute
   '/_authenticated/admin/usuarios': typeof AuthenticatedAdminUsuariosRoute
+  '/_authenticated/admin/vencimientos': typeof AuthenticatedAdminVencimientosRoute
   '/_authenticated/admin/ventas': typeof AuthenticatedAdminVentasRoute
+  '/_authenticated/distribuidor/mi-tienda': typeof AuthenticatedDistribuidorMiTiendaRoute
   '/_authenticated/proveedor/inventario': typeof AuthenticatedProveedorInventarioRoute
-  '/_authenticated/proveedor/perfil': typeof AuthenticatedProveedorPerfilRoute
+  '/_authenticated/proveedor/mi-tienda': typeof AuthenticatedProveedorMiTiendaRoute
+  '/_authenticated/proveedor/productos': typeof AuthenticatedProveedorProductosRoute
   '/_authenticated/proveedor/ventas': typeof AuthenticatedProveedorVentasRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/distribuidor/': typeof AuthenticatedDistribuidorIndexRoute
   '/_authenticated/proveedor/': typeof AuthenticatedProveedorIndexRoute
   '/api/public/webhooks/floid': typeof ApiPublicWebhooksFloidRoute
 }
@@ -274,84 +371,113 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/politicas'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/tienda'
     | '/admin'
-    | '/mi-tienda'
+    | '/catalogo'
+    | '/distribuidor'
     | '/proveedor'
+    | '/redes-sociales'
     | '/plataformas/$slug'
-    | '/v/$slug'
+    | '/tienda-publica/$slug'
     | '/plataformas/'
     | '/admin/analytics'
     | '/admin/inventario'
+    | '/admin/mi-tienda'
     | '/admin/payouts'
     | '/admin/pedidos'
     | '/admin/pedidos-manuales'
     | '/admin/productos'
-    | '/admin/proveedores'
+    | '/admin/recargas'
     | '/admin/servicios'
     | '/admin/stock'
+    | '/admin/tickets'
     | '/admin/usuarios'
+    | '/admin/vencimientos'
     | '/admin/ventas'
+    | '/distribuidor/mi-tienda'
     | '/proveedor/inventario'
-    | '/proveedor/perfil'
+    | '/proveedor/mi-tienda'
+    | '/proveedor/productos'
     | '/proveedor/ventas'
     | '/admin/'
+    | '/distribuidor/'
     | '/proveedor/'
     | '/api/public/webhooks/floid'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/politicas'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/tienda'
-    | '/mi-tienda'
+    | '/catalogo'
+    | '/redes-sociales'
     | '/plataformas/$slug'
-    | '/v/$slug'
+    | '/tienda-publica/$slug'
     | '/plataformas'
     | '/admin/analytics'
     | '/admin/inventario'
+    | '/admin/mi-tienda'
     | '/admin/payouts'
     | '/admin/pedidos'
     | '/admin/pedidos-manuales'
     | '/admin/productos'
-    | '/admin/proveedores'
+    | '/admin/recargas'
     | '/admin/servicios'
     | '/admin/stock'
+    | '/admin/tickets'
     | '/admin/usuarios'
+    | '/admin/vencimientos'
     | '/admin/ventas'
+    | '/distribuidor/mi-tienda'
     | '/proveedor/inventario'
-    | '/proveedor/perfil'
+    | '/proveedor/mi-tienda'
+    | '/proveedor/productos'
     | '/proveedor/ventas'
     | '/admin'
+    | '/distribuidor'
     | '/proveedor'
     | '/api/public/webhooks/floid'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/politicas'
+    | '/reset-password'
     | '/sitemap.xml'
     | '/tienda'
     | '/_authenticated/admin'
-    | '/_authenticated/mi-tienda'
+    | '/_authenticated/catalogo'
+    | '/_authenticated/distribuidor'
     | '/_authenticated/proveedor'
+    | '/_authenticated/redes-sociales'
     | '/plataformas/$slug'
-    | '/v/$slug'
+    | '/tienda-publica/$slug'
     | '/plataformas/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/inventario'
+    | '/_authenticated/admin/mi-tienda'
     | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/pedidos'
     | '/_authenticated/admin/pedidos-manuales'
     | '/_authenticated/admin/productos'
-    | '/_authenticated/admin/proveedores'
+    | '/_authenticated/admin/recargas'
     | '/_authenticated/admin/servicios'
     | '/_authenticated/admin/stock'
+    | '/_authenticated/admin/tickets'
     | '/_authenticated/admin/usuarios'
+    | '/_authenticated/admin/vencimientos'
     | '/_authenticated/admin/ventas'
+    | '/_authenticated/distribuidor/mi-tienda'
     | '/_authenticated/proveedor/inventario'
-    | '/_authenticated/proveedor/perfil'
+    | '/_authenticated/proveedor/mi-tienda'
+    | '/_authenticated/proveedor/productos'
     | '/_authenticated/proveedor/ventas'
     | '/_authenticated/admin/'
+    | '/_authenticated/distribuidor/'
     | '/_authenticated/proveedor/'
     | '/api/public/webhooks/floid'
   fileRoutesById: FileRoutesById
@@ -359,10 +485,12 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  PoliticasRoute: typeof PoliticasRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TiendaRoute: typeof TiendaRoute
   PlataformasSlugRoute: typeof PlataformasSlugRoute
-  VSlugRoute: typeof VSlugRoute
+  TiendaPublicaSlugRoute: typeof TiendaPublicaSlugRoute
   PlataformasIndexRoute: typeof PlataformasIndexRoute
   ApiPublicWebhooksFloidRoute: typeof ApiPublicWebhooksFloidRoute
 }
@@ -381,6 +509,20 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/politicas': {
+      id: '/politicas'
+      path: '/politicas'
+      fullPath: '/politicas'
+      preLoaderRoute: typeof PoliticasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -404,11 +546,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/mi-tienda': {
-      id: '/_authenticated/mi-tienda'
-      path: '/mi-tienda'
-      fullPath: '/mi-tienda'
-      preLoaderRoute: typeof AuthenticatedMiTiendaRouteImport
+    '/_authenticated/catalogo': {
+      id: '/_authenticated/catalogo'
+      path: '/catalogo'
+      fullPath: '/catalogo'
+      preLoaderRoute: typeof AuthenticatedCatalogoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/distribuidor': {
+      id: '/_authenticated/distribuidor'
+      path: '/distribuidor'
+      fullPath: '/distribuidor'
+      preLoaderRoute: typeof AuthenticatedDistribuidorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/proveedor': {
@@ -416,6 +565,13 @@ declare module '@tanstack/react-router' {
       path: '/proveedor'
       fullPath: '/proveedor'
       preLoaderRoute: typeof AuthenticatedProveedorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/redes-sociales': {
+      id: '/_authenticated/redes-sociales'
+      path: '/redes-sociales'
+      fullPath: '/redes-sociales'
+      preLoaderRoute: typeof AuthenticatedRedesSocialesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/plataformas/': {
@@ -432,11 +588,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlataformasSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/v/$slug': {
-      id: '/v/$slug'
-      path: '/v/$slug'
-      fullPath: '/v/$slug'
-      preLoaderRoute: typeof VSlugRouteImport
+    '/tienda-publica/$slug': {
+      id: '/tienda-publica/$slug'
+      path: '/tienda-publica/$slug'
+      fullPath: '/tienda-publica/$slug'
+      preLoaderRoute: typeof TiendaPublicaSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/': {
@@ -458,6 +614,13 @@ declare module '@tanstack/react-router' {
       path: '/inventario'
       fullPath: '/admin/inventario'
       preLoaderRoute: typeof AuthenticatedAdminInventarioRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/mi-tienda': {
+      id: '/_authenticated/admin/mi-tienda'
+      path: '/mi-tienda'
+      fullPath: '/admin/mi-tienda'
+      preLoaderRoute: typeof AuthenticatedAdminMiTiendaRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/payouts': {
@@ -488,11 +651,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProductosRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/_authenticated/admin/proveedores': {
-      id: '/_authenticated/admin/proveedores'
-      path: '/proveedores'
-      fullPath: '/admin/proveedores'
-      preLoaderRoute: typeof AuthenticatedAdminProveedoresRouteImport
+    '/_authenticated/admin/recargas': {
+      id: '/_authenticated/admin/recargas'
+      path: '/recargas'
+      fullPath: '/admin/recargas'
+      preLoaderRoute: typeof AuthenticatedAdminRecargasRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/servicios': {
@@ -509,11 +672,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminStockRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/tickets': {
+      id: '/_authenticated/admin/tickets'
+      path: '/tickets'
+      fullPath: '/admin/tickets'
+      preLoaderRoute: typeof AuthenticatedAdminTicketsRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/usuarios': {
       id: '/_authenticated/admin/usuarios'
       path: '/usuarios'
       fullPath: '/admin/usuarios'
       preLoaderRoute: typeof AuthenticatedAdminUsuariosRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/vencimientos': {
+      id: '/_authenticated/admin/vencimientos'
+      path: '/vencimientos'
+      fullPath: '/admin/vencimientos'
+      preLoaderRoute: typeof AuthenticatedAdminVencimientosRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/ventas': {
@@ -522,6 +699,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/ventas'
       preLoaderRoute: typeof AuthenticatedAdminVentasRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/distribuidor/': {
+      id: '/_authenticated/distribuidor/'
+      path: '/'
+      fullPath: '/distribuidor/'
+      preLoaderRoute: typeof AuthenticatedDistribuidorIndexRouteImport
+      parentRoute: typeof AuthenticatedDistribuidorRoute
+    }
+    '/_authenticated/distribuidor/mi-tienda': {
+      id: '/_authenticated/distribuidor/mi-tienda'
+      path: '/mi-tienda'
+      fullPath: '/distribuidor/mi-tienda'
+      preLoaderRoute: typeof AuthenticatedDistribuidorMiTiendaRouteImport
+      parentRoute: typeof AuthenticatedDistribuidorRoute
     }
     '/_authenticated/proveedor/': {
       id: '/_authenticated/proveedor/'
@@ -537,11 +728,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProveedorInventarioRouteImport
       parentRoute: typeof AuthenticatedProveedorRoute
     }
-    '/_authenticated/proveedor/perfil': {
-      id: '/_authenticated/proveedor/perfil'
-      path: '/perfil'
-      fullPath: '/proveedor/perfil'
-      preLoaderRoute: typeof AuthenticatedProveedorPerfilRouteImport
+    '/_authenticated/proveedor/mi-tienda': {
+      id: '/_authenticated/proveedor/mi-tienda'
+      path: '/mi-tienda'
+      fullPath: '/proveedor/mi-tienda'
+      preLoaderRoute: typeof AuthenticatedProveedorMiTiendaRouteImport
+      parentRoute: typeof AuthenticatedProveedorRoute
+    }
+    '/_authenticated/proveedor/productos': {
+      id: '/_authenticated/proveedor/productos'
+      path: '/productos'
+      fullPath: '/proveedor/productos'
+      preLoaderRoute: typeof AuthenticatedProveedorProductosRouteImport
       parentRoute: typeof AuthenticatedProveedorRoute
     }
     '/_authenticated/proveedor/ventas': {
@@ -564,14 +762,17 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminInventarioRoute: typeof AuthenticatedAdminInventarioRoute
+  AuthenticatedAdminMiTiendaRoute: typeof AuthenticatedAdminMiTiendaRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminPedidosRoute: typeof AuthenticatedAdminPedidosRoute
   AuthenticatedAdminPedidosManualesRoute: typeof AuthenticatedAdminPedidosManualesRoute
   AuthenticatedAdminProductosRoute: typeof AuthenticatedAdminProductosRoute
-  AuthenticatedAdminProveedoresRoute: typeof AuthenticatedAdminProveedoresRoute
+  AuthenticatedAdminRecargasRoute: typeof AuthenticatedAdminRecargasRoute
   AuthenticatedAdminServiciosRoute: typeof AuthenticatedAdminServiciosRoute
   AuthenticatedAdminStockRoute: typeof AuthenticatedAdminStockRoute
+  AuthenticatedAdminTicketsRoute: typeof AuthenticatedAdminTicketsRoute
   AuthenticatedAdminUsuariosRoute: typeof AuthenticatedAdminUsuariosRoute
+  AuthenticatedAdminVencimientosRoute: typeof AuthenticatedAdminVencimientosRoute
   AuthenticatedAdminVentasRoute: typeof AuthenticatedAdminVentasRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
 }
@@ -580,15 +781,18 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
   {
     AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
     AuthenticatedAdminInventarioRoute: AuthenticatedAdminInventarioRoute,
+    AuthenticatedAdminMiTiendaRoute: AuthenticatedAdminMiTiendaRoute,
     AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
     AuthenticatedAdminPedidosRoute: AuthenticatedAdminPedidosRoute,
     AuthenticatedAdminPedidosManualesRoute:
       AuthenticatedAdminPedidosManualesRoute,
     AuthenticatedAdminProductosRoute: AuthenticatedAdminProductosRoute,
-    AuthenticatedAdminProveedoresRoute: AuthenticatedAdminProveedoresRoute,
+    AuthenticatedAdminRecargasRoute: AuthenticatedAdminRecargasRoute,
     AuthenticatedAdminServiciosRoute: AuthenticatedAdminServiciosRoute,
     AuthenticatedAdminStockRoute: AuthenticatedAdminStockRoute,
+    AuthenticatedAdminTicketsRoute: AuthenticatedAdminTicketsRoute,
     AuthenticatedAdminUsuariosRoute: AuthenticatedAdminUsuariosRoute,
+    AuthenticatedAdminVencimientosRoute: AuthenticatedAdminVencimientosRoute,
     AuthenticatedAdminVentasRoute: AuthenticatedAdminVentasRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
   }
@@ -598,9 +802,27 @@ const AuthenticatedAdminRouteRouteWithChildren =
     AuthenticatedAdminRouteRouteChildren,
   )
 
+interface AuthenticatedDistribuidorRouteChildren {
+  AuthenticatedDistribuidorMiTiendaRoute: typeof AuthenticatedDistribuidorMiTiendaRoute
+  AuthenticatedDistribuidorIndexRoute: typeof AuthenticatedDistribuidorIndexRoute
+}
+
+const AuthenticatedDistribuidorRouteChildren: AuthenticatedDistribuidorRouteChildren =
+  {
+    AuthenticatedDistribuidorMiTiendaRoute:
+      AuthenticatedDistribuidorMiTiendaRoute,
+    AuthenticatedDistribuidorIndexRoute: AuthenticatedDistribuidorIndexRoute,
+  }
+
+const AuthenticatedDistribuidorRouteWithChildren =
+  AuthenticatedDistribuidorRoute._addFileChildren(
+    AuthenticatedDistribuidorRouteChildren,
+  )
+
 interface AuthenticatedProveedorRouteChildren {
   AuthenticatedProveedorInventarioRoute: typeof AuthenticatedProveedorInventarioRoute
-  AuthenticatedProveedorPerfilRoute: typeof AuthenticatedProveedorPerfilRoute
+  AuthenticatedProveedorMiTiendaRoute: typeof AuthenticatedProveedorMiTiendaRoute
+  AuthenticatedProveedorProductosRoute: typeof AuthenticatedProveedorProductosRoute
   AuthenticatedProveedorVentasRoute: typeof AuthenticatedProveedorVentasRoute
   AuthenticatedProveedorIndexRoute: typeof AuthenticatedProveedorIndexRoute
 }
@@ -609,7 +831,8 @@ const AuthenticatedProveedorRouteChildren: AuthenticatedProveedorRouteChildren =
   {
     AuthenticatedProveedorInventarioRoute:
       AuthenticatedProveedorInventarioRoute,
-    AuthenticatedProveedorPerfilRoute: AuthenticatedProveedorPerfilRoute,
+    AuthenticatedProveedorMiTiendaRoute: AuthenticatedProveedorMiTiendaRoute,
+    AuthenticatedProveedorProductosRoute: AuthenticatedProveedorProductosRoute,
     AuthenticatedProveedorVentasRoute: AuthenticatedProveedorVentasRoute,
     AuthenticatedProveedorIndexRoute: AuthenticatedProveedorIndexRoute,
   }
@@ -621,14 +844,18 @@ const AuthenticatedProveedorRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
-  AuthenticatedMiTiendaRoute: typeof AuthenticatedMiTiendaRoute
+  AuthenticatedCatalogoRoute: typeof AuthenticatedCatalogoRoute
+  AuthenticatedDistribuidorRoute: typeof AuthenticatedDistribuidorRouteWithChildren
   AuthenticatedProveedorRoute: typeof AuthenticatedProveedorRouteWithChildren
+  AuthenticatedRedesSocialesRoute: typeof AuthenticatedRedesSocialesRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
-  AuthenticatedMiTiendaRoute: AuthenticatedMiTiendaRoute,
+  AuthenticatedCatalogoRoute: AuthenticatedCatalogoRoute,
+  AuthenticatedDistribuidorRoute: AuthenticatedDistribuidorRouteWithChildren,
   AuthenticatedProveedorRoute: AuthenticatedProveedorRouteWithChildren,
+  AuthenticatedRedesSocialesRoute: AuthenticatedRedesSocialesRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -637,10 +864,12 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  PoliticasRoute: PoliticasRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TiendaRoute: TiendaRoute,
   PlataformasSlugRoute: PlataformasSlugRoute,
-  VSlugRoute: VSlugRoute,
+  TiendaPublicaSlugRoute: TiendaPublicaSlugRoute,
   PlataformasIndexRoute: PlataformasIndexRoute,
   ApiPublicWebhooksFloidRoute: ApiPublicWebhooksFloidRoute,
 }

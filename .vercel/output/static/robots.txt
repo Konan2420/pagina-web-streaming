@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-
-Disallow: /admin
-Disallow: /_authenticated
-
-Sitemap: https://essence-stream-landing.lovable.app/sitemap.xml

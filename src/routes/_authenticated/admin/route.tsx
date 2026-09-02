@@ -1,5 +1,6 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { AdminRouteShell } from "@/components/admin/AdminLayout";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -20,5 +21,5 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
     return { isAdmin: true };
   },
-  component: () => <Outlet />,
+  component: AdminRouteShell,
 });

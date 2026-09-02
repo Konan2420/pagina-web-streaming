@@ -11,7 +11,7 @@ Este repositorio usa un proyecto Supabase propio y se administra desde VS Code y
    ```dotenv
    VITE_SUPABASE_URL=https://TU_PROJECT_REF.supabase.co
    VITE_SUPABASE_PUBLISHABLE_KEY=TU_PUBLISHABLE_KEY
-   VITE_APP_URL=http://127.0.0.1:3001
+   VITE_APP_URL=https://cmdstreaming.pe
 
    SUPABASE_URL=https://TU_PROJECT_REF.supabase.co
    SUPABASE_PUBLISHABLE_KEY=TU_PUBLISHABLE_KEY
@@ -26,9 +26,11 @@ En **Authentication > URL Configuration** configura:
 
 - **Site URL**: la URL pública final, por ejemplo `https://cmdstreaming.pe`.
 - **Redirect URLs**:
-  - `http://127.0.0.1:3001/tienda`
-  - `http://localhost:3001/tienda`
-  - `https://TU-DOMINIO/tienda`
+  - `https://cmdstreaming.pe/tienda`
+  - `https://cmdstreaming.pe/catalogo`
+  - `https://cmdstreaming.pe/proveedor`
+  - `https://cmdstreaming.pe/distribuidor`
+  - la URL temporal que Vite muestre durante el desarrollo.
 
 Estas rutas son necesarias para confirmación de correo, recuperación de contraseña y OAuth.
 
@@ -38,9 +40,8 @@ El botón de Google solo funciona después de habilitar el proveedor. Si aparece
 
 1. En [Google Cloud](https://console.cloud.google.com/), crea o selecciona un proyecto, configura la pantalla de consentimiento OAuth y crea un cliente OAuth de tipo **Web application**.
 2. En **Authorized JavaScript origins**, agrega:
-   - `http://127.0.0.1:3001`
-   - `http://localhost:3001`
-   - `https://TU-DOMINIO`
+   - `https://cmdstreaming.pe`
+   - la URL temporal que Vite muestre durante el desarrollo.
 3. En **Authorized redirect URIs**, agrega la URL de devolución de tu proyecto Supabase:
 
 ```text
@@ -92,7 +93,14 @@ begin
 end $$;
 ```
 
-Cierra sesión y vuelve a iniciarla. Las cuentas nuevas reciben `user`; desde `/admin/usuarios` un administrador puede asignar exclusivamente `user`, `proveedor` o `admin`. Al promover un proveedor, la aplicación crea su perfil de proveedor.
+Cierra sesión y vuelve a iniciarla. Las cuentas nuevas reciben `user` y se dirigen a
+`/catalogo`. Desde `/admin/usuarios`, un administrador puede asignar `user`,
+`proveedor`, `distribuidor` o `admin`.
+
+- **Proveedor**: entra a `/proveedor` y puede administrar únicamente sus productos e
+  inventario. Los cambios quedan como borrador hasta que administración los publique.
+- **Distribuidor**: entra a `/distribuidor`, dispone de un espacio comercial y del
+  catálogo, pero no puede crear productos, administrar stock ni consultar credenciales.
 
 ## 5. Diagnóstico remoto
 
@@ -105,3 +113,14 @@ npx supabase db push --dry-run
 `npx supabase status` solo revisa contenedores Supabase locales; no sirve para confirmar el estado de este proyecto remoto. Si el CLI indica falta de privilegios, ejecuta `npx supabase logout`, vuelve a iniciar sesión con la cuenta propietaria del proyecto y comprueba que `TU_PROJECT_REF` corresponde al proyecto correcto.
 
 No subas `.env.local` ni claves privadas al repositorio.
+
+## 6. WhatsApp asistido con `wa.me`
+
+La migración `20260830120000_order_expirations_and_stock_alerts.sql` añade fechas de vencimiento
+a los pedidos entregados y alertas visuales de stock agotado para proveedores. No instala ni usa
+Meta Cloud API, Edge Functions de WhatsApp, tokens, plantillas ni secretos.
+
+Los enlaces manuales se generan en el frontend usando `https://wa.me/<número>?text=<mensaje>`.
+Siempre se abre una conversación pre-escrita y una persona debe pulsar **Enviar** desde WhatsApp
+o WhatsApp Business. Los números peruanos se normalizan a formato internacional, por ejemplo
+`+51 999 999 999` se convierte en `51999999999`.

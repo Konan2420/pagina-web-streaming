@@ -27,18 +27,14 @@ async function findFunctionDirectories(directory) {
 try {
   await stat(functionsRoot);
 } catch {
-  console.warn(
-    `[fix-tslib] No se encontró ${functionsRoot}; se omite la copia de tslib.`,
-  );
+  console.warn(`[fix-tslib] No se encontró ${functionsRoot}; se omite la copia de tslib.`);
   process.exit(0);
 }
 
 try {
   await stat(tslibSource);
 } catch {
-  console.error(
-    `[fix-tslib] No se encontró ${tslibSource}. Ejecuta npm install antes del build.`,
-  );
+  console.error(`[fix-tslib] No se encontró ${tslibSource}. Ejecuta npm install antes del build.`);
   process.exit(1);
 }
 
@@ -54,9 +50,9 @@ if (functionDirectories.length === 0) {
 for (const functionDirectory of functionDirectories) {
   const tslibDestination = resolve(functionDirectory, "node_modules/tslib");
   await cp(tslibSource, tslibDestination, { recursive: true, force: true });
-  console.log(`[fix-tslib] Copiado tslib en: ${tslibDestination}`);
+  process.stdout.write(`[fix-tslib] Copiado tslib en: ${tslibDestination}\n`);
 }
 
-console.log(
-  `[fix-tslib] Confirmado: tslib se copió en ${functionDirectories.length} función(es).`,
+process.stdout.write(
+  `[fix-tslib] Confirmado: tslib se copió en ${functionDirectories.length} función(es).\n`,
 );

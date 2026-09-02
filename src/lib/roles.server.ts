@@ -15,35 +15,30 @@ export async function assertAdmin(supabase: SupabaseClient<Database>, userId: st
   if (!data) throw new Error("Acceso restringido a administradores.");
 }
 
-export async function assertSupplier(supabase: SupabaseClient<Database>, userId: string) {
+/** Permite el panel de proveedor al rol proveedor y a administradores. */
+export async function assertProvider(supabase: SupabaseClient<Database>, userId: string) {
   if (!userId) throw new Error("No autenticado.");
 
-  // Check if admin OR supplier
-  const { data: isAdmin } = await supabase.rpc("has_role", {
-    _user_id: userId,
-    _role: "admin",
-  });
-
-  if (isAdmin) return;
-
-  const { data: isSupplier, error } = await supabase.rpc("has_role", {
-    _user_id: userId,
-    _role: "proveedor",
-  });
-
-  if (error) throw new Error("No se pudo verificar los permisos.");
-  if (!isSupplier) throw new Error("Acceso restringido a proveedores.");
-}
-
-export async function assertSeller(supabase: SupabaseClient<Database>, userId: string) {
-  if (!userId) throw new Error("No autenticado.");
-
-  const [{ data: isAdmin, error: adminError }, { data: isSeller, error: sellerError }] =
+  const [{ data: isProvider, error: providerError }, { data: isAdmin, error: adminError }] =
     await Promise.all([
+      supabase.rpc("has_role", { _user_id: userId, _role: "proveedor" }),
       supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
-      supabase.rpc("has_role", { _user_id: userId, _role: "vendedor" }),
     ]);
 
-  if (adminError || sellerError) throw new Error("No se pudo verificar los permisos.");
-  if (!isAdmin && !isSeller) throw new Error("Acceso restringido a vendedores.");
+  if (providerError || adminError) throw new Error("No se pudo verificar los permisos.");
+  if (!isProvider && !isAdmin) throw new Error("Acceso restringido a proveedores.");
+}
+
+/** Permite el panel comercial al rol distribuidor y a administradores. */
+export async function assertDistributor(supabase: SupabaseClient<Database>, userId: string) {
+  if (!userId) throw new Error("No autenticado.");
+
+  const [{ data: isDistributor, error: distributorError }, { data: isAdmin, error: adminError }] =
+    await Promise.all([
+      supabase.rpc("has_role", { _user_id: userId, _role: "distribuidor" }),
+      supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+    ]);
+
+  if (distributorError || adminError) throw new Error("No se pudo verificar los permisos.");
+  if (!isDistributor && !isAdmin) throw new Error("Acceso restringido a distribuidores.");
 }

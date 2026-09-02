@@ -9,13 +9,10 @@ const viteEntrypoint = fileURLToPath(new URL("../node_modules/vite/bin/vite.js",
 
 function isServerHealthy() {
   return new Promise((resolve) => {
-    const request = http.get(
-      { host: "127.0.0.1", port, path: "/tienda", timeout: 3_000 },
-      (response) => {
-        response.resume();
-        resolve(response.statusCode !== undefined && response.statusCode < 500);
-      },
-    );
+    const request = http.get({ port, path: "/tienda", timeout: 3_000 }, (response) => {
+      response.resume();
+      resolve(response.statusCode !== undefined && response.statusCode < 500);
+    });
 
     request.on("error", () => resolve(false));
     request.on("timeout", () => {
@@ -35,7 +32,7 @@ function isPortAvailable() {
 }
 
 if (await isServerHealthy()) {
-  console.log(`CMD Streaming ya está disponible en http://${host}:${port}/tienda`);
+  process.stdout.write("CMD Streaming ya está disponible en el puerto configurado.\n");
   process.exit(0);
 }
 

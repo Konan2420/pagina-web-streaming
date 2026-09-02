@@ -1,178 +1,241 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { Tables } from "@/integrations/supabase/types";
-import { AVATAR_EFFECT_VALUES } from "@/lib/avatar-effects";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-export const getSupplierDashboardStats = createServerFn({ method: "GET" })
+const providerProductSchema = z.object({
+  id: z.string().uuid().optional(),
+  name: z.string().trim().min(1, "El nombre es obligatorio").max(160),
+  description: z.string().trim().max(500).optional(),
+  descripcion_larga: z.string().trim().max(5_000).optional(),
+  price: z.number().finite().min(0, "El precio debe ser mayor o igual a 0"),
+  category: z.string().trim().max(80).optional(),
+  image_url: z.string().trim().url().nullable().optional(),
+  icon_id: z.string().trim().max(120).nullable().optional(),
+  service_id: z.string().uuid().nullable().optional(),
+  duration_days: z.number().int().positive().max(3_650).default(30),
+  is_renewable: z.boolean().default(true),
+});
+
+/** Summary for the provider / distributor dashboard. */
+export const getProviderDashboardStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { count: totalInventory } = await supabaseAdmin
-      .from("account_inventory")
-      .select("*", { count: "exact", head: true })
-      .eq("supplier_id", context.userId);
+    const [
+      { count: totalProducts, error: totalProductsError },
+      { count: publishedProducts, error: publishedProductsError },
+      { count: totalInventory, error: totalInventoryError },
+      { count: availableInventory, error: availableInventoryError },
+      { count: totalSales, error: totalSalesError },
+    ] = await Promise.all([
+      supabaseAdmin
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("supplier_id", context.userId),
+      supabaseAdmin
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("supplier_id", context.userId)
+        .eq("is_active", true),
+      supabaseAdmin
+        .from("account_inventory")
+        .select("id", { count: "exact", head: true })
+        .eq("supplier_id", context.userId),
+      supabaseAdmin
+        .from("account_inventory")
+        .select("id", { count: "exact", head: true })
+        .eq("supplier_id", context.userId)
+        .eq("status", "available"),
+      supabaseAdmin
+        .from("account_inventory")
+        .select("id", { count: "exact", head: true })
+        .eq("supplier_id", context.userId)
+        .eq("status", "assigned"),
+    ]);
 
-    const { count: availableStock } = await supabaseAdmin
-      .from("account_inventory")
-      .select("*", { count: "exact", head: true })
-      .eq("supplier_id", context.userId)
-      .eq("status", "available");
-
-    const { count: soldCount } = await supabaseAdmin
-      .from("account_inventory")
-      .select("*", { count: "exact", head: true })
-      .eq("supplier_id", context.userId)
-      .eq("status", "assigned");
-
-    const { data: profile } = await supabaseAdmin
-      .from("supplier_profiles")
-      .select("*")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-
-    // Ganancias: precio de los productos vendidos * % de comisión del proveedor
-    const { data: soldRows } = await supabaseAdmin
-      .from("account_inventory")
-      .select("products(price)")
-      .eq("supplier_id", context.userId)
-      .eq("status", "assigned");
-
-    const grossRevenue = (soldRows || []).reduce(
-      (acc, row) => acc + Number(row.products?.price || 0),
-      0,
-    );
-    const commissionRate = Number(profile?.commission_rate ?? 70);
-    const earnings = (grossRevenue * commissionRate) / 100;
+    const error = [
+      totalProductsError,
+      publishedProductsError,
+      totalInventoryError,
+      availableInventoryError,
+      totalSalesError,
+    ].find(Boolean);
+    if (error) throw new Error(error.message);
 
     return {
-      totalInventory: totalInventory || 0,
-      availableStock: availableStock || 0,
-      totalSales: soldCount || 0,
-      isVerified: profile?.is_verified || false,
-      hasProfile: !!profile,
-      displayName: profile?.display_name || "",
-      avatarUrl: profile?.avatar_url || "",
-      avatarEffect: (profile as { avatar_effect?: string })?.avatar_effect || "none",
-      rating: profile?.total_reviews ? Number(profile.rating) : (null as number | null),
-      totalReviews: Number(profile?.total_reviews ?? 0),
-      commissionRate,
-      grossRevenue,
-      earnings,
+      totalProducts: totalProducts ?? 0,
+      publishedProducts: publishedProducts ?? 0,
+      draftProducts: Math.max((totalProducts ?? 0) - (publishedProducts ?? 0), 0),
+      totalInventory: totalInventory ?? 0,
+      availableInventory: availableInventory ?? 0,
+      totalSales: totalSales ?? 0,
     };
   });
 
-/** Reseñas recibidas por el proveedor autenticado. */
-export const getSupplierReviews = createServerFn({ method: "GET" })
+/** Latest stock-out alerts for the signed-in provider. No customer data or credentials are returned. */
+export const getProviderStockAlerts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data, error } = await supabaseAdmin
-      .from("supplier_ratings")
-      .select("id, rating, comment, created_at")
-      .eq("supplier_id", context.userId)
+      .from("owner_notifications")
+      .select("id, product_id, notification_type, title, body, created_at")
+      .eq("user_id", context.userId)
       .order("created_at", { ascending: false })
-      .limit(20);
-
+      .limit(5);
     if (error) throw new Error(error.message);
-    return data || [];
+    return data ?? [];
   });
 
-export const getSupplierSales = createServerFn({ method: "GET" })
+/** Products owned by the signed-in provider. Drafts are included for editing. */
+export const getProviderProducts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data, error } = await supabaseAdmin
-      .from("account_inventory")
-      .select("id, email, status, created_at, assigned_at, order_id, products(name, price)")
+      .from("products")
+      .select("*")
       .eq("supplier_id", context.userId)
-      .eq("status", "assigned")
-      .order("assigned_at", { ascending: false });
-
+      .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return data || [];
+    return (data ?? []) as Tables<"products">[];
   });
 
-export const deleteSupplierInventoryItem = createServerFn({ method: "POST" })
+/** Creates a provider draft or updates a product already owned by that provider. */
+export const saveProviderProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .validator((value) => providerProductSchema.parse(value))
   .handler(async ({ data, context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { id, ...productData } = data;
+
+    if (id) {
+      const { data: existing, error: existingError } = await supabaseAdmin
+        .from("products")
+        .select("id, supplier_id")
+        .eq("id", id)
+        .maybeSingle();
+      if (existingError) throw new Error(existingError.message);
+      if (!existing || existing.supplier_id !== context.userId) {
+        throw new Error("No puedes editar un producto que no te pertenece.");
+      }
+
+      const { data: updated, error } = await supabaseAdmin
+        .from("products")
+        .update({ ...productData, is_active: false } as TablesUpdate<"products">)
+        .eq("id", id)
+        .select("*")
+        .single();
+      if (error) throw new Error(error.message);
+      return { product: updated as Tables<"products">, requiresApproval: true };
+    }
+
+    const { data: created, error } = await supabaseAdmin
+      .from("products")
+      .insert({
+        ...productData,
+        supplier_id: context.userId,
+        is_active: false,
+      } as TablesInsert<"products">)
+      .select("*")
+      .single();
+    if (error) throw new Error(error.message);
+    return { product: created as Tables<"products">, requiresApproval: true };
+  });
+
+/** El proveedor puede pausar o reactivar su producto publicado sin tocar inventario ni credenciales. */
+export const setProviderProductAvailability = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((value) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        is_catalog_available: z.boolean(),
+      })
+      .parse(value),
+  )
+  .handler(async ({ data, context }) => {
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: row, error: readErr } = await supabaseAdmin
-      .from("account_inventory")
-      .select("id, supplier_id, status")
+    const { data: updated, error } = await supabaseAdmin
+      .from("products")
+      .update({ is_catalog_available: data.is_catalog_available })
       .eq("id", data.id)
+      .eq("supplier_id", context.userId)
+      .select("id, is_catalog_available")
       .maybeSingle();
 
-    if (readErr) throw new Error(readErr.message);
-    if (!row) throw new Error("Cuenta no encontrada.");
-    if (row.supplier_id !== context.userId) throw new Error("No autorizado.");
-    if (row.status !== "available") throw new Error("Solo puedes eliminar cuentas disponibles.");
+    if (error) throw new Error(error.message);
+    if (!updated) throw new Error("No puedes cambiar la disponibilidad de un producto que no te pertenece.");
+    return updated;
+  });
 
-    const { error } = await supabaseAdmin
-      .from("account_inventory")
-      .delete()
+/** Deletes only provider-owned products without inventory or completed sales. */
+export const deleteProviderProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((value) => z.object({ id: z.string().uuid() }).parse(value))
+  .handler(async ({ data, context }) => {
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: product, error: productError } = await supabaseAdmin
+      .from("products")
+      .select("id, supplier_id")
       .eq("id", data.id)
-      .eq("supplier_id", context.userId)
-      .eq("status", "available");
+      .maybeSingle();
+    if (productError) throw new Error(productError.message);
+    if (!product || product.supplier_id !== context.userId) {
+      throw new Error("No puedes eliminar un producto que no te pertenece.");
+    }
 
+    const { count, error: inventoryError } = await supabaseAdmin
+      .from("account_inventory")
+      .select("id", { count: "exact", head: true })
+      .eq("product_id", data.id);
+    if (inventoryError) throw new Error(inventoryError.message);
+    if ((count ?? 0) > 0) {
+      throw new Error("No se puede eliminar un producto que ya tiene inventario o ventas.");
+    }
+
+    const { error } = await supabaseAdmin.from("products").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { success: true };
   });
 
-export const getSupplierInventory = createServerFn({ method: "GET" })
+export const getProviderInventory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data, error } = await supabaseAdmin
       .from("account_inventory")
-      .select("*, products(name)")
+      .select("id, product_id, email, status, created_at, assigned_at, products(name)")
       .eq("supplier_id", context.userId)
       .order("created_at", { ascending: false });
-
     if (error) throw new Error(error.message);
-    return data || [];
+    return data ?? [];
   });
 
-/** Productos que el proveedor puede abastecer: los asignados a él (o todos si es admin). */
-export const getSupplierProducts = createServerFn({ method: "GET" })
+export const addProviderInventoryBulk = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-
-    let query = supabaseAdmin.from("products").select("*").eq("is_active", true);
-    if (!isAdmin) query = query.eq("supplier_id", context.userId);
-
-    const { data, error } = await query.order("name");
-    if (error) throw new Error(error.message);
-    return data || [];
-  });
-
-export const addSupplierInventoryBulk = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((d) =>
+  .validator((value) =>
     z
       .object({
         product_id: z.string().uuid(),
@@ -181,130 +244,71 @@ export const addSupplierInventoryBulk = createServerFn({ method: "POST" })
             z.object({
               email: z.string().trim().email().max(320),
               password: z.string().min(1).max(500),
-              access_link: z.string().trim().url().max(2_000).optional(),
-              notes: z.string().trim().max(2_000).optional(),
             }),
           )
           .min(1)
           .max(100),
       })
-      .parse(d),
+      .parse(value),
   )
   .handler(async ({ data, context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: isAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-
-    const { data: product } = await supabaseAdmin
+    const { data: product, error: productError } = await supabaseAdmin
       .from("products")
-      .select("id, supplier_id, is_active")
+      .select("id, supplier_id")
       .eq("id", data.product_id)
       .maybeSingle();
-
-    if (!product || !product.is_active) throw new Error("Producto no disponible.");
-    if (!isAdmin && product.supplier_id !== context.userId) {
-      throw new Error("No estás autorizado para abastecer este producto.");
+    if (productError) throw new Error(productError.message);
+    if (!product || product.supplier_id !== context.userId) {
+      throw new Error("Solo puedes cargar inventario para tus propios productos.");
     }
 
-    const inventoryData = data.accounts.map((acc) => ({
-      ...acc,
-      product_id: data.product_id,
-      supplier_id: context.userId,
-      status: "available",
-    }));
+    const { error } = await supabaseAdmin.from("account_inventory").insert(
+      data.accounts.map((account) => ({
+        ...account,
+        product_id: data.product_id,
+        supplier_id: context.userId,
+        status: "available",
+      })),
+    );
+    if (error) throw new Error(error.message);
+    return { inserted: data.accounts.length };
+  });
 
-    const { error } = await supabaseAdmin.from("account_inventory").insert(inventoryData);
+export const deleteProviderInventoryItem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((value) => z.object({ id: z.string().uuid() }).parse(value))
+  .handler(async ({ data, context }) => {
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    const { error } = await supabaseAdmin
+      .from("account_inventory")
+      .delete()
+      .eq("id", data.id)
+      .eq("supplier_id", context.userId)
+      .eq("status", "available");
     if (error) throw new Error(error.message);
     return { success: true };
   });
 
-export const getSupplierProfile = createServerFn({ method: "GET" })
+export const getProviderSales = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
+    const { assertProvider } = await import("@/lib/roles.server");
+    await assertProvider(context.supabase, context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data, error } = await supabaseAdmin
-      .from("supplier_profiles")
-      .select(
-        "user_id, display_name, avatar_url, avatar_effect, is_verified, rating, total_reviews, joined_at",
-      )
-      .eq("user_id", context.userId)
-      .maybeSingle();
-
+      .from("account_inventory")
+      .select("id, product_id, status, assigned_at, created_at, products(name, price)")
+      .eq("supplier_id", context.userId)
+      .eq("status", "assigned")
+      .order("assigned_at", { ascending: false });
     if (error) throw new Error(error.message);
-    return {
-      user_id: context.userId,
-      display_name: data?.display_name ?? "",
-      avatar_url: data?.avatar_url ?? "",
-      avatar_effect: data?.avatar_effect ?? "none",
-      is_verified: data?.is_verified ?? false,
-      rating: data?.rating ?? null,
-      total_reviews: data?.total_reviews ?? 0,
-      joined_at: data?.joined_at ?? null,
-      exists: !!data,
-    };
-  });
-
-export const updateSupplierProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .validator((d) =>
-    z
-      .object({
-        display_name: z.string().min(2),
-        avatar_url: z.string().optional(),
-        avatar_effect: z.enum(AVATAR_EFFECT_VALUES).optional(),
-      })
-      .parse(d),
-  )
-  .handler(async ({ data, context }) => {
-    const { assertSupplier } = await import("@/lib/roles.server");
-    await assertSupplier(context.supabase, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    // Un único registro por proveedor: actualizar si existe, insertar si no.
-    const { data: existing, error: readErr } = await supabaseAdmin
-      .from("supplier_profiles")
-      .select("id")
-      .eq("user_id", context.userId)
-      .maybeSingle();
-    if (readErr) throw new Error(readErr.message);
-
-    const payload = {
-      display_name: data.display_name,
-      ...(data.avatar_url !== undefined ? { avatar_url: data.avatar_url } : {}),
-      ...(data.avatar_effect !== undefined ? { avatar_effect: data.avatar_effect } : {}),
-    };
-
-    const { data: saved, error } = existing
-      ? await supabaseAdmin
-          .from("supplier_profiles")
-          .update(payload)
-          .eq("user_id", context.userId)
-          .select("user_id, display_name, avatar_url, avatar_effect")
-          .single()
-      : await supabaseAdmin
-          .from("supplier_profiles")
-          .insert({ user_id: context.userId, ...payload })
-          .select("user_id, display_name, avatar_url, avatar_effect")
-          .single();
-
-    if (error) {
-      console.error("[updateSupplierProfile] fallo al guardar", {
-        userId: context.userId,
-        effect: data.avatar_effect,
-        code: (error as { code?: string }).code,
-        message: error.message,
-      });
-      throw new Error(error.message);
-    }
-
-    return { success: true, profile: saved };
+    return data ?? [];
   });

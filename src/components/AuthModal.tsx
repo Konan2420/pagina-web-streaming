@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
-import { X, Mail, Lock, Loader2, User, Phone } from "lucide-react";
+import { X, Mail, Lock, Loader2, User, UserPlus, Phone, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useRouter } from "@tanstack/react-router";
 import { getAuthDestination } from "@/lib/auth-destination";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export type AuthMode = "login" | "signup" | "forgot" | "update";
 
@@ -61,6 +64,8 @@ export function AuthModal({
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [confirm, setConfirm] = useState("");
   const [nombre, setNombre] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
@@ -77,12 +82,23 @@ export function AuthModal({
     if (typeof window === "undefined") return "/tienda";
 
     // En una demo publicada por túnel, el correo debe regresar a la URL
-    // pública y no a 127.0.0.1, que solo existe en el equipo local.
+    // pública y no al origen temporal del equipo de desarrollo.
     const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim();
     try {
       return new URL("/tienda", configuredAppUrl || window.location.origin).toString();
     } catch {
       return new URL("/tienda", window.location.origin).toString();
+    }
+  };
+
+  const getPasswordRecoveryRedirectUrl = () => {
+    if (typeof window === "undefined") return "/reset-password";
+
+    const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim();
+    try {
+      return new URL("/reset-password", configuredAppUrl || window.location.origin).toString();
+    } catch {
+      return new URL("/reset-password", window.location.origin).toString();
     }
   };
 
@@ -142,6 +158,8 @@ export function AuthModal({
   function clearSensitiveFields() {
     setPassword("");
     setConfirm("");
+    setShowPassword(false);
+    setShowConfirm(false);
   }
 
   function clearForm() {
@@ -213,7 +231,7 @@ export function AuthModal({
         }
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-          redirectTo: getRedirectUrl(),
+          redirectTo: getPasswordRecoveryRedirectUrl(),
         });
         if (error) throw error;
         setInfo("Te enviamos un enlace para restablecer tu contraseña.");
@@ -243,7 +261,6 @@ export function AuthModal({
       const msg = getAuthErrorMessage(err);
       setError(msg);
       setCanResendConfirmation(rawMessage.includes("email not confirmed"));
-      console.error("AuthModal error:", err);
     } finally {
       setLoading(false);
     }
@@ -306,25 +323,25 @@ export function AuthModal({
 
   const title =
     mode === "login"
-      ? "Iniciar Sesión"
+      ? "Ingresa a tu cuenta"
       : mode === "signup"
-        ? "Crear Cuenta"
+        ? "Crea tu cuenta"
         : mode === "forgot"
-          ? "Recuperar Contraseña"
-          : "Nueva Contraseña";
+          ? "Recupera tu contraseña"
+          : "Nueva contraseña";
   const subtitle =
     mode === "login"
-      ? "Accede a tu cuenta para comprar"
+      ? "Ingresa tus credenciales para continuar"
       : mode === "signup"
-        ? "Regístrate para acceder a la tienda"
+        ? "Regístrate para disfrutar de CMD Streaming"
         : mode === "forgot"
           ? "Te enviaremos un enlace a tu correo"
           : "Crea una contraseña nueva y segura para tu cuenta";
 
   return (
-    <div className="fixed inset-0 z-[100] grid place-items-center p-4 animate-fade-up">
+    <div className="fixed inset-0 z-[100] grid place-items-center overflow-y-auto p-4 sm:p-6">
       <div
-        className="absolute inset-0 bg-black/70"
+        className="absolute inset-0 bg-black/80 backdrop-blur-md"
         onClick={() => closeModal()}
         aria-hidden="true"
       />
@@ -332,272 +349,385 @@ export function AuthModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
-        className="relative w-full max-w-md rounded-2xl glass-card p-6 sm:p-8 border border-violet-2/30 max-h-[92vh] overflow-y-auto"
+        aria-describedby="auth-modal-description"
+        className="relative my-auto grid w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0f] shadow-[0_24px_80px_rgba(0,0,0,0.6)] lg:grid-cols-[1.04fr_0.96fr]"
       >
         <button
           type="button"
           onClick={() => closeModal()}
           disabled={loading}
-          className="absolute top-4 right-4 p-1.5 rounded-lg text-white/78 hover:text-white hover:bg-white/5"
+          className="absolute right-4 top-4 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/65 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Cerrar"
         >
-          <X className="w-5 h-5" />
+          <X className="h-4 w-4" />
         </button>
 
-        <div className="text-center mb-6">
-          <h2
-            id="auth-modal-title"
-            className="font-display text-3xl text-white uppercase tracking-wide"
-          >
-            {title}
-          </h2>
-          <p className="mt-2 text-sm text-white/78">{subtitle}</p>
-        </div>
+        <aside className="relative hidden min-h-[640px] overflow-hidden lg:flex lg:flex-col lg:justify-end">
+          <img
+            src="/landing/auth-platforms-collage.png"
+            alt="Collage de contenidos de streaming, deportes, música y videojuegos"
+            className="absolute inset-0 h-full w-full object-cover object-center"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-gradient-to-tr from-black/65 via-transparent to-black/30"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/45 to-transparent"
+          />
+        </aside>
 
-        {mode !== "forgot" && mode !== "update" && (
-          <>
-            <button
-              type="button"
-              onClick={handleGoogle}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl bg-white text-slate-900 text-sm font-semibold hover:bg-white/90 disabled:opacity-60 transition"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 48 48">
-                <path
-                  fill="#EA4335"
-                  d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
-                />
-                <path
-                  fill="#4285F4"
-                  d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
-                />
-              </svg>
-              Continuar con Google
-            </button>
-
-            <div className="my-5 flex items-center gap-3">
-              <div className="flex-1 h-px bg-white/10" />
-              <span className="text-xs text-white/62 uppercase tracking-wider">o</span>
-              <div className="flex-1 h-px bg-white/10" />
+        <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto bg-[#0a0a0f] px-6 py-8 sm:px-10 sm:py-10 lg:max-h-[680px]">
+          <div className="mx-auto w-full max-w-sm">
+            <div className="mb-7 text-center lg:text-left">
+              <img src="/cmd-logo.png" alt="CMD Streaming" className="mx-auto w-28 lg:mx-0" />
+              <h2
+                id="auth-modal-title"
+                className="mt-7 text-2xl font-bold tracking-tight text-white sm:text-[1.75rem]"
+              >
+                {title}
+              </h2>
+              <p id="auth-modal-description" className="mt-2 text-sm text-white/55">
+                {subtitle}
+              </p>
             </div>
-          </>
-        )}
 
-        <form noValidate onSubmit={handleSubmit} className="space-y-3">
-          {mode === "signup" && (
-            <>
-              <Field icon={<User className="w-4 h-4" />} error={fieldErrors.nombre}>
-                <input
-                  type="text"
-                  required
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Nombre completo"
-                  autoComplete="name"
-                  aria-label="Nombre completo"
-                  className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/74 focus:outline-none focus:border-violet-2/60 transition"
-                />
-              </Field>
-            </>
-          )}
+            {mode !== "forgot" && mode !== "update" && (
+              <>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGoogle}
+                  disabled={loading}
+                  className="h-11 w-full rounded-xl border-white/15 bg-white/[0.03] text-sm font-semibold text-white hover:bg-white/[0.08] hover:text-white"
+                >
+                  <GoogleIcon />
+                  Continuar con Google
+                </Button>
 
-          {mode !== "update" && (
-            <Field icon={<Mail className="w-4 h-4" />} error={fieldErrors.email}>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu@email.com"
-                autoComplete={mode === "signup" ? "email" : "username"}
-                aria-label="Correo electrónico"
-                className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/74 focus:outline-none focus:border-violet-2/60 transition"
-              />
-            </Field>
-          )}
+                <div className="my-6 flex items-center gap-3">
+                  <div className="flex-1 h-px bg-white/10" />
+                  <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/35">
+                    o
+                  </span>
+                  <div className="flex-1 h-px bg-white/10" />
+                </div>
+              </>
+            )}
 
-          {mode === "signup" && (
-            <Field icon={<Phone className="w-4 h-4" />} error={fieldErrors.whatsapp}>
-              <input
-                type="tel"
-                required
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="WhatsApp (con código de país)"
-                autoComplete="tel"
-                aria-label="Número de WhatsApp"
-                className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/74 focus:outline-none focus:border-violet-2/60 transition"
-              />
-            </Field>
-          )}
-
-          {mode !== "forgot" && (
-            <Field icon={<Lock className="w-4 h-4" />} error={fieldErrors.password}>
-              <input
-                type="password"
-                required
-                minLength={mode === "login" ? 6 : 8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === "login" ? "Contraseña" : "Contraseña (mín. 8 caracteres)"}
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                aria-label="Contraseña"
-                className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/74 focus:outline-none focus:border-violet-2/60 transition"
-              />
-            </Field>
-          )}
-
-          {(mode === "signup" || mode === "update") && (
-            <Field icon={<Lock className="w-4 h-4" />} error={fieldErrors.confirm}>
-              <input
-                type="password"
-                required
-                value={confirm}
-                onChange={(e) => setConfirm(e.target.value)}
-                placeholder="Confirmar contraseña"
-                autoComplete="new-password"
-                aria-label="Confirmar contraseña"
-                className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/74 focus:outline-none focus:border-violet-2/60 transition"
-              />
-            </Field>
-          )}
-
-          {mode === "signup" && (
-            <div>
-              <label className="flex items-start gap-2 text-xs text-white/70 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={terms}
-                  onChange={(e) => setTerms(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded accent-red-accent"
-                />
-                <span>Acepto los términos y condiciones</span>
-              </label>
-              {fieldErrors.terms && (
-                <p className="mt-1 text-[11px] text-red-accent">{fieldErrors.terms}</p>
+            <form noValidate onSubmit={handleSubmit} className="space-y-4">
+              {mode === "signup" && (
+                <>
+                  <Field
+                    label="Nombre completo"
+                    htmlFor="auth-name"
+                    icon={<User className="h-4 w-4" />}
+                    error={fieldErrors.nombre}
+                  >
+                    <input
+                      id="auth-name"
+                      type="text"
+                      required
+                      value={nombre}
+                      onChange={(e) => setNombre(e.target.value)}
+                      placeholder="Nombre completo"
+                      autoComplete="name"
+                      aria-label="Nombre completo"
+                      className="h-11 w-full rounded-xl border border-white/10 bg-[#12131d] py-2 pl-10 pr-3 text-sm text-white placeholder:text-white/35 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                  </Field>
+                </>
               )}
-            </div>
-          )}
 
-          {mode === "login" && (
-            <button
-              type="button"
-              onClick={() => changeMode("forgot")}
-              className="text-xs text-violet-2 hover:text-white block ml-auto"
-            >
-              ¿Olvidaste tu contraseña?
-            </button>
-          )}
+              {mode !== "update" && (
+                <Field
+                  label={mode === "login" ? "Usuario o Email" : "Correo electrónico"}
+                  htmlFor="auth-email"
+                  icon={<Mail className="h-4 w-4" />}
+                  error={fieldErrors.email}
+                >
+                  <input
+                    id="auth-email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    autoComplete={mode === "signup" ? "email" : "username"}
+                    aria-label="Correo electrónico"
+                    className="h-11 w-full rounded-xl border border-white/10 bg-[#12131d] py-2 pl-10 pr-3 text-sm text-white placeholder:text-white/35 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </Field>
+              )}
 
-          {error && (
-            <p
-              role="alert"
-              className="text-xs text-red-accent bg-red-accent/10 border border-red-accent/30 rounded-lg px-3 py-2"
-            >
-              {error}
-            </p>
-          )}
-          {info && (
-            <p
-              role="status"
-              className="text-xs text-green-300 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2"
-            >
-              {info}
-            </p>
-          )}
-          {canResendConfirmation && (
-            <button
-              type="button"
-              onClick={handleResendConfirmation}
-              disabled={loading}
-              className="w-full text-xs font-medium text-violet-2 hover:text-white disabled:opacity-50 transition"
-            >
-              Reenviar correo de confirmación
-            </button>
-          )}
+              {mode === "signup" && (
+                <Field
+                  label="WhatsApp"
+                  htmlFor="auth-whatsapp"
+                  icon={<Phone className="h-4 w-4" />}
+                  error={fieldErrors.whatsapp}
+                >
+                  <input
+                    id="auth-whatsapp"
+                    type="tel"
+                    required
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    placeholder="WhatsApp (con código de país)"
+                    autoComplete="tel"
+                    aria-label="Número de WhatsApp"
+                    className="h-11 w-full rounded-xl border border-white/10 bg-[#12131d] py-2 pl-10 pr-3 text-sm text-white placeholder:text-white/35 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </Field>
+              )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl gradient-violet text-white text-sm font-semibold hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed transition"
-          >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-            {mode === "login"
-              ? "Entrar"
-              : mode === "signup"
-                ? "Crear cuenta"
-                : mode === "forgot"
-                  ? "Enviar enlace"
-                  : "Guardar contraseña"}
-          </button>
-        </form>
+              {mode !== "forgot" && (
+                <Field
+                  label="Contraseña"
+                  htmlFor="auth-password"
+                  icon={<Lock className="h-4 w-4" />}
+                  error={fieldErrors.password}
+                  trailing={
+                    <PasswordToggle
+                      visible={showPassword}
+                      onClick={() => setShowPassword((visible) => !visible)}
+                      label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    />
+                  }
+                >
+                  <input
+                    id="auth-password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    minLength={mode === "login" ? 6 : 8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={mode === "login" ? "Contraseña" : "Contraseña (mín. 8 caracteres)"}
+                    autoComplete={mode === "login" ? "current-password" : "new-password"}
+                    aria-label="Contraseña"
+                    className="h-11 w-full rounded-xl border border-white/10 bg-[#12131d] py-2 pl-10 pr-11 text-sm text-white placeholder:text-white/35 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </Field>
+              )}
 
-        <p className="mt-5 text-center text-xs text-white/70">
-          {mode === "signup" ? (
-            <>
-              ¿Ya tienes cuenta?{" "}
-              <button
-                type="button"
-                onClick={() => changeMode("login")}
-                className="text-violet-2 hover:text-white font-semibold"
+              {(mode === "signup" || mode === "update") && (
+                <Field
+                  label="Confirmar contraseña"
+                  htmlFor="auth-confirm"
+                  icon={<Lock className="h-4 w-4" />}
+                  error={fieldErrors.confirm}
+                  trailing={
+                    <PasswordToggle
+                      visible={showConfirm}
+                      onClick={() => setShowConfirm((visible) => !visible)}
+                      label={showConfirm ? "Ocultar confirmación" : "Mostrar confirmación"}
+                    />
+                  }
+                >
+                  <input
+                    id="auth-confirm"
+                    type={showConfirm ? "text" : "password"}
+                    required
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    placeholder="Confirmar contraseña"
+                    autoComplete="new-password"
+                    aria-label="Confirmar contraseña"
+                    className="h-11 w-full rounded-xl border border-white/10 bg-[#12131d] py-2 pl-10 pr-11 text-sm text-white placeholder:text-white/35 transition focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                </Field>
+              )}
+
+              {mode === "signup" && (
+                <div>
+                  <label className="flex items-start gap-2 text-xs text-white/70 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={terms}
+                      onChange={(e) => setTerms(e.target.checked)}
+                      className="mt-0.5 w-4 h-4 rounded accent-red-accent"
+                    />
+                    <span>Acepto los términos y condiciones</span>
+                  </label>
+                  {fieldErrors.terms && (
+                    <p className="mt-1 text-[11px] text-red-accent">{fieldErrors.terms}</p>
+                  )}
+                </div>
+              )}
+
+              {mode === "login" && (
+                <button
+                  type="button"
+                  onClick={() => changeMode("forgot")}
+                  className="text-xs text-violet-2 hover:text-white block ml-auto"
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              )}
+
+              {error && (
+                <p
+                  role="alert"
+                  className="text-xs text-red-accent bg-red-accent/10 border border-red-accent/30 rounded-lg px-3 py-2"
+                >
+                  {error}
+                </p>
+              )}
+              {info && (
+                <p
+                  role="status"
+                  className="text-xs text-green-300 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2"
+                >
+                  {info}
+                </p>
+              )}
+              {canResendConfirmation && (
+                <button
+                  type="button"
+                  onClick={handleResendConfirmation}
+                  disabled={loading}
+                  className="w-full text-xs font-medium text-violet-2 hover:text-white disabled:opacity-50 transition"
+                >
+                  Reenviar correo de confirmación
+                </button>
+              )}
+
+              <Button
+                type="submit"
+                disabled={loading}
+                className="h-11 w-full rounded-xl bg-primary text-sm font-bold text-white shadow-[0_10px_28px_rgba(220,38,38,0.25)] transition hover:bg-red-500 hover:shadow-[0_12px_30px_rgba(220,38,38,0.4)]"
               >
-                Inicia sesión
-              </button>
-            </>
-          ) : mode === "forgot" ? (
-            <button
-              type="button"
-              onClick={() => changeMode("login")}
-              className="text-violet-2 hover:text-white font-semibold"
-            >
-              ← Volver al inicio de sesión
-            </button>
-          ) : mode === "update" ? (
-            <span>Contraseña restablecida mediante enlace seguro.</span>
-          ) : (
-            <>
-              ¿No tienes cuenta?{" "}
-              <button
-                type="button"
-                onClick={() => changeMode("signup")}
-                className="text-violet-2 hover:text-white font-semibold"
-              >
-                Regístrate
-              </button>
-            </>
-          )}
-        </p>
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                {mode === "login"
+                  ? "Iniciar sesión"
+                  : mode === "signup"
+                    ? "Crear cuenta"
+                    : mode === "forgot"
+                      ? "Enviar enlace"
+                      : "Guardar contraseña"}
+              </Button>
+
+              {mode === "login" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => changeMode("signup")}
+                  disabled={loading}
+                  className="h-11 w-full rounded-xl border-white/15 bg-white/[0.03] text-sm font-semibold text-white transition hover:border-primary/60 hover:bg-primary/10 hover:text-white"
+                >
+                  <UserPlus className="h-4 w-4" aria-hidden="true" />
+                  Crear cuenta
+                </Button>
+              )}
+            </form>
+
+            {mode !== "login" && (
+              <p className="mt-6 text-center text-xs text-white/50">
+                {mode === "signup" ? (
+                  <>
+                    ¿Ya tienes cuenta?{" "}
+                    <button
+                      type="button"
+                      onClick={() => changeMode("login")}
+                      className="font-semibold text-primary hover:text-red-400"
+                    >
+                      Inicia sesión
+                    </button>
+                  </>
+                ) : mode === "forgot" ? (
+                  <button
+                    type="button"
+                    onClick={() => changeMode("login")}
+                    className="font-semibold text-primary hover:text-red-400"
+                  >
+                    ← Volver al inicio de sesión
+                  </button>
+                ) : (
+                  <span>Contraseña restablecida mediante enlace seguro.</span>
+                )}
+              </p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
 function Field({
+  label,
+  htmlFor,
   icon,
   error,
+  trailing,
   children,
 }: {
+  label: string;
+  htmlFor: string;
   icon: React.ReactNode;
   error?: string;
+  trailing?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <div>
+    <div className="space-y-2">
+      <Label htmlFor={htmlFor} className="text-xs font-semibold text-white/90">
+        {label}
+      </Label>
       <div className="relative">
-        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/62 pointer-events-none">
+        <div className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40">
           {icon}
         </div>
+        {trailing && <div className="absolute right-1.5 top-1/2 -translate-y-1/2">{trailing}</div>}
         {children}
       </div>
       {error && <p className="mt-1 text-[11px] text-red-accent px-1">{error}</p>}
     </div>
+  );
+}
+
+function PasswordToggle({
+  visible,
+  onClick,
+  label,
+}: {
+  visible: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={visible}
+      className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-white/45 transition hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+    >
+      {visible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 48 48">
+      <path
+        fill="#EA4335"
+        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+      />
+      <path
+        fill="#4285F4"
+        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+      />
+      <path
+        fill="#34A853"
+        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+      />
+    </svg>
   );
 }

@@ -1,311 +1,55 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SupplierLayout } from "@/components/supplier/SupplierLayout";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  getSupplierInventory,
-  addSupplierInventoryBulk,
-  getSupplierProducts,
-  deleteSupplierInventoryItem,
-} from "@/lib/supplier.functions";
-import { useState } from "react";
-import { Plus, Database, Search, Trash2, CheckCircle2, Clock, X } from "lucide-react";
-import { useFuturisticSound } from "@/hooks/useSound";
-import { toast } from "sonner";
+import { useState, type FormEvent } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
+import { SupplierLayout } from "@/components/supplier/SupplierLayout";
+import { addProviderInventoryBulk, deleteProviderInventoryItem, getProviderInventory, getProviderProducts } from "@/lib/supplier.functions";
 
-export const Route = createFileRoute("/_authenticated/proveedor/inventario")({
-  validateSearch: (search: Record<string, unknown>) => ({
-    add: search["add"] === true || search["add"] === "true" ? true : undefined,
-  }),
-  component: SupplierInventory,
-});
+export const Route = createFileRoute("/_authenticated/proveedor/inventario")({ component: ProviderInventory });
 
-function SupplierInventory() {
-  const { playHover, playClick } = useFuturisticSound();
-  const { add } = Route.useSearch();
-  const [showAdd, setShowAdd] = useState(Boolean(add));
-  const [searchTerm, setSearchTerm] = useState("");
-  const [bulkText, setBulkText] = useState("");
-  const [selectedProductId, setSelectedProductId] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
+function ProviderInventory() {
   const queryClient = useQueryClient();
-  const addBulkFn = useServerFn(addSupplierInventoryBulk);
-  const deleteFn = useServerFn(deleteSupplierInventoryItem);
+  const [open, setOpen] = useState(false);
+  const [productId, setProductId] = useState("");
+  const [bulkText, setBulkText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const addInventory = useServerFn(addProviderInventoryBulk);
+  const deleteInventory = useServerFn(deleteProviderInventoryItem);
+  const { data: products = [] } = useQuery({ queryKey: ["provider-products"], queryFn: () => getProviderProducts() });
+  const { data: inventory = [], isLoading } = useQuery({ queryKey: ["provider-inventory"], queryFn: () => getProviderInventory() });
 
-  const { data: myProducts = [] } = useQuery({
-    queryKey: ["supplier-products"],
-    queryFn: () => getSupplierProducts(),
-  });
-
-  const { data: inventory = [], isLoading } = useQuery({
-    queryKey: ["supplier-inventory"],
-    queryFn: () => getSupplierInventory(),
-  });
-
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("¿Eliminar esta cuenta del inventario?")) return;
-    setDeletingId(id);
-    try {
-      await deleteFn({ data: { id } });
-      toast.success("Cuenta eliminada");
-      queryClient.invalidateQueries({ queryKey: ["supplier-inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["supplier-stats"] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo eliminar la cuenta.");
-    } finally {
-      setDeletingId(null);
-    }
-  };
-
-  const handleBulkAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isUploading) return;
-    if (!selectedProductId || !bulkText.trim()) {
-      toast.error("Selecciona un producto e ingresa las credenciales.");
-      return;
-    }
-
-    const lines = bulkText
-      .split("\n")
-      .map((l) => l.trim())
-      .filter(Boolean);
-    if (lines.length === 0) return;
-    if (lines.length > 100) {
-      toast.error("Puedes cargar como máximo 100 cuentas por operación.");
-      return;
-    }
-
-    const invalidLines: number[] = [];
-    const accounts = lines.flatMap((line, index) => {
-      const separator = line.indexOf(":");
-      if (separator <= 0) {
-        invalidLines.push(index + 1);
-        return [];
-      }
-
-      const email = line.slice(0, separator).trim();
-      const password = line.slice(separator + 1).trim();
-      if (!email || !password || !/^\S+@\S+\.\S+$/.test(email)) {
-        invalidLines.push(index + 1);
-        return [];
-      }
-
-      return [{ email, password }];
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    const accounts = bulkText.split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
+      const divider = line.indexOf(":");
+      return { email: line.slice(0, divider).trim(), password: line.slice(divider + 1).trim() };
     });
-
-    if (invalidLines.length > 0) {
-      toast.error(
-        `Revisa el formato de las líneas: ${invalidLines.join(", ")}. Usa email:contraseña.`,
-      );
+    if (!productId || !accounts.length || accounts.some((item) => !item.email || !item.password || !/^\S+@\S+\.\S+$/.test(item.email))) {
+      toast.error("Selecciona un producto y usa una cuenta por línea: email:contraseña.");
       return;
     }
-
-    const toastId = "supplier-inventory-upload";
-    setIsUploading(true);
-    toast.loading(`Procesando ${accounts.length} cuentas...`, { id: toastId });
+    setSaving(true);
     try {
-      await addBulkFn({
-        data: {
-          product_id: selectedProductId,
-          accounts,
-        },
-      });
-      toast.success(`${accounts.length} cuentas agregadas con éxito`, { id: toastId });
-      setBulkText("");
-      setShowAdd(false);
-      queryClient.invalidateQueries({ queryKey: ["supplier-inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["supplier-stats"] });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Error al subir inventario.";
-      toast.error(message, { id: toastId });
-    } finally {
-      setIsUploading(false);
-    }
+      const result = await addInventory({ data: { product_id: productId, accounts } });
+      toast.success(`${result.inserted} cuentas cargadas correctamente.`);
+      setBulkText(""); setOpen(false);
+      await queryClient.invalidateQueries({ queryKey: ["provider-inventory"] });
+      await queryClient.invalidateQueries({ queryKey: ["provider-dashboard"] });
+    } catch (error) { toast.error(error instanceof Error ? error.message : "No se pudo cargar el inventario."); }
+    finally { setSaving(false); }
   };
 
-  const filtered = inventory.filter(
-    (item) =>
-      item.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.products?.name?.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  const remove = async (id: string) => {
+    if (!window.confirm("¿Quitar esta cuenta disponible del inventario?")) return;
+    try { await deleteInventory({ data: { id } }); toast.success("Cuenta eliminada."); await queryClient.invalidateQueries({ queryKey: ["provider-inventory"] }); await queryClient.invalidateQueries({ queryKey: ["provider-dashboard"] }); }
+    catch (error) { toast.error(error instanceof Error ? error.message : "No se pudo eliminar."); }
+  };
 
-  return (
-    <SupplierLayout title="Mi Inventario" subtitle="Carga y gestiona las cuentas que vendes.">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-          <input
-            type="text"
-            placeholder="Buscar por email o producto..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
-          />
-        </div>
-        <button
-          onClick={() => {
-            playClick();
-            setShowAdd(true);
-          }}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-2xl font-bold text-sm hover:brightness-110 transition shadow-lg shadow-primary/20"
-        >
-          <Plus className="w-5 h-5" /> Nueva Carga Masiva
-        </button>
-      </div>
-
-      <div className="bg-ink/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-left text-[10px] text-white/40 border-b border-white/5 bg-white/[0.02] font-black uppercase tracking-widest">
-                <th className="px-8 py-5">Producto</th>
-                <th className="px-8 py-5">Email / Usuario</th>
-                <th className="px-8 py-5">Estado</th>
-                <th className="px-8 py-5">Fecha Carga</th>
-                <th className="px-8 py-5 text-right opacity-0">Acciones</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {isLoading ? (
-                [1, 2, 3].map((i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan={5} className="px-8 py-4 h-16 bg-white/[0.01]" />
-                  </tr>
-                ))
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-8 py-20 text-center text-white/20 italic">
-                    No tienes inventario cargado.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((item) => (
-                  <tr key={item.id} className="hover:bg-white/[0.02] transition-colors group">
-                    <td className="px-8 py-5">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                          <Database className="w-4 h-4 text-primary" />
-                        </div>
-                        <span className="font-bold text-white">
-                          {item.products?.name || "Desconocido"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-8 py-5 text-white/60 font-mono text-xs">{item.email}</td>
-                    <td className="px-8 py-5">
-                      {item.status === "available" ? (
-                        <span className="flex items-center gap-1.5 text-green-400 font-bold text-[10px] uppercase tracking-wider">
-                          <CheckCircle2 className="w-3 h-3" /> Disponible
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 text-white/30 font-bold text-[10px] uppercase tracking-wider">
-                          <Clock className="w-3 h-3" /> Vendida
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-8 py-5 text-white/30 text-xs">
-                      {item.created_at ? new Date(item.created_at).toLocaleDateString() : "—"}
-                    </td>
-                    <td className="px-8 py-5 text-right">
-                      {item.status === "available" && (
-                        <button
-                          type="button"
-                          disabled={deletingId === item.id}
-                          onClick={() => handleDelete(item.id)}
-                          onMouseEnter={playHover}
-                          className="p-2 text-white/20 hover:text-red-400 transition-colors disabled:opacity-40"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Modal Carga Masiva */}
-      {showAdd && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto py-10">
-          <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
-            onClick={() => setShowAdd(false)}
-          />
-          <div className="relative w-full max-w-lg bg-ink border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl my-auto">
-            <div className="p-8 border-b border-white/5 flex justify-between items-center">
-              <div>
-                <h2 className="text-2xl font-display text-white uppercase tracking-tight">
-                  Carga Masiva
-                </h2>
-                <p className="text-white/40 text-sm mt-1">Sube múltiples cuentas a la vez.</p>
-              </div>
-              <button
-                onClick={() => setShowAdd(false)}
-                className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleBulkAdd} className="p-8 space-y-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">
-                  Producto Asociado
-                </label>
-                <select
-                  value={selectedProductId}
-                  onChange={(e) => setSelectedProductId(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all text-sm"
-                >
-                  <option value="">Selecciona un producto...</option>
-                  {myProducts.map((product) => (
-                    <option key={product.id} value={product.id}>
-                      {product.name}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-[10px] text-white/30 mt-1 italic leading-relaxed">
-                  * Selecciona el producto al que pertenecen estas cuentas.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">
-                  Credenciales (email:password)
-                </label>
-                <textarea
-                  rows={8}
-                  placeholder="usuario1@mail.com:pass123&#10;usuario2@mail.com:pass456"
-                  value={bulkText}
-                  onChange={(e) => setBulkText(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none transition-all placeholder:text-white/10"
-                />
-              </div>
-
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowAdd(false)}
-                  className="flex-1 py-4 bg-white/5 text-white rounded-2xl font-bold text-sm hover:bg-white/10 transition-all border border-white/10"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={isUploading}
-                  className="flex-[2] py-4 bg-primary text-white rounded-2xl font-bold text-sm hover:brightness-110 transition-all shadow-lg shadow-primary/20"
-                >
-                  {isUploading ? "Subiendo inventario..." : "Subir Inventario"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </SupplierLayout>
-  );
+  return <SupplierLayout title="Inventario" subtitle="Carga credenciales para productos propios. Las contraseñas nunca se muestran en este listado.">
+    <div className="mb-6 flex justify-end"><button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-black uppercase tracking-wide text-white"><Plus className="h-4 w-4" /> Carga masiva</button></div>
+    <div className="overflow-hidden rounded-2xl border border-white/8 bg-white/[0.025]"><div className="overflow-x-auto"><table className="w-full min-w-[620px] text-left text-sm"><thead className="border-b border-white/8 text-[10px] font-black uppercase tracking-widest text-white/40"><tr><th className="px-5 py-4">Producto</th><th className="px-5 py-4">Cuenta</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4">Carga</th><th className="px-5 py-4" /></tr></thead><tbody className="divide-y divide-white/6">{isLoading ? Array.from({ length: 4 }, (_, i) => <tr key={i} className="animate-pulse"><td colSpan={5} className="h-16" /></tr>) : inventory.length === 0 ? <tr><td colSpan={5} className="px-5 py-16 text-center text-white/35">No tienes inventario cargado.</td></tr> : inventory.map((item) => <tr key={item.id} className="hover:bg-white/[0.035]"><td className="px-5 py-4 font-semibold text-white">{item.products?.name || "Producto"}</td><td className="px-5 py-4 font-mono text-xs text-white/65">{item.email}</td><td className="px-5 py-4"><span className={item.status === "available" ? "text-emerald-300" : "text-white/40"}>{item.status === "available" ? "Disponible" : "Entregada"}</span></td><td className="px-5 py-4 text-xs text-white/40">{item.created_at ? new Date(item.created_at).toLocaleDateString("es-PE") : "—"}</td><td className="px-5 py-4 text-right">{item.status === "available" && <button onClick={() => void remove(item.id)} className="rounded-lg p-2 text-white/45 hover:bg-red-500/10 hover:text-red-300"><Trash2 className="h-4 w-4" /></button>}</td></tr>)}</tbody></table></div></div>
+    {open && <div className="fixed inset-0 z-[90] grid place-items-center bg-black/75 p-4 backdrop-blur-sm"><form onSubmit={submit} className="w-full max-w-lg rounded-2xl border border-white/10 bg-ink p-6 shadow-2xl"><h2 className="font-display text-xl uppercase text-white">Carga masiva</h2><p className="mt-1 text-xs text-white/45">Una cuenta por línea con el formato email:contraseña.</p><select value={productId} onChange={(event) => setProductId(event.target.value)} className="mt-5 w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-white"><option value="">Selecciona un producto</option>{products.map((product) => <option key={product.id} value={product.id}>{product.name}</option>)}</select><textarea value={bulkText} onChange={(event) => setBulkText(event.target.value)} rows={8} placeholder="usuario@email.com:contraseña" className="mt-3 w-full rounded-xl border border-white/10 bg-white/5 p-3 font-mono text-sm text-white" /><div className="mt-4 flex justify-end gap-3"><button type="button" onClick={() => setOpen(false)} className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-bold text-white/70">Cancelar</button><button disabled={saving} className="rounded-xl bg-primary px-4 py-2.5 text-xs font-black uppercase text-white disabled:opacity-60">{saving ? "Cargando…" : "Guardar"}</button></div></form></div>}
+  </SupplierLayout>;
 }

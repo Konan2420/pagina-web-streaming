@@ -269,15 +269,15 @@ function StockManagement() {
               Añadir cuentas
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-ink border-white/10 text-white max-w-4xl w-[95vw] h-[90vh] md:h-auto max-h-[90vh] flex flex-col p-0 overflow-hidden">
-            <DialogHeader className="p-6 pb-0">
+          <DialogContent className="flex h-[min(82dvh,46rem)] w-[calc(100vw-2rem)] max-w-2xl flex-col overflow-hidden border-white/10 bg-ink p-0 text-white">
+            <DialogHeader className="shrink-0 p-5 pb-0 sm:p-6 sm:pb-0">
               <DialogTitle>Añadir Stock a Plataforma</DialogTitle>
               <DialogDescription className="text-white/40">
                 Selecciona una plataforma y carga las credenciales en lote.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-5 sm:p-6">
               <div className="space-y-3">
                 <label className="text-sm font-medium text-white/60">
                   1. Selecciona la plataforma
@@ -334,7 +334,7 @@ function StockManagement() {
               )}
             </div>
 
-            <DialogFooter className="p-6 pt-0 mt-auto">
+            <DialogFooter className="mt-auto shrink-0 p-5 pt-0 sm:p-6 sm:pt-0">
               <Button
                 variant="outline"
                 onClick={() => setIsAddOpen(false)}
