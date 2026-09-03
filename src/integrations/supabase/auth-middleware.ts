@@ -5,6 +5,12 @@ import { createClient } from "@supabase/supabase-js";
 import { useRuntimeConfig } from "nitro/runtime-config";
 import type { Database } from "./types";
 
+type AuthenticatedRequestContext = {
+  supabase: ReturnType<typeof createClient<Database>>;
+  userId: string;
+  claims: { sub: string };
+};
+
 function isNewSupabaseApiKey(value: string): boolean {
   return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
 }
@@ -32,8 +38,7 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
-  async ({ next }) => {
+async function authenticateRequest(): Promise<AuthenticatedRequestContext> {
     const config = useRuntimeConfig();
     const SUPABASE_URL =
       config.supabaseUrl || process.env.NITRO_SUPABASE_URL || process.env.SUPABASE_URL;
@@ -97,12 +102,33 @@ export const requireSupabaseAuth = createMiddleware({ type: "function" }).server
       throw new Error("Unauthorized: Invalid token");
     }
 
-    return next({
-      context: {
-        supabase,
-        userId: data.user.id,
-        claims: { sub: data.user.id },
-      },
-    });
+  return {
+    supabase,
+    userId: data.user.id,
+    claims: { sub: data.user.id },
+  };
+}
+
+/** Sesión válida, sin aplicar aún el bloqueo de cuenta. Solo se usa para
+ * consultar el estado propio y poder cerrar la sesión con un mensaje claro. */
+export const requireSupabaseSession = createMiddleware({ type: "function" }).server(
+  async ({ next }) => {
+    const context = await authenticateRequest();
+    return next({ context });
+  },
+);
+
+/**
+ * Middleware central de las Server Functions protegidas. Una cuenta o red
+ * suspendida no llega nunca al handler de negocio, incluso con una llamada
+ * manual a la API.
+ */
+export const requireSupabaseAuth = createMiddleware({ type: "function" }).server(
+  async ({ next }) => {
+    const context = await authenticateRequest();
+    const { getAccountAccess, toSuspensionError } = await import("@/lib/ban.server");
+    const access = await getAccountAccess(context.userId);
+    if (!access.allowed) throw toSuspensionError(access);
+    return next({ context });
   },
 );

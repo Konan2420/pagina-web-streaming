@@ -204,7 +204,7 @@ export const getUsersWithRoles = createServerFn({ method: "GET" })
 
     const { data: profiles, error: pError } = await supabaseAdmin
       .from("profiles")
-      .select("id, nombre_completo, whatsapp, created_at");
+      .select("id, nombre_completo, email, whatsapp, created_at");
 
     if (pError) throw new Error(pError.message);
 
@@ -214,15 +214,67 @@ export const getUsersWithRoles = createServerFn({ method: "GET" })
 
     if (rError) throw new Error(rError.message);
 
+    // `profiles` se crea mediante un trigger de Auth. La fuente de verdad para
+    // las cuentas registradas es auth.users: así el panel no omite una cuenta
+    // aunque su perfil se esté creando o haya fallado históricamente.
+    const authUsers = [] as Awaited<
+      ReturnType<typeof supabaseAdmin.auth.admin.listUsers>
+    >["data"]["users"];
+    let page = 1;
+    const perPage = 1_000;
+
+    while (true) {
+      const { data, error } = await supabaseAdmin.auth.admin.listUsers({ page, perPage });
+      if (error) throw new Error(error.message);
+      authUsers.push(...data.users);
+      if (data.users.length < perPage) break;
+      page += 1;
+    }
+
     const rolePriority = ["admin", "proveedor", "distribuidor", "user"] as const;
-    return (profiles as Tables<"profiles">[]).map((p) => {
-      const assigned = roles.filter((r) => r.user_id === p.id).map((r) => r.role);
+    const profilesById = new Map((profiles as Tables<"profiles">[]).map((profile) => [profile.id, profile]));
+    const rolesByUserId = new Map<string, string[]>();
+    for (const role of roles) {
+      const assigned = rolesByUserId.get(role.user_id) ?? [];
+      assigned.push(role.role);
+      rolesByUserId.set(role.user_id, assigned);
+    }
+
+    const toAdminUser = (user: {
+      id: string;
+      email?: string | null;
+      created_at: string;
+      user_metadata?: Record<string, unknown>;
+    }) => {
+      const profile = profilesById.get(user.id);
+      const metadataName = user.user_metadata?.full_name ?? user.user_metadata?.nombre_completo;
+      const assigned = rolesByUserId.get(user.id) ?? [];
       return {
-        ...p,
-        email: "",
+        id: user.id,
+        nombre_completo:
+          profile?.nombre_completo || (typeof metadataName === "string" ? metadataName : null),
+        email: user.email || profile?.email || null,
+        whatsapp: profile?.whatsapp || null,
+        created_at: profile?.created_at || user.created_at,
         role: rolePriority.find((role) => assigned.includes(role)) || "user",
       };
-    });
+    };
+
+    const registeredUsers = authUsers.map(toAdminUser);
+    const registeredIds = new Set(registeredUsers.map((user) => user.id));
+    const orphanProfiles = (profiles as Tables<"profiles">[])
+      .filter((profile) => !registeredIds.has(profile.id))
+      .map((profile) =>
+        toAdminUser({
+          id: profile.id,
+          email: profile.email,
+          created_at: profile.created_at,
+        }),
+      );
+
+    return [...registeredUsers, ...orphanProfiles].sort((left, right) =>
+      right.created_at.localeCompare(left.created_at),
+    );
   });
 
 export const updateUserRole = createServerFn({ method: "POST" })

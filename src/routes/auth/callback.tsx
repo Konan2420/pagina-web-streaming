@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthDestination } from "@/lib/auth-destination";
+import { getCurrentAccountAccess } from "@/lib/ban.functions";
+import { suspensionUrl } from "@/lib/suspension-client";
 import {
   clearSupabaseAuthRedirectError,
   getSupabaseAuthRedirectError,
@@ -101,6 +103,14 @@ function AuthCallbackPage() {
         }
 
         clearCallbackParams();
+        const access = await getCurrentAccountAccess();
+        if (!access.allowed) {
+          await supabase.auth.signOut({ scope: "local" });
+          window.location.assign(
+            suspensionUrl({ type: access.block === "ip" ? "ip" : "account", endsAt: access.endsAt }),
+          );
+          return;
+        }
         const destination = await getAuthDestination(data.session.user.id);
         if (!active) return;
 

@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Handshake, Search, ShieldAlert, Store, User as UserIcon } from "lucide-react";
+import { Ban, Handshake, Search, ShieldAlert, Store, User as UserIcon } from "lucide-react";
 import { getUsersWithRoles, updateUserRole } from "@/lib/admin.functions";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { BanUserDialog, type BanTarget } from "@/components/admin/BanUserDialog";
 
 type AssignableRole = "admin" | "proveedor" | "distribuidor" | "user";
 
@@ -24,6 +25,7 @@ function UsersManagement() {
   const { isAdmin } = Route.useRouteContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
 
   const queryClient = useQueryClient();
   const updateRoleMutation = useServerFn(updateUserRole);
@@ -31,6 +33,7 @@ function UsersManagement() {
   const filteredUsers = users.filter(
     (u) =>
       u.nombre_completo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.whatsapp?.includes(searchTerm),
   );
 
@@ -79,18 +82,24 @@ function UsersManagement() {
   };
 
   return (
-    <AdminLayout title="Usuarios" subtitle="Gestión de permisos y roles de acceso">
+    <AdminLayout
+      title="Usuarios"
+      subtitle="Todas las cuentas registradas, con su rol actual y herramientas de moderación."
+    >
       <div className="flex items-center justify-between gap-4 mb-6">
         <div className="relative w-full sm:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
           <input
             type="text"
-            placeholder="Buscar por nombre o whatsapp..."
+            placeholder="Buscar por nombre, correo o WhatsApp..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
           />
         </div>
+        <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary sm:inline-flex">
+          {users.length} registrados
+        </span>
       </div>
 
       <div className="glass-card rounded-2xl border border-white/5 overflow-hidden">
@@ -100,16 +109,20 @@ function UsersManagement() {
               <tr className="text-left text-xs text-white/40 border-b border-white/5 bg-white/[0.02]">
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Usuario</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">WhatsApp</th>
+                <th className="px-6 py-4 font-medium uppercase tracking-wider">Registro</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Rol Actual</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">
                   {isAdmin ? "Cambiar Rol" : ""}
+                </th>
+                <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">
+                  {isAdmin ? "Moderación" : ""}
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-white/30 italic">
+                  <td colSpan={6} className="px-6 py-12 text-center text-white/30 italic">
                     No se encontraron usuarios.
                   </td>
                 </tr>
@@ -124,10 +137,16 @@ function UsersManagement() {
                         <span className="font-semibold text-white">
                           {user.nombre_completo || "Sin nombre"}
                         </span>
+                        {user.email && <span className="hidden text-xs text-white/40 xl:inline">{user.email}</span>}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-white/40 font-mono text-xs">
                       {user.whatsapp || "—"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-xs text-white/45">
+                      {new Intl.DateTimeFormat("es-PE", { dateStyle: "medium" }).format(
+                        new Date(user.created_at),
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{getRoleBadge(user.role)}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
@@ -155,6 +174,24 @@ function UsersManagement() {
                         </select>
                       )}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      {isAdmin && user.role !== "admin" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setBanTarget({
+                              id: user.id,
+                              name: user.nombre_completo || "Usuario sin nombre",
+                              email: user.email || undefined,
+                              role: user.role,
+                            })
+                          }
+                          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-destructive/35 px-3 text-xs font-semibold text-destructive transition hover:bg-destructive/10"
+                        >
+                          <Ban className="size-3.5" /> Banear
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))
               )}
@@ -162,6 +199,14 @@ function UsersManagement() {
           </table>
         </div>
       </div>
+      <BanUserDialog
+        open={Boolean(banTarget)}
+        onOpenChange={(open) => {
+          if (!open) setBanTarget(null);
+        }}
+        target={banTarget}
+        onCompleted={() => queryClient.invalidateQueries({ queryKey: ["admin-users-roles"] })}
+      />
     </AdminLayout>
   );
 }

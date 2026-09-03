@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   BarChart3,
   Banknote,
+  Ban,
   CalendarClock,
   Database,
   History,
@@ -20,7 +21,6 @@ import {
 } from "lucide-react";
 import { AppTopbar } from "@/components/layout/AppTopbar";
 import { cn } from "@/lib/utils";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -46,6 +46,7 @@ const menuItems = [
   { label: "Mi Tienda", href: "/admin/mi-tienda", icon: Store, role: "any", accent: "text-violet-300" },
   { label: "Payouts", href: "/admin/payouts", icon: Banknote, role: "admin", accent: "text-yellow-300" },
   { label: "Usuarios", href: "/admin/usuarios", icon: Users, role: "admin", accent: "text-sky-300" },
+  { label: "Moderación", href: "/admin/moderacion", icon: Ban, role: "admin", accent: "text-destructive" },
   { label: "Analítica", href: "/admin/analytics", icon: BarChart3, role: "any", accent: "text-teal-300" },
 ] as const;
 
@@ -59,8 +60,10 @@ function AdminSidebar({
   onClose: () => void;
 }) {
   const location = useLocation();
-  const { isAdmin } = useIsAdmin();
-  const items = menuItems.filter((item) => item.role === "any" || isAdmin);
+  // Este componente solo se monta tras la protección de /admin, cuyo beforeLoad
+  // confirma el rol admin en el servidor. No dependemos de un hook cliente que
+  // puede estar todavía cargando y ocultar enlaces administrativos por error.
+  const items = menuItems;
 
   return (
     <>

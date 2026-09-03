@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as CuentaSuspendidaRouteImport } from './routes/cuenta-suspendida'
 import { Route as PoliticasRouteImport } from './routes/politicas'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -28,6 +29,7 @@ import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 import { Route as AuthenticatedAdminInventarioRouteImport } from './routes/_authenticated/admin/inventario'
 import { Route as AuthenticatedAdminMiTiendaRouteImport } from './routes/_authenticated/admin/mi-tienda'
+import { Route as AuthenticatedAdminModeracionRouteImport } from './routes/_authenticated/admin/moderacion'
 import { Route as AuthenticatedAdminPayoutsRouteImport } from './routes/_authenticated/admin/payouts'
 import { Route as AuthenticatedAdminPedidosRouteImport } from './routes/_authenticated/admin/pedidos'
 import { Route as AuthenticatedAdminPedidosManualesRouteImport } from './routes/_authenticated/admin/pedidos-manuales'
@@ -55,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuentaSuspendidaRoute = CuentaSuspendidaRouteImport.update({
+  id: '/cuenta-suspendida',
+  path: '/cuenta-suspendida',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PoliticasRoute = PoliticasRouteImport.update({
@@ -145,6 +152,12 @@ const AuthenticatedAdminMiTiendaRoute =
   AuthenticatedAdminMiTiendaRouteImport.update({
     id: '/mi-tienda',
     path: '/mi-tienda',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminModeracionRoute =
+  AuthenticatedAdminModeracionRouteImport.update({
+    id: '/moderacion',
+    path: '/moderacion',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminPayoutsRoute =
@@ -262,6 +275,7 @@ const ApiPublicWebhooksFloidRoute = ApiPublicWebhooksFloidRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cuenta-suspendida': typeof CuentaSuspendidaRoute
   '/politicas': typeof PoliticasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -278,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
+  '/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/admin/pedidos-manuales': typeof AuthenticatedAdminPedidosManualesRoute
@@ -301,6 +316,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cuenta-suspendida': typeof CuentaSuspendidaRoute
   '/politicas': typeof PoliticasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -314,6 +330,7 @@ export interface FileRoutesByTo {
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
+  '/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
   '/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/admin/pedidos-manuales': typeof AuthenticatedAdminPedidosManualesRoute
@@ -339,6 +356,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/cuenta-suspendida': typeof CuentaSuspendidaRoute
   '/politicas': typeof PoliticasRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -355,6 +373,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/_authenticated/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
+  '/_authenticated/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
   '/_authenticated/admin/payouts': typeof AuthenticatedAdminPayoutsRoute
   '/_authenticated/admin/pedidos': typeof AuthenticatedAdminPedidosRoute
   '/_authenticated/admin/pedidos-manuales': typeof AuthenticatedAdminPedidosManualesRoute
@@ -380,6 +399,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cuenta-suspendida'
     | '/politicas'
     | '/reset-password'
     | '/sitemap.xml'
@@ -396,6 +416,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/inventario'
     | '/admin/mi-tienda'
+    | '/admin/moderacion'
     | '/admin/payouts'
     | '/admin/pedidos'
     | '/admin/pedidos-manuales'
@@ -419,6 +440,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cuenta-suspendida'
     | '/politicas'
     | '/reset-password'
     | '/sitemap.xml'
@@ -432,6 +454,7 @@ export interface FileRouteTypes {
     | '/admin/analytics'
     | '/admin/inventario'
     | '/admin/mi-tienda'
+    | '/admin/moderacion'
     | '/admin/payouts'
     | '/admin/pedidos'
     | '/admin/pedidos-manuales'
@@ -456,6 +479,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/cuenta-suspendida'
     | '/politicas'
     | '/reset-password'
     | '/sitemap.xml'
@@ -472,6 +496,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/inventario'
     | '/_authenticated/admin/mi-tienda'
+    | '/_authenticated/admin/moderacion'
     | '/_authenticated/admin/payouts'
     | '/_authenticated/admin/pedidos'
     | '/_authenticated/admin/pedidos-manuales'
@@ -497,6 +522,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  CuentaSuspendidaRoute: typeof CuentaSuspendidaRoute
   PoliticasRoute: typeof PoliticasRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -522,6 +548,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cuenta-suspendida': {
+      id: '/cuenta-suspendida'
+      path: '/cuenta-suspendida'
+      fullPath: '/cuenta-suspendida'
+      preLoaderRoute: typeof CuentaSuspendidaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/politicas': {
@@ -641,6 +674,13 @@ declare module '@tanstack/react-router' {
       path: '/mi-tienda'
       fullPath: '/admin/mi-tienda'
       preLoaderRoute: typeof AuthenticatedAdminMiTiendaRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/moderacion': {
+      id: '/_authenticated/admin/moderacion'
+      path: '/moderacion'
+      fullPath: '/admin/moderacion'
+      preLoaderRoute: typeof AuthenticatedAdminModeracionRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/_authenticated/admin/payouts': {
@@ -783,6 +823,7 @@ interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminInventarioRoute: typeof AuthenticatedAdminInventarioRoute
   AuthenticatedAdminMiTiendaRoute: typeof AuthenticatedAdminMiTiendaRoute
+  AuthenticatedAdminModeracionRoute: typeof AuthenticatedAdminModeracionRoute
   AuthenticatedAdminPayoutsRoute: typeof AuthenticatedAdminPayoutsRoute
   AuthenticatedAdminPedidosRoute: typeof AuthenticatedAdminPedidosRoute
   AuthenticatedAdminPedidosManualesRoute: typeof AuthenticatedAdminPedidosManualesRoute
@@ -802,6 +843,7 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
     AuthenticatedAdminInventarioRoute: AuthenticatedAdminInventarioRoute,
     AuthenticatedAdminMiTiendaRoute: AuthenticatedAdminMiTiendaRoute,
+    AuthenticatedAdminModeracionRoute: AuthenticatedAdminModeracionRoute,
     AuthenticatedAdminPayoutsRoute: AuthenticatedAdminPayoutsRoute,
     AuthenticatedAdminPedidosRoute: AuthenticatedAdminPedidosRoute,
     AuthenticatedAdminPedidosManualesRoute:
@@ -884,6 +926,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  CuentaSuspendidaRoute: CuentaSuspendidaRoute,
   PoliticasRoute: PoliticasRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,

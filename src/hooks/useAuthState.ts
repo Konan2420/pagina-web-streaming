@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { withRequestTimeout } from "@/lib/request-timeout";
+import { suspensionUrl } from "@/lib/suspension-client";
 
 export type AccountRole = "admin" | "proveedor" | "distribuidor" | "user";
 export type AuthStatus = "checking" | "authenticated" | "signed-out" | "error";
@@ -30,6 +31,7 @@ let snapshot: AuthSnapshot = { ...signedOutSnapshot, status: "checking" };
 let initialized = false;
 let refreshPromise: Promise<void> | null = null;
 let retryTimer: ReturnType<typeof setTimeout> | undefined;
+let accessCheckTimer: ReturnType<typeof setInterval> | undefined;
 let authSubscription: { unsubscribe: () => void } | null = null;
 const listeners = new Set<() => void>();
 
@@ -45,6 +47,21 @@ function roleList(rows: Array<{ role: string }> | null | undefined): AccountRole
   );
 }
 
+async function enforceAccountAccess(session: Session): Promise<boolean> {
+  const { getCurrentAccountAccess } = await import("@/lib/ban.functions");
+  const access = await getCurrentAccountAccess();
+  if (access.allowed) return true;
+
+  await supabase.auth.signOut({ scope: "local" });
+  publish({ ...signedOutSnapshot, lastEvent: "ACCOUNT_SUSPENDED" });
+  if (typeof window !== "undefined" && window.location.pathname !== "/cuenta-suspendida") {
+    window.location.replace(
+      suspensionUrl({ type: access.block === "ip" ? "ip" : "account", endsAt: access.endsAt }),
+    );
+  }
+  return false;
+}
+
 async function loadAuth(attempt = 0): Promise<void> {
   if (refreshPromise) return refreshPromise;
 
@@ -58,6 +75,8 @@ async function loadAuth(attempt = 0): Promise<void> {
         publish(signedOutSnapshot);
         return;
       }
+
+      if (!(await enforceAccountAccess(session))) return;
 
       const { data: rows, error: roleError } = await withRequestTimeout(
         supabase.from("user_roles").select("role").eq("user_id", session.user.id),
@@ -97,6 +116,7 @@ function ensureStarted() {
   if (initialized) return;
   initialized = true;
   void loadAuth();
+  accessCheckTimer = setInterval(() => void loadAuth(), 30_000);
   const { data } = supabase.auth.onAuthStateChange((event, session) => {
     if (retryTimer) clearTimeout(retryTimer);
     if (event === "SIGNED_OUT" || !session) {
@@ -135,6 +155,8 @@ export function useAuthState() {
 export function disposeAuthStateForTests() {
   if (retryTimer) clearTimeout(retryTimer);
   retryTimer = undefined;
+  if (accessCheckTimer) clearInterval(accessCheckTimer);
+  accessCheckTimer = undefined;
   authSubscription?.unsubscribe();
   authSubscription = null;
   initialized = false;

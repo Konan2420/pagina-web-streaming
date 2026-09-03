@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useRouter } from "@tanstack/react-router";
 import { getAuthDestination } from "@/lib/auth-destination";
+import { assertCurrentNetworkAllowed, getCurrentAccountAccess } from "@/lib/ban.functions";
+import { suspensionFromError, suspensionUrl } from "@/lib/suspension-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,7 +76,31 @@ export function AuthModal({
     return new URL("/reset-password", window.location.origin).toString();
   };
 
+  async function redirectToSuspension(notice: { type: "account" | "ip"; endsAt: string | null }) {
+    await supabase.auth.signOut({ scope: "local" });
+    window.location.assign(suspensionUrl(notice));
+  }
+
+  async function ensureNetworkAllowed() {
+    try {
+      await assertCurrentNetworkAllowed();
+      return true;
+    } catch (cause) {
+      const suspension = suspensionFromError(cause);
+      if (suspension) {
+        await redirectToSuspension(suspension);
+        return false;
+      }
+      throw cause;
+    }
+  }
+
   async function redirectForRole(userId: string) {
+    const access = await getCurrentAccountAccess();
+    if (!access.allowed) {
+      await redirectToSuspension({ type: access.block === "ip" ? "ip" : "account", endsAt: access.endsAt });
+      return;
+    }
     const to = await getAuthDestination(userId);
     await router.invalidate();
     await router.navigate({ to });
@@ -166,6 +192,7 @@ export function AuthModal({
     const normalizedEmail = email.trim().toLowerCase();
     try {
       if (mode === "login") {
+        if (!(await ensureNetworkAllowed())) return;
         const { data, error } = await supabase.auth.signInWithPassword({
           email: normalizedEmail,
           password,
@@ -183,6 +210,7 @@ export function AuthModal({
           setLoading(false);
           return;
         }
+        if (!(await ensureNetworkAllowed())) return;
         const { data, error } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
@@ -268,6 +296,7 @@ export function AuthModal({
     resetState();
     setLoading(true);
     try {
+      if (!(await ensureNetworkAllowed())) return;
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -284,6 +313,11 @@ export function AuthModal({
       track("login", { eventName: "google_oauth_redirect", metadata: { method: "google" } });
       window.location.assign(data.url);
     } catch (err: unknown) {
+      const suspension = suspensionFromError(err);
+      if (suspension) {
+        await redirectToSuspension(suspension);
+        return;
+      }
       setError(getAuthErrorMessage(err));
       setLoading(false);
     }
