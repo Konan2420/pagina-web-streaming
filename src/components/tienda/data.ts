@@ -13,7 +13,7 @@ export const WA_NUMBER = "51970097715";
 export const categories: Category[] = [
   { id: "todo", label: "Plataformas", accent: "#f8fafc" },
   { id: "combos", label: "Packs Premium", accent: "#fbbf24" },
-  { id: "streaming", label: "Streaming", accent: "#f43f5e" },
+  { id: "streaming", label: "Streaming", accent: "#3b82f6" },
   { id: "ia", label: "Inteligencia Artificial", accent: "#a78bfa" },
   { id: "apps", label: "Aplicaciones", accent: "#38bdf8" },
   { id: "licencias", label: "Licencias", accent: "#eab308" },
@@ -23,7 +23,7 @@ export const categories: Category[] = [
   { id: "giftcards", label: "Giftcards", accent: "#ec4899" },
   { id: "invitaciones", label: "Invitaciones", accent: "#60a5fa" },
   { id: "music", label: "Música", accent: "#f472b6" },
-  { id: "adult", label: "Adultos", accent: "#ef4444" },
+  { id: "adult", label: "Adultos", accent: "#2563eb" },
   { id: "iptv", label: "IPTV", accent: "#06b6d4" },
 ];
 

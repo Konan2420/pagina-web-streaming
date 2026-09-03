@@ -30,6 +30,8 @@
   --color-ring: var(--ring);
   --color-violet: var(--violet);
   --color-violet-2: var(--violet-2);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
   --color-red-accent: var(--red-accent);
   --color-ink: var(--ink);
   --font-display: "Anton", "Archivo Black", Impact, sans-serif;
@@ -41,39 +43,43 @@
 :root {
   --radius: 1rem;
 
-  /* Capas oscuras neutras: base, superficies y tarjetas se distinguen sin teñirse de violeta. */
-  --background: #080809;
-  --foreground: #fafafa;
+  /* CMD Blue: base azul-negra, superficies frías y acento eléctrico. */
+  --background: #0a0e1a;
+  --foreground: #f8fafc;
 
-  --card: #111113;
-  --card-foreground: #fafafa;
+  --card: #111827;
+  --card-foreground: #f8fafc;
 
-  --popover: #151517;
-  --popover-foreground: #fafafa;
+  --popover: #131a2c;
+  --popover-foreground: #f8fafc;
 
-  --primary: #dc2626;
-  --primary-foreground: oklch(0.98 0.005 285);
+  --brand: #3b82f6;
+  --brand-hover: #60a5fa;
+  --primary: var(--brand);
+  --primary-foreground: #0a0e1a;
 
-  --secondary: #1a1a1d;
-  --secondary-foreground: #fafafa;
+  --secondary: #131a2c;
+  --secondary-foreground: #f8fafc;
 
-  --muted: #17171a;
-  --muted-foreground: #c5c5c8;
+  --muted: #172033;
+  --muted-foreground: #94a3b8;
 
-  --accent: #dc2626;
-  --accent-foreground: oklch(0.98 0.005 285);
+  --accent: var(--brand-hover);
+  --accent-foreground: #0a0e1a;
 
+  /* El rojo queda reservado para errores, acciones destructivas y servicio agotado. */
   --destructive: #dc2626;
-  --destructive-foreground: oklch(0.98 0.005 285);
+  --destructive-foreground: #fef2f2;
 
-  --border: rgb(255 255 255 / 9%);
-  --input: rgb(255 255 255 / 12%);
-  --ring: #dc2626;
+  --border: rgb(30 41 59 / 82%);
+  --input: rgb(30 41 59 / 92%);
+  --ring: var(--brand-hover);
 
-  --violet: #dc2626;
-  --violet-2: #dc2626;
-  --red-accent: #dc2626;
-  --ink: #050506;
+  --violet: var(--brand);
+  --violet-2: var(--brand-hover);
+  /* Alias de compatibilidad para clases existentes; representa marca, no estado de error. */
+  --red-accent: var(--brand);
+  --ink: #070b14;
 
   /* Una sola escala para el panel lateral y el espacio que reserva el catálogo. */
   --store-sidebar-mobile-width: min(84vw, 20rem);
@@ -84,19 +90,29 @@
 /* El modo se conserva en localStorage mediante AppChromeProvider. Las variables cubren
    las superficies compartidas sin alterar la jerarquía visual de los paneles. */
 :root[data-cmd-theme="light"] {
-  --background: #f5f6f8;
-  --foreground: #15161a;
+  --background: #f4f7fb;
+  --foreground: #0f172a;
   --card: #ffffff;
-  --card-foreground: #15161a;
+  --card-foreground: #0f172a;
   --popover: #ffffff;
-  --popover-foreground: #15161a;
-  --secondary: #e9ebef;
-  --secondary-foreground: #15161a;
-  --muted: #eef0f3;
-  --muted-foreground: #5c6370;
-  --border: rgb(21 22 26 / 14%);
-  --input: rgb(21 22 26 / 14%);
-  --ink: #e7e9ed;
+  --popover-foreground: #0f172a;
+  --brand: #2563eb;
+  --brand-hover: #1d4ed8;
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
+  --secondary: #e8eef8;
+  --secondary-foreground: #0f172a;
+  --muted: #edf2f8;
+  --muted-foreground: #52627a;
+  --accent: #dbeafe;
+  --accent-foreground: #0f172a;
+  --border: rgb(30 41 59 / 16%);
+  --input: rgb(30 41 59 / 18%);
+  --ring: var(--brand);
+  --violet: var(--brand);
+  --violet-2: var(--brand-hover);
+  --red-accent: var(--brand);
+  --ink: #e7edf7;
 }
 
 /*
@@ -253,12 +269,12 @@
 }
 
 :root[data-cmd-theme="light"] ::selection {
-  background: rgb(220 38 38 / 22%);
+  background: rgb(59 130 246 / 22%);
   color: var(--foreground);
 }
 
 /* Pale status shades from the dark UI need contrast on white surfaces. */
-:root[data-cmd-theme="light"] [class*="text-red-"] {
+:root[data-cmd-theme="light"] [class*="text-red-"]:not([class*="text-red-accent"]) {
   color: #c61f2b !important;
 }
 
@@ -283,6 +299,7 @@
   [class*="bg-primary"],
   [class*="bg-destructive"],
   [class*="bg-red-"],
+  [class*="bg-brand"],
   [class*="bg-emerald-"],
   [class*="bg-green-"],
   [class*="bg-blue-"]
@@ -296,6 +313,16 @@
   [class*="bg-blue-"]
 ) [class*="text-white"] {
   color: #fff !important;
+}
+
+/* #3B82F6 necesita texto oscuro para conservar AA en el tema oscuro. */
+:root:not([data-cmd-theme="light"]) :is(.bg-primary, .bg-brand, .bg-brand-hover, .bg-red-accent).text-white {
+  color: var(--primary-foreground) !important;
+}
+
+:root:not([data-cmd-theme="light"]) :is(.gradient-violet, .gradient-brand) :is(.text-white, [class*="text-white"]),
+:root:not([data-cmd-theme="light"]) :is(.gradient-violet, .gradient-brand).text-white {
+  color: var(--primary-foreground) !important;
 }
 
 @layer base {
@@ -418,7 +445,11 @@
 
 @utility gradient-violet {
   background-image: none;
-  background-color: #dc2626;
+  background-color: var(--brand);
+}
+@utility gradient-brand {
+  background-image: none;
+  background-color: var(--brand);
 }
 @utility overflow-touch {
   -webkit-overflow-scrolling: touch;
@@ -525,7 +556,10 @@
   background-image: none;
   -webkit-background-clip: initial;
   background-clip: initial;
-  color: #dc2626;
+  color: var(--brand);
+}
+@utility text-brand {
+  color: var(--brand);
 }
 
 @utility glass-card {
@@ -617,7 +651,7 @@
   summary,
   select {
     cursor:
-      url("/red-cursor.svg") 0 0,
+      url("/blue-cursor.svg") 0 0,
       auto;
   }
 
@@ -659,7 +693,7 @@
   }
 }
 
-@keyframes cmd-red-shimmer {
+@keyframes cmd-brand-shimmer {
   0% {
     transform: translateX(-120%);
   }
@@ -670,16 +704,17 @@
 
 .cmd-loading-bar-indicator {
   width: 38%;
-  background: linear-gradient(90deg, transparent, #e81f36 25%, #ff6b78 55%, #e81f36 78%, transparent);
-  box-shadow: 0 0 14px rgba(232, 31, 54, 0.72);
+  background: linear-gradient(90deg, transparent, var(--brand) 25%, var(--brand-hover) 55%, var(--brand) 78%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--brand) 72%, transparent);
   animation: cmd-loading-bar-slide 1.25s ease-in-out infinite;
 }
 
+.cmd-brand-shimmer,
 .cmd-red-shimmer {
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  background-color: rgba(232, 31, 54, 0.09);
+  background-color: color-mix(in srgb, var(--brand) 9%, transparent);
 }
 
 .crm-input {
@@ -702,17 +737,19 @@
   box-shadow: 0 0 0 2px hsl(var(--primary) / 0.12);
 }
 
+.cmd-brand-shimmer::after,
 .cmd-red-shimmer::after {
   position: absolute;
   inset: 0;
   z-index: 0;
   content: "";
-  background: linear-gradient(105deg, transparent 18%, rgba(255, 96, 112, 0.08) 38%, rgba(255, 147, 157, 0.36) 50%, rgba(255, 96, 112, 0.08) 62%, transparent 82%);
-  animation: cmd-red-shimmer 1.55s ease-in-out infinite;
+  background: linear-gradient(105deg, transparent 18%, color-mix(in srgb, var(--brand) 8%, transparent) 38%, color-mix(in srgb, var(--brand-hover) 36%, transparent) 50%, color-mix(in srgb, var(--brand) 8%, transparent) 62%, transparent 82%);
+  animation: cmd-brand-shimmer 1.55s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .cmd-loading-bar-indicator,
+  .cmd-brand-shimmer::after,
   .cmd-red-shimmer::after {
     animation: none;
   }
@@ -909,30 +946,30 @@
     inset 0 0 8px rgba(255, 255, 255, 0.2);
   animation: avfx-breathe 2.4s ease-in-out infinite;
 }
-/* 2. Red fire */
+/* 2. Electric blue fire */
 .avfx-red-fire > .avfx-l1 {
   background: conic-gradient(
     from 0deg,
     transparent,
-    rgba(127, 29, 29, 0.5) 15%,
-    rgba(220, 38, 38, 0.95) 45%,
-    rgba(248, 113, 113, 0.9) 55%,
-    rgba(127, 29, 29, 0.5) 85%,
+    rgba(30, 58, 138, 0.5) 15%,
+    rgba(59, 130, 246, 0.95) 45%,
+    rgba(147, 197, 253, 0.9) 55%,
+    rgba(30, 58, 138, 0.5) 85%,
     transparent
   );
   filter: blur(6px);
   animation: avfx-spin 3s linear infinite;
 }
 .avfx-red-fire > .avfx-l2 {
-  border: 1px solid rgba(220, 38, 38, 0.6);
+  border: 1px solid rgba(59, 130, 246, 0.6);
   box-shadow:
-    0 0 18px 3px rgba(220, 38, 38, 0.5),
-    inset 0 0 10px rgba(248, 113, 113, 0.3);
+    0 0 18px 3px rgba(59, 130, 246, 0.5),
+    inset 0 0 10px rgba(147, 197, 253, 0.3);
   animation: avfx-flicker 1.4s ease-in-out infinite;
 }
 /* 3. Neon energy */
 .avfx-neon-energy > .avfx-l1 {
-  background: conic-gradient(from 0deg, #dc2626, #7c3aed, #2563eb, #dc2626);
+  background: conic-gradient(from 0deg, #3b82f6, #7c3aed, #2563eb, #3b82f6);
   filter: blur(6px);
   opacity: 0.8;
   animation: avfx-spin 5s linear infinite;
@@ -951,7 +988,7 @@
     transparent 12% 38%,
     rgba(59, 130, 246, 0.95) 40%,
     transparent 42% 68%,
-    rgba(220, 38, 38, 0.9) 70%,
+    rgba(96, 165, 250, 0.9) 70%,
     transparent 72%
   );
   filter: blur(1.5px);
@@ -965,8 +1002,8 @@
 /* 5. Cyberpunk ring */
 .avfx-cyber-ring > .avfx-l1 {
   inset: -9px;
-  border: 2px dashed rgba(220, 38, 38, 0.65);
-  box-shadow: 0 0 12px rgba(220, 38, 38, 0.35);
+  border: 2px dashed rgba(59, 130, 246, 0.65);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.35);
   animation: avfx-spin 9s linear infinite;
 }
 .avfx-cyber-ring.avfx-sm > .avfx-l1 {
@@ -989,7 +1026,7 @@
   animation: avfx-pulse-out 3.2s ease-out infinite;
 }
 .avfx-energy-pulse > .avfx-l2 {
-  border: 2px solid rgba(220, 38, 38, 0.45);
+  border: 2px solid rgba(59, 130, 246, 0.45);
   animation: avfx-pulse-out 3.2s ease-out infinite 1.6s;
 }
 /* 7. Galaxy orbit */
@@ -1066,7 +1103,7 @@
   border-radius: 9999px;
   background:
     radial-gradient(2px 2px at 50% 0%, #fff, transparent 60%),
-    radial-gradient(2px 2px at 100% 50%, rgba(248, 113, 113, 0.95), transparent 60%),
+    radial-gradient(2px 2px at 100% 50%, rgba(96, 165, 250, 0.95), transparent 60%),
     radial-gradient(2px 2px at 50% 100%, #fff, transparent 60%),
     radial-gradient(2px 2px at 0% 50%, rgba(255, 255, 255, 0.8), transparent 60%);
 }
@@ -1106,7 +1143,7 @@
 }
 /* 11. RGB neon */
 .avfx-rgb-neon > .avfx-l1 {
-  background: conic-gradient(from 0deg, #dc2626, #a21caf, #2563eb, #06b6d4, #dc2626);
+  background: conic-gradient(from 0deg, #60a5fa, #a21caf, #2563eb, #06b6d4, #60a5fa);
   filter: blur(4px);
   animation:
     avfx-spin 4s linear infinite,
@@ -1169,8 +1206,8 @@
   background: conic-gradient(
     from 0deg,
     transparent 0 88%,
-    rgba(248, 113, 113, 0.2) 93%,
-    #f87171 99%,
+    rgba(96, 165, 250, 0.2) 93%,
+    #60a5fa 99%,
     transparent
   );
   filter: blur(1.5px);

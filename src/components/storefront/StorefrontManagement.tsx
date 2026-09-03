@@ -258,7 +258,7 @@ export function StorefrontManagement() {
 
   if (authStatus === "signed-out") {
     return (
-      <section className="rounded-xl border border-red-accent/35 bg-red-accent/5 p-6 text-center">
+      <section className="rounded-xl border border-destructive/35 bg-destructive/5 p-6 text-center">
         <h1 className="font-display text-2xl font-black text-white">Tu sesión ya no está activa</h1>
         <p className="mx-auto mt-2 max-w-lg text-sm text-white/60">
           Inicia sesión nuevamente para acceder a la gestión segura de Mi Tienda.
@@ -268,7 +268,7 @@ export function StorefrontManagement() {
           onClick={() => {
             window.location.assign("/?auth=login");
           }}
-          className="mt-5 inline-flex h-10 items-center rounded-lg border border-red-accent/45 bg-red-accent/10 px-4 text-xs font-bold text-red-100 transition hover:bg-red-accent/20"
+          className="mt-5 inline-flex h-10 items-center rounded-lg border border-primary/45 bg-primary/10 px-4 text-xs font-bold text-primary transition hover:bg-primary/20"
         >
           Iniciar sesión
         </button>
@@ -381,7 +381,7 @@ export function StorefrontManagement() {
           <button
             type="button"
             onClick={() => setComboOpen(true)}
-            className="inline-flex h-11 items-center gap-2 rounded-lg border border-red-accent/45 bg-red-accent/10 px-3 text-xs font-bold text-red-100 transition hover:bg-red-accent/20 sm:h-9"
+            className="inline-flex h-11 items-center gap-2 rounded-lg border border-primary/45 bg-primary/10 px-3 text-xs font-bold text-primary transition hover:bg-primary/20 sm:h-9"
           >
             <PackagePlus className="h-3.5 w-3.5" /> Crear Combo
           </button>
@@ -703,7 +703,7 @@ function StoreProductRow({
         aria-label={`Mostrar ${product.originalName} en mi tienda`}
       />
       <span className="flex min-w-0 items-center gap-2">
-        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white/10 text-[10px] font-black text-red-200">
+        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-white/10 text-[10px] font-black text-primary">
           {product.iconLabel}
         </span>
         <span className="truncate">{product.providerName}</span>

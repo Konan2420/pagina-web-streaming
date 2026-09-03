@@ -108,7 +108,7 @@ export function CartDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby="cart-drawer-title"
-        className={`absolute top-0 right-0 h-full w-full sm:max-w-md bg-[#0d0d14] border-l border-white/10 flex flex-col transition-transform duration-300 ease-out ${
+        className={`absolute top-0 right-0 h-full w-full sm:max-w-md bg-card border-l border-border flex flex-col transition-transform duration-300 ease-out ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -152,7 +152,7 @@ export function CartDrawer({
                 <p className="text-xs text-white/62 mb-5">Agrega productos desde el catálogo.</p>
                 <button
                   onClick={onClose}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full gradient-violet text-white text-xs font-bold hover:scale-[1.03] transition"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full gradient-violet text-primary-foreground text-xs font-bold hover:scale-[1.03] transition"
                 >
                   <Store className="w-4 h-4" /> Ver tienda
                 </button>
@@ -165,7 +165,7 @@ export function CartDrawer({
                   key={it.id}
                   className="rounded-2xl bg-white/[0.04] border border-white/10 p-3 flex gap-3"
                 >
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-accent/50 via-violet/40 to-black grid place-items-center shrink-0">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/50 via-violet/40 to-background grid place-items-center shrink-0">
                     <Store className="w-6 h-6 text-white/90" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -238,7 +238,7 @@ export function CartDrawer({
 
         {/* Footer */}
         {items.length > 0 && (
-          <footer className="border-t border-white/10 p-4 bg-[#0d0d14]/95 space-y-3">
+          <footer className="border-t border-border p-4 bg-card/95 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs uppercase tracking-wider text-white/80">Total</span>
               <span className="font-display text-2xl text-gradient-violet" aria-live="polite">
@@ -256,7 +256,7 @@ export function CartDrawer({
                 });
                 onCheckout();
               }}
-              className="w-full inline-flex items-center justify-center gap-2 min-h-12 py-3 rounded-xl gradient-violet text-white text-sm font-bold hover:scale-[1.01] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full inline-flex items-center justify-center gap-2 min-h-12 py-3 rounded-xl gradient-violet text-primary-foreground text-sm font-bold hover:scale-[1.01] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {checkoutPending ? (
                 <>

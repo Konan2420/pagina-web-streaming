@@ -81,7 +81,7 @@ export function DeliveryCelebrationModal({
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
       />
 
-      <section className="relative flex w-full max-w-xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-3xl border border-emerald-300/25 bg-[#0d0d14] shadow-2xl shadow-emerald-950/40 animate-in zoom-in-95 duration-200">
+      <section className="relative flex w-full max-w-xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-3xl border border-emerald-300/25 bg-card shadow-2xl shadow-emerald-950/40 animate-in zoom-in-95 duration-200">
         {celebrate && (
           <div
             aria-hidden="true"

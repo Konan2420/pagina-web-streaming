@@ -473,7 +473,7 @@ function ServicesManagement() {
                     type="checkbox"
                     disabled={Boolean(editingPreset)}
                     defaultChecked={editingPreset ? true : editingService ? editingService.is_visible : true}
-                    className="h-4 w-4 accent-[var(--color-primary,#dc2626)]"
+                    className="h-4 w-4 accent-[var(--color-primary,#3b82f6)]"
                   />
                   Visible
                 </label>

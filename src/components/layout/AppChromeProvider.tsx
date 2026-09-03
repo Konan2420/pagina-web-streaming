@@ -92,7 +92,7 @@ export function AppChromeProvider({ children }: { children: React.ReactNode }) {
       <Dialog open={paletteOpen} onOpenChange={setPaletteOpen}>
         <DialogContent className="max-w-lg border-border bg-card p-0 text-foreground">
           <DialogHeader className="border-b border-border px-5 pb-4 pt-5">
-            <DialogTitle className="flex items-center gap-2 text-base"><Command className="h-4 w-4 text-red-accent" /> Buscador global</DialogTitle>
+            <DialogTitle className="flex items-center gap-2 text-base"><Command className="h-4 w-4 text-primary" /> Buscador global</DialogTitle>
             <DialogDescription>Encuentra una sección de CMD Streaming.</DialogDescription>
           </DialogHeader>
           <div className="p-4">
@@ -103,8 +103,8 @@ export function AppChromeProvider({ children }: { children: React.ReactNode }) {
             </label>
             <div className="mt-3 max-h-72 space-y-1 overflow-y-auto">
               {visibleCommands.map((command) => (
-                <button key={command.href} type="button" onClick={() => navigateTo(command.href)} className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-accent">
-                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-red-accent/10 text-red-accent"><Command className="h-3.5 w-3.5" /></span>
+                <button key={command.href} type="button" onClick={() => navigateTo(command.href)} className="flex w-full items-start gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-white/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                  <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"><Command className="h-3.5 w-3.5" /></span>
                   <span><span className="block text-sm font-semibold">{command.label}</span><span className="mt-0.5 block text-xs text-muted-foreground">{command.description}</span></span>
                 </button>
               ))}

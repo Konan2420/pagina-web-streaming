@@ -135,12 +135,12 @@ export function StoreSidebar({
             onClick={onClose}
             title="Volver al inicio"
             aria-label="Volver al inicio de CMD Streaming"
-            className="rounded-2xl transition-transform duration-200 hover:scale-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-accent"
+            className="rounded-2xl transition-transform duration-200 hover:scale-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <img
               src="/cmd-logo.png"
               alt="CMD Streaming"
-              className="h-14 w-14 rounded-2xl object-contain drop-shadow-[0_6px_12px_rgba(220,38,38,0.2)] sm:h-16 sm:w-16"
+              className="h-14 w-14 rounded-2xl object-contain drop-shadow-[0_6px_12px_rgba(59,130,246,0.2)] sm:h-16 sm:w-16"
             />
           </Link>
           <button
@@ -394,7 +394,7 @@ export function StoreSidebar({
               onClick={onSignOut}
               title={collapsed ? "Cerrar sesión" : undefined}
               className={cn(
-                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-red-accent/30 px-3 text-left text-xs font-bold text-red-200 transition hover:border-red-accent hover:bg-red-accent/10 hover:text-white sm:min-h-10",
+                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-destructive/30 px-3 text-left text-xs font-bold text-red-200 transition hover:border-destructive hover:bg-destructive/10 hover:text-white sm:min-h-10",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >

@@ -273,7 +273,7 @@ export function SupportTicketsPanel({
             <span className="sr-only">Cargando tickets</span>
           </div>
         ) : ticketsQuery.isError ? (
-          <div className="mt-4 rounded-xl border border-red-accent/30 bg-red-accent/10 p-5 text-sm text-red-100">
+          <div className="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-5 text-sm text-red-100">
             No pudimos cargar tus tickets. Actualiza la página o intenta nuevamente.
           </div>
         ) : tickets.length === 0 ? (
@@ -430,7 +430,7 @@ function CreateTicketModal({
               className="w-full rounded-lg border border-border bg-background px-3 py-3 text-sm text-white outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
             >
               {TICKET_CATEGORY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value} className="bg-[#0d0d14]">
+                <option key={option.value} value={option.value} className="bg-card">
                   {option.label}
                 </option>
               ))}

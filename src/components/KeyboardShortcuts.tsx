@@ -216,7 +216,7 @@ export function KeyboardShortcuts({
         onClick={() => setHelpOpen(true)}
         aria-label="Mostrar atajos de teclado"
         title="Atajos de teclado (?)"
-        className="fixed bottom-4 left-4 z-40 hidden sm:inline-flex items-center gap-2 h-11 px-3 rounded-full bg-white/[0.04] border border-white/10 text-white/70 hover:text-white hover:border-red-600/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/60"
+        className="fixed bottom-4 left-4 z-40 hidden sm:inline-flex items-center gap-2 h-11 px-3 rounded-full bg-white/[0.04] border border-white/10 text-white/70 hover:text-white hover:border-primary/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
       >
         <Keyboard className="w-4 h-4" />
         <kbd className="text-xs font-mono px-1.5 py-0.5 rounded bg-white/10 border border-white/10">
@@ -237,13 +237,13 @@ export function KeyboardShortcuts({
           <div className="absolute inset-0 bg-black/75" />
           <div
             ref={dialogRef}
-            className="relative flex w-full max-w-xl max-h-[calc(100dvh-2rem)] flex-col rounded-2xl border border-white/10 bg-gradient-to-b from-[#120a15]/98 to-[#0a060c]/98 animate-in zoom-in-95 duration-200"
+            className="relative flex w-full max-w-xl max-h-[calc(100dvh-2rem)] flex-col rounded-2xl border border-white/10 bg-gradient-to-b from-[#111827]/98 to-[#0a0e1a]/98 animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-center justify-between gap-4 p-5 sm:p-6 border-b border-white/5">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 shrink-0 rounded-xl grid place-items-center bg-red-600-600/30">
+                <div className="w-10 h-10 shrink-0 rounded-xl grid place-items-center bg-primary/15">
                   <Command className="w-4 h-4 text-white" />
                 </div>
                 <div className="min-w-0">
@@ -262,7 +262,7 @@ export function KeyboardShortcuts({
                 type="button"
                 onClick={() => setHelpOpen(false)}
                 aria-label="Cerrar ayuda"
-                className="w-9 h-9 shrink-0 grid place-items-center rounded-lg text-white/78 hover:text-white hover:bg-white/5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-600/60"
+                className="w-9 h-9 shrink-0 grid place-items-center rounded-lg text-white/78 hover:text-white hover:bg-white/5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -279,7 +279,7 @@ export function KeyboardShortcuts({
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Buscar atajo..."
                   aria-label="Buscar atajo"
-                  className="w-full h-10 pl-9 pr-3 rounded-lg bg-white/[0.04] border border-white/10 text-sm text-white placeholder:text-white/58 focus:outline-none focus:border-red-600/50 focus:bg-white/[0.06] transition"
+                  className="w-full h-10 pl-9 pr-3 rounded-lg bg-white/[0.04] border border-white/10 text-sm text-white placeholder:text-white/58 focus:outline-none focus:border-primary/50 focus:bg-white/[0.06] transition"
                 />
               </div>
             </div>
@@ -304,7 +304,7 @@ export function KeyboardShortcuts({
                             key={s.label}
                             className="flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.025] transition"
                           >
-                            <div className="w-8 h-8 shrink-0 rounded-lg grid place-items-center bg-white/[0.04] border border-white/[0.06] text-red-600">
+                            <div className="w-8 h-8 shrink-0 rounded-lg grid place-items-center bg-white/[0.04] border border-white/[0.06] text-primary">
                               <Icon className="w-4 h-4" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -351,7 +351,7 @@ export function KeyboardShortcuts({
                       setHelpOpen(false);
                       onOpenTutorial();
                     }}
-                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full gradient-violet text-white text-[11px] font-semibold hover:scale-[1.03] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-full gradient-violet text-primary-foreground text-[11px] font-semibold hover:scale-[1.03] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
                   >
                     <PlayCircle className="w-3.5 h-3.5" />
                     Ver tutorial

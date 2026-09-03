@@ -328,9 +328,9 @@ function RechargesAdminPage() {
             onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
             className="rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60"
           >
-            <option value="todas" className="bg-[#0d0d14]">Todos los estados</option>
+            <option value="todas" className="bg-card">Todos los estados</option>
             {Object.entries(RECHARGE_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value} className="bg-[#0d0d14]">{label}</option>
+              <option key={value} value={value} className="bg-card">{label}</option>
             ))}
           </select>
         </div>
@@ -497,7 +497,7 @@ function RechargeReviewModal({ recharge, pending, onClose, onApprove, onReject }
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="recharge-review-title">
       <button type="button" aria-label="Cerrar revisión" onClick={onClose} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
-      <section className="relative flex w-full max-w-xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0d0d14] shadow-2xl">
+      <section className="relative flex w-full max-w-xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-card shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-white/10 p-5 sm:p-6">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-primary">Verificación manual</p>

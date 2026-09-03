@@ -192,9 +192,9 @@ function TicketsAdminPage() {
             onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
             className="w-full rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60"
           >
-            <option value="todos" className="bg-[#0d0d14]">Todos los estados</option>
+            <option value="todos" className="bg-card">Todos los estados</option>
             {Object.entries(TICKET_STATUS_LABELS).map(([value, label]) => (
-              <option key={value} value={value} className="bg-[#0d0d14]">
+              <option key={value} value={value} className="bg-card">
                 {label}
               </option>
             ))}
@@ -207,9 +207,9 @@ function TicketsAdminPage() {
             onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}
             className="w-full rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60"
           >
-            <option value="todas" className="bg-[#0d0d14]">Todas las categorías</option>
+            <option value="todas" className="bg-card">Todas las categorías</option>
             {TICKET_CATEGORY_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value} className="bg-[#0d0d14]">
+              <option key={option.value} value={option.value} className="bg-card">
                 {option.label}
               </option>
             ))}
@@ -359,7 +359,7 @@ function AdminTicketModal({
         aria-label="Cerrar ticket"
         className="absolute inset-0 bg-black/80 backdrop-blur-sm"
       />
-      <section className="relative flex w-full max-w-3xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#0d0d14] shadow-2xl">
+      <section className="relative flex w-full max-w-3xl max-h-[calc(100dvh-2rem)] flex-col overflow-hidden rounded-3xl border border-white/10 bg-card shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-white/10 bg-white/[0.02] p-5 sm:p-6">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">

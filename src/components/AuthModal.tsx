@@ -551,7 +551,7 @@ export function AuthModal({
                     <span>Acepto los términos y condiciones</span>
                   </label>
                   {fieldErrors.terms && (
-                    <p className="mt-1 text-[11px] text-red-accent">{fieldErrors.terms}</p>
+                    <p className="mt-1 text-[11px] text-destructive">{fieldErrors.terms}</p>
                   )}
                 </div>
               )}
@@ -569,7 +569,7 @@ export function AuthModal({
               {error && (
                 <p
                   role="alert"
-                  className="text-xs text-red-accent bg-red-accent/10 border border-red-accent/30 rounded-lg px-3 py-2"
+                  className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-lg px-3 py-2"
                 >
                   {error}
                 </p>
@@ -596,7 +596,7 @@ export function AuthModal({
               <Button
                 type="submit"
                 disabled={loading}
-                className="h-11 w-full rounded-xl bg-primary text-sm font-bold text-white shadow-[0_10px_28px_rgba(220,38,38,0.25)] transition hover:bg-red-500 hover:shadow-[0_12px_30px_rgba(220,38,38,0.4)]"
+                className="h-11 w-full rounded-xl bg-primary text-sm font-bold text-white shadow-[0_10px_28px_rgba(59,130,246,0.25)] transition hover:bg-brand-hover hover:shadow-[0_12px_30px_rgba(96,165,250,0.4)]"
               >
                 {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                 {mode === "login"
@@ -630,7 +630,7 @@ export function AuthModal({
                     <button
                       type="button"
                       onClick={() => changeMode("login")}
-                      className="font-semibold text-primary hover:text-red-400"
+                      className="font-semibold text-primary hover:text-brand-hover"
                     >
                       Inicia sesión
                     </button>
@@ -639,7 +639,7 @@ export function AuthModal({
                   <button
                     type="button"
                     onClick={() => changeMode("login")}
-                    className="font-semibold text-primary hover:text-red-400"
+                    className="font-semibold text-primary hover:text-brand-hover"
                   >
                     ← Volver al inicio de sesión
                   </button>
@@ -682,7 +682,7 @@ function Field({
         {trailing && <div className="absolute right-1.5 top-1/2 -translate-y-1/2">{trailing}</div>}
         {children}
       </div>
-      {error && <p className="mt-1 text-[11px] text-red-accent px-1">{error}</p>}
+      {error && <p className="mt-1 text-[11px] text-destructive px-1">{error}</p>}
     </div>
   );
 }

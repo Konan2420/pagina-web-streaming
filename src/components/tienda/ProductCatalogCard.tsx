@@ -128,13 +128,13 @@ export function ProductCatalogCard({
           </span>
         </div>
         <div className="pointer-events-none absolute right-2 top-2">
-          <span className="rounded-md bg-red-accent px-2 py-1 font-sans text-[9px] font-semibold uppercase tracking-[0.06em] text-white shadow-sm ring-1 ring-white/15">
+          <span className="rounded-md bg-primary px-2 py-1 font-sans text-[9px] font-semibold uppercase tracking-[0.06em] text-white shadow-sm ring-1 ring-white/15">
             {product.duracion}
           </span>
         </div>
 
         {isOutOfService && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-8 items-center justify-center bg-red-accent px-2 font-sans text-[10px] font-bold uppercase tracking-[0.08em] text-white">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-8 items-center justify-center bg-destructive px-2 font-sans text-[10px] font-bold uppercase tracking-[0.08em] text-white">
             Fuera de servicio
           </div>
         )}
@@ -157,7 +157,7 @@ export function ProductCatalogCard({
           <div className="flex min-w-0 items-center gap-1.5">
             <span
               aria-hidden="true"
-              className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-red-accent to-red-950 text-[8px] font-black text-white"
+              className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-brand to-blue-950 text-[8px] font-black text-white"
             >
               {initials(sellerName)}
             </span>

@@ -334,7 +334,7 @@ function PedidosManagement() {
             onClick={() => setSelectedPedido(null)}
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
           />
-          <section className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-white/10 bg-[#0d0d14] shadow-2xl animate-in zoom-in-95 duration-200">
+          <section className="relative w-full max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-3xl border border-white/10 bg-card shadow-2xl animate-in zoom-in-95 duration-200">
             <header className="flex items-start justify-between gap-4 border-b border-white/10 bg-white/[0.02] p-6">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">

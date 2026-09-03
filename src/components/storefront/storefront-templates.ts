@@ -20,7 +20,7 @@ export const storefrontTemplates: StorefrontTemplate[] = [
   { key: "premium-streetwear", name: "Premium: Streetwear", description: "Urbano", accent: "#d61919", accentSoft: "#ff9797", surface: "#250b0b", text: "#fff3f3", premium: true },
   { key: "premium-ecologico", name: "Premium: Ecológico", description: "Orgánico", accent: "#609d4b", accentSoft: "#c5eda6", surface: "#142016", text: "#f2ffed", premium: true },
   { key: "premium-royal", name: "Premium: Royal", description: "Realeza / Prestigio", accent: "#d59b12", accentSoft: "#ffd970", surface: "#251a08", text: "#fff8e5", premium: true },
-  { key: "standard-professional", name: "Estándar Profesional", description: "CMD clásico", accent: "#ef233c", accentSoft: "#ff9aa7", surface: "#151821", text: "#ffffff", premium: false },
+  { key: "standard-professional", name: "Estándar Profesional", description: "CMD Azul", accent: "#3b82f6", accentSoft: "#93c5fd", surface: "#111827", text: "#f8fafc", premium: false },
   { key: "netflix-red", name: "Efecto Netflix", description: "Rojo", accent: "#e50914", accentSoft: "#ff8f95", surface: "#1c080a", text: "#fff6f6", premium: false },
   { key: "gaming-blue", name: "Modo Gaming", description: "Azul", accent: "#0277bd", accentSoft: "#8cdbff", surface: "#081925", text: "#effaff", premium: false },
   { key: "minimalist", name: "Minimalista", description: "Blanco / Negro", accent: "#d0d5db", accentSoft: "#ffffff", surface: "#141414", text: "#ffffff", premium: false },

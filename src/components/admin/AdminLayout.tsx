@@ -31,7 +31,7 @@ interface AdminLayoutProps {
 const AdminRouteShellContext = React.createContext(false);
 
 const menuItems = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard, role: "any", accent: "text-red-300" },
+  { label: "Dashboard", href: "/admin", icon: LayoutDashboard, role: "any", accent: "text-primary" },
   { label: "Productos", href: "/admin/productos", icon: ShoppingCart, role: "any", accent: "text-amber-300" },
   { label: "Íconos y plataformas", href: "/admin/servicios", icon: Tv, role: "any", accent: "text-cyan-300" },
   { label: "Inventario", href: "/admin/inventario", icon: Database, role: "any", accent: "text-violet-300" },
