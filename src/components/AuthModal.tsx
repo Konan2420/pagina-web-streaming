@@ -33,25 +33,6 @@ function getAuthErrorMessage(err: unknown) {
   return err instanceof Error ? err.message : "No se pudo completar la autenticación.";
 }
 
-function setPendingOAuthRedirect(): boolean {
-  try {
-    window.sessionStorage.setItem("cmd-auth-redirect-pending", "1");
-    return true;
-  } catch {
-    // The login can continue even when storage is disabled. The user will
-    // arrive at the store instead of being redirected automatically by role.
-    return false;
-  }
-}
-
-function clearPendingOAuthRedirect() {
-  try {
-    window.sessionStorage.removeItem("cmd-auth-redirect-pending");
-  } catch {
-    // Storage can be unavailable in private or restricted browser contexts.
-  }
-}
-
 export function AuthModal({
   open,
   onClose,
@@ -79,27 +60,18 @@ export function AuthModal({
   const router = useRouter();
 
   const getRedirectUrl = () => {
-    if (typeof window === "undefined") return "/tienda";
+    if (typeof window === "undefined") return "/auth/callback";
 
-    // En una demo publicada por túnel, el correo debe regresar a la URL
-    // pública y no al origen temporal del equipo de desarrollo.
-    const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim();
-    try {
-      return new URL("/tienda", configuredAppUrl || window.location.origin).toString();
-    } catch {
-      return new URL("/tienda", window.location.origin).toString();
-    }
+    // El callback debe volver siempre al mismo origen que inició la
+    // autenticación. Así no queda atado a un dominio antiguo configurado en
+    // VITE_APP_URL y se comporta igual en local, preview y producción.
+    return new URL("/auth/callback", window.location.origin).toString();
   };
 
   const getPasswordRecoveryRedirectUrl = () => {
     if (typeof window === "undefined") return "/reset-password";
 
-    const configuredAppUrl = import.meta.env.VITE_APP_URL?.trim();
-    try {
-      return new URL("/reset-password", configuredAppUrl || window.location.origin).toString();
-    } catch {
-      return new URL("/reset-password", window.location.origin).toString();
-    }
+    return new URL("/reset-password", window.location.origin).toString();
   };
 
   async function redirectForRole(userId: string) {
@@ -296,7 +268,6 @@ export function AuthModal({
     resetState();
     setLoading(true);
     try {
-      setPendingOAuthRedirect();
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -305,17 +276,14 @@ export function AuthModal({
         },
       });
       if (error) {
-        clearPendingOAuthRedirect();
         throw error;
       }
       if (!data.url) {
-        clearPendingOAuthRedirect();
         throw new Error("No se pudo iniciar la redirección a Google. Inténtalo nuevamente.");
       }
       track("login", { eventName: "google_oauth_redirect", metadata: { method: "google" } });
       window.location.assign(data.url);
     } catch (err: unknown) {
-      clearPendingOAuthRedirect();
       setError(getAuthErrorMessage(err));
       setLoading(false);
     }

@@ -20,6 +20,7 @@ import { Route as AuthenticatedCatalogoRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDistribuidorRouteImport } from './routes/_authenticated/distribuidor'
 import { Route as AuthenticatedProveedorRouteImport } from './routes/_authenticated/proveedor'
 import { Route as AuthenticatedRedesSocialesRouteImport } from './routes/_authenticated/redes-sociales'
+import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as PlataformasIndexRouteImport } from './routes/plataformas/index'
 import { Route as PlataformasSlugRouteImport } from './routes/plataformas/$slug'
 import { Route as TiendaPublicaSlugRouteImport } from './routes/tienda-publica/$slug'
@@ -103,6 +104,11 @@ const AuthenticatedRedesSocialesRoute =
     path: '/redes-sociales',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/auth/callback',
+  path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlataformasIndexRoute = PlataformasIndexRouteImport.update({
   id: '/plataformas/',
   path: '/plataformas/',
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/distribuidor': typeof AuthenticatedDistribuidorRouteWithChildren
   '/proveedor': typeof AuthenticatedProveedorRouteWithChildren
   '/redes-sociales': typeof AuthenticatedRedesSocialesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/tienda': typeof TiendaRoute
   '/catalogo': typeof AuthenticatedCatalogoRoute
   '/redes-sociales': typeof AuthenticatedRedesSocialesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas': typeof PlataformasIndexRoute
@@ -340,6 +348,7 @@ export interface FileRoutesById {
   '/_authenticated/distribuidor': typeof AuthenticatedDistribuidorRouteWithChildren
   '/_authenticated/proveedor': typeof AuthenticatedProveedorRouteWithChildren
   '/_authenticated/redes-sociales': typeof AuthenticatedRedesSocialesRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/distribuidor'
     | '/proveedor'
     | '/redes-sociales'
+    | '/auth/callback'
     | '/plataformas/$slug'
     | '/tienda-publica/$slug'
     | '/plataformas/'
@@ -415,6 +425,7 @@ export interface FileRouteTypes {
     | '/tienda'
     | '/catalogo'
     | '/redes-sociales'
+    | '/auth/callback'
     | '/plataformas/$slug'
     | '/tienda-publica/$slug'
     | '/plataformas'
@@ -454,6 +465,7 @@ export interface FileRouteTypes {
     | '/_authenticated/distribuidor'
     | '/_authenticated/proveedor'
     | '/_authenticated/redes-sociales'
+    | '/auth/callback'
     | '/plataformas/$slug'
     | '/tienda-publica/$slug'
     | '/plataformas/'
@@ -489,6 +501,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TiendaRoute: typeof TiendaRoute
+  AuthCallbackRoute: typeof AuthCallbackRoute
   PlataformasSlugRoute: typeof PlataformasSlugRoute
   TiendaPublicaSlugRoute: typeof TiendaPublicaSlugRoute
   PlataformasIndexRoute: typeof PlataformasIndexRoute
@@ -573,6 +586,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/redes-sociales'
       preLoaderRoute: typeof AuthenticatedRedesSocialesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/auth/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/plataformas/': {
       id: '/plataformas/'
@@ -868,6 +888,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TiendaRoute: TiendaRoute,
+  AuthCallbackRoute: AuthCallbackRoute,
   PlataformasSlugRoute: PlataformasSlugRoute,
   TiendaPublicaSlugRoute: TiendaPublicaSlugRoute,
   PlataformasIndexRoute: PlataformasIndexRoute,

@@ -279,16 +279,6 @@ function getProductStock(
   return { available: count > 0, count };
 }
 
-function consumePendingOAuthRedirect(): boolean {
-  try {
-    if (window.sessionStorage.getItem("cmd-auth-redirect-pending") !== "1") return false;
-    window.sessionStorage.removeItem("cmd-auth-redirect-pending");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 function getSafeExternalUrl(value: string | null): string | null {
   if (!value) return null;
 
@@ -588,26 +578,10 @@ export function TiendaPage({
   }, []);
 
   useEffect(() => {
-    let active = true;
-
-    if (lastEvent === "PASSWORD_RECOVERY") {
-      setAuthMode("update");
-      setAuthOpen(true);
-    }
-
-    if (!session || !consumePendingOAuthRedirect()) return () => {
-      active = false;
-    };
-
-    void (async () => {
-      const to = await getAuthDestination(session.user.id);
-      if (active && to !== router.state.location.pathname) await router.navigate({ to });
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [lastEvent, router, session]);
+    if (lastEvent !== "PASSWORD_RECOVERY") return;
+    setAuthMode("update");
+    setAuthOpen(true);
+  }, [lastEvent]);
 
   const userId = session?.user.id;
 
