@@ -129,7 +129,7 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
             aria-pressed={liveMode}
             className={cn(
               "inline-flex h-11 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9",
-              liveMode ? "border-primary bg-primary text-white" : control,
+              liveMode ? "cmd-on-accent border-primary bg-primary" : control,
             )}
           >
             <Radio className={cn("h-3.5 w-3.5", liveMode && "animate-pulse")} />

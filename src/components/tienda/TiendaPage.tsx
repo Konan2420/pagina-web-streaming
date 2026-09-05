@@ -100,6 +100,11 @@ const ClientsPanel = React.lazy(() =>
     default: Component,
   })),
 );
+const BusinessOrdersPanel = React.lazy(() =>
+  import("@/components/tienda/BusinessOrdersPanel").then(({ BusinessOrdersPanel: Component }) => ({
+    default: Component,
+  })),
+);
 
 type CatalogProduct = Product & {
   serviceId: string | null;
@@ -201,10 +206,9 @@ const EMPTY_CATALOG_FILTERS: CatalogFilters = {
 
 const CATALOG_RENDER_PAGE_SIZE = 42;
 
-
 type SidebarPlaceholderPanel = Exclude<
   PanelTab,
-  "tienda" | "mi-tienda" | "compras" | "perfil" | "soporte" | "clientes"
+  "tienda" | "mi-tienda" | "compras" | "pedidos" | "perfil" | "soporte" | "clientes"
 >;
 
 const sidebarPlaceholderContent: Record<
@@ -238,6 +242,7 @@ function isSidebarPlaceholderPanel(panel: PanelTab): panel is SidebarPlaceholder
     panel !== "tienda" &&
     panel !== "mi-tienda" &&
     panel !== "compras" &&
+    panel !== "pedidos" &&
     panel !== "perfil" &&
     panel !== "soporte" &&
     panel !== "clientes"
@@ -401,17 +406,13 @@ export function TiendaPage({
   const [supportTicketPrefill, setSupportTicketPrefill] = useState<SupportTicketPrefill | null>(
     null,
   );
+  const [supportTicketFocusId, setSupportTicketFocusId] = useState<string | null>(null);
   const searchRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const track = useAnalytics();
   const createOrdersFn = useServerFn(createOrders);
-  const {
-    isAdmin,
-    isProvider,
-    isDistributor,
-    loading: isRoleLoading,
-  } = useIsAdmin();
+  const { isAdmin, isProvider, isDistributor, loading: isRoleLoading } = useIsAdmin();
 
   const { playHover, playClick } = useFuturisticSound();
   const [selectedDelivery, setSelectedDelivery] = useState<DeliveryDetails | null>(null);
@@ -1013,8 +1014,7 @@ export function TiendaPage({
 
   const visible = useMemo(() => {
     const list = catalogCandidates.filter(
-      (product) =>
-        !catalogFilters.availableOnly || getProductStock(product, stockLevels).available,
+      (product) => !catalogFilters.availableOnly || getProductStock(product, stockLevels).available,
     );
 
     if (sort === "price-asc") return [...list].sort((a, b) => a.price - b.price);
@@ -1334,7 +1334,7 @@ export function TiendaPage({
                   }}
                 />
               ) : isCatalogLoading ? (
-                <div className="grid auto-rows-fr grid-cols-1 gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7">
+                <div className="grid auto-rows-fr grid-cols-1 gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7 xl:gap-3">
                   {Array.from({ length: 12 }, (_, index) => (
                     <ProductCatalogCardSkeleton key={index} />
                   ))}
@@ -1374,7 +1374,10 @@ export function TiendaPage({
                       role="alert"
                       className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300/25 bg-amber-300/[0.06] px-3 py-2.5 text-xs text-amber-50/85"
                     >
-                      <span>Se cargó el catálogo, pero no se pudieron actualizar los íconos de plataformas.</span>
+                      <span>
+                        Se cargó el catálogo, pero no se pudieron actualizar los íconos de
+                        plataformas.
+                      </span>
                       <button
                         type="button"
                         onClick={() => void refetchManagedPlatforms()}
@@ -1394,7 +1397,10 @@ export function TiendaPage({
                       role="alert"
                       className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300/25 bg-amber-300/[0.06] px-3 py-2.5 text-xs text-amber-50/85"
                     >
-                      <span>No se pudo comprobar el stock. Las compras permanecen bloqueadas por seguridad.</span>
+                      <span>
+                        No se pudo comprobar el stock. Las compras permanecen bloqueadas por
+                        seguridad.
+                      </span>
                       <button
                         type="button"
                         onClick={() => void refetchStock()}
@@ -1405,7 +1411,7 @@ export function TiendaPage({
                       </button>
                     </div>
                   )}
-                  <div className="grid auto-rows-fr grid-cols-1 gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-7">
+                  <div className="grid auto-rows-fr grid-cols-1 gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7 xl:gap-3">
                     {renderedVisibleProducts.map((p) => (
                       <ProductCatalogCard
                         key={p.id}
@@ -1443,11 +1449,34 @@ export function TiendaPage({
 
         {panel === "compras" && (
           <PurchasesPanel
+            userId={userId}
             loading={loadingOrders}
             orders={orders}
             onGoShop={() => setPanel("tienda")}
             onShowDelivery={(d) => setSelectedDelivery(d)}
           />
+        )}
+
+        {panel === "pedidos" && userId && (
+          <React.Suspense
+            fallback={
+              <div className="mx-auto mt-6 max-w-[1600px] px-4 pb-24 sm:px-6">
+                <div className="h-80 animate-pulse rounded-xl border border-border bg-card/40" />
+              </div>
+            }
+          >
+            <BusinessOrdersPanel
+              isAdmin={isAdmin}
+              isProvider={isProvider}
+              isDistributor={isDistributor}
+              onGoShop={() => setPanel("tienda")}
+              onOpenSupport={(ticketId) => {
+                setSupportTicketPrefill(null);
+                setSupportTicketFocusId(ticketId);
+                setPanel("soporte");
+              }}
+            />
+          </React.Suspense>
         )}
 
         {panel === "mi-tienda" && (
@@ -1484,6 +1513,8 @@ export function TiendaPage({
             onGoShop={() => setPanel("tienda")}
             createTicketPrefill={supportTicketPrefill}
             onCreateTicketPrefillConsumed={() => setSupportTicketPrefill(null)}
+            focusTicketId={supportTicketFocusId}
+            onFocusTicketConsumed={() => setSupportTicketFocusId(null)}
             onContactSupport={() => {
               const message = encodeURIComponent(
                 "Hola, necesito ayuda con mi cuenta de CMD Streaming.",
@@ -1807,17 +1838,32 @@ function SidebarPlaceholderPanel({
 }
 
 function PurchasesPanel({
+  userId,
   loading,
   orders,
   onGoShop,
   onShowDelivery,
 }: {
+  userId?: string;
   loading: boolean;
   orders: StoreOrder[];
   onGoShop: () => void;
   onShowDelivery: (delivery: DeliveryDetails) => void;
 }) {
   const { playHover, playClick } = useFuturisticSound();
+  const notificationsQuery = useQuery({
+    queryKey: ["business-order-notifications", userId],
+    enabled: Boolean(userId),
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("get_my_business_order_notifications");
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+  const unreadBusinessNotifications = (notificationsQuery.data ?? []).filter(
+    (notification) => !notification.read_at,
+  );
 
   return (
     <section className="mt-6 pb-24">
@@ -1828,6 +1874,23 @@ function PurchasesPanel({
             {orders.length} pedido{orders.length === 1 ? "" : "s"}
           </span>
         </div>
+
+        {unreadBusinessNotifications.length > 0 && (
+          <div className="mb-4 rounded-xl border border-primary/25 bg-primary/10 p-4">
+            <p className="text-sm font-bold text-foreground">Actualizaciones de tus pedidos</p>
+            <div className="mt-2 space-y-2">
+              {unreadBusinessNotifications.slice(0, 3).map((notification) => (
+                <div
+                  key={notification.id}
+                  className="rounded-lg border border-border bg-card px-3 py-2.5"
+                >
+                  <p className="text-xs font-bold text-foreground">{notification.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{notification.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div

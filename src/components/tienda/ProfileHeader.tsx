@@ -69,7 +69,7 @@ export function ProfileHeader({
             type="button"
             onClick={onOpenCart}
             aria-label={`Abrir carrito${cartCount > 0 ? `, ${cartCount} ${cartCount === 1 ? "producto" : "productos"}` : ""}`}
-            className="relative inline-flex items-center gap-2 min-h-11 px-3.5 py-2 rounded-full gradient-violet text-white text-xs font-semibold hover:scale-[1.03] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            className="cmd-on-accent relative inline-flex min-h-11 items-center gap-2 rounded-full gradient-violet px-3.5 py-2 text-xs font-semibold hover:scale-[1.03] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           >
             <ShoppingCart aria-hidden="true" className="w-4 h-4" />
             Carrito

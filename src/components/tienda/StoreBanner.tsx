@@ -19,7 +19,7 @@ export function StoreBanner({ authed, displayName }: { authed: boolean; displayN
     "Max",
   ];
   return (
-    <div className="relative h-52 sm:h-64 md:h-72 overflow-hidden">
+    <div data-cmd-fixed-contrast className="relative h-52 overflow-hidden sm:h-64 md:h-72">
       <div className="absolute inset-0 bg-gradient-to-br from-red-accent/40 via-violet/40 to-black" />
       <div className="absolute inset-0 grid grid-cols-6 sm:grid-cols-8 gap-2 p-4 opacity-40">
         {platforms.map((n, i) => (

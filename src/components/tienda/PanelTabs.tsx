@@ -16,8 +16,9 @@ function PanelTabBtn({
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       className={`shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
-        active ? "gradient-violet text-white" : "text-white/78 hover:text-white"
+        active ? "gradient-violet cmd-on-accent" : "text-white/78 hover:text-white"
       }`}
     >
       {icon}

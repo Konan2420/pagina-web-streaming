@@ -136,6 +136,7 @@ export function PlatformIconMark({
   return (
     <span
       aria-hidden="true"
+      data-cmd-fixed-contrast={platform.surface.includes("text-white") ? "" : undefined}
       className={cn(
         "relative grid h-9 w-9 place-items-center overflow-hidden rounded-full shadow-sm",
         platform.surface,

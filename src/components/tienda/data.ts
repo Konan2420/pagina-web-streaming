@@ -581,6 +581,7 @@ export type PanelTab =
   | "tienda"
   | "mi-tienda"
   | "compras"
+  | "pedidos"
   | "perfil"
   | "clientes"
   | "buzon"

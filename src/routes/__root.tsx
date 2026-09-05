@@ -155,10 +155,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const restoreColorMode = `try { var mode = localStorage.getItem("cmd-color-mode"); if (mode === "light" || mode === "dark") { document.documentElement.dataset.cmdTheme = mode; document.documentElement.style.colorScheme = mode; } } catch (_) {}`;
+
   return (
     <html lang="es">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: restoreColorMode }} />
       </head>
       <body>
         {children}

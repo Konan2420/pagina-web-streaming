@@ -15,14 +15,14 @@ export function SearchBar({
     <section className="mt-4 sm:mt-6">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/62" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             ref={inputRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Buscar producto o servicio... ( / )"
             aria-label="Buscar producto o servicio"
-            className="w-full pl-10 pr-3 py-3 rounded-xl bg-white/[0.04] border border-white/10 text-sm text-white placeholder:text-white/62 focus:outline-none focus:border-violet-2/60 transition"
+            className="w-full rounded-xl border border-border bg-card py-3 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground transition focus:border-primary/60 focus:outline-none"
           />
         </div>
       </div>

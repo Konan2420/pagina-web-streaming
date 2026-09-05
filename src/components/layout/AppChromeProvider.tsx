@@ -31,15 +31,20 @@ export function AppChromeProvider({ children }: { children: React.ReactNode }) {
   const [query, setQuery] = React.useState("");
   const searchRef = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const savedTheme = window.localStorage.getItem("cmd-color-mode");
     const savedLiveMode = window.localStorage.getItem("cmd-live-mode");
-    if (savedTheme === "light" || savedTheme === "dark") setColorMode(savedTheme);
+    if (savedTheme === "light" || savedTheme === "dark") {
+      document.documentElement.dataset.cmdTheme = savedTheme;
+      document.documentElement.style.colorScheme = savedTheme;
+      setColorMode(savedTheme);
+    }
     if (savedLiveMode === "true") setLiveMode(true);
   }, []);
 
   React.useEffect(() => {
     document.documentElement.dataset.cmdTheme = colorMode;
+    document.documentElement.style.colorScheme = colorMode;
     window.localStorage.setItem("cmd-color-mode", colorMode);
   }, [colorMode]);
 

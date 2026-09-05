@@ -147,6 +147,7 @@ function SocialPlatformMark({ platform, className }: { platform: string; classNa
   return (
     <span
       aria-hidden="true"
+      data-cmd-fixed-contrast={definition.color === "text-white" ? "" : undefined}
       className={cn(
         "grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-white/10 bg-black/35 text-lg",
         definition.color,

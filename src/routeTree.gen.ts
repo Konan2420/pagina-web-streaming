@@ -48,6 +48,7 @@ import { Route as AuthenticatedProveedorInventarioRouteImport } from './routes/_
 import { Route as AuthenticatedProveedorMiTiendaRouteImport } from './routes/_authenticated/proveedor/mi-tienda'
 import { Route as AuthenticatedProveedorProductosRouteImport } from './routes/_authenticated/proveedor/productos'
 import { Route as AuthenticatedProveedorVentasRouteImport } from './routes/_authenticated/proveedor/ventas'
+import { Route as ApiPrivateCronAutoRenewalsRouteImport } from './routes/api/private/cron/auto-renewals'
 import { Route as ApiPublicWebhooksFloidRouteImport } from './routes/api/public/webhooks/floid'
 
 const IndexRoute = IndexRouteImport.update({
@@ -267,6 +268,12 @@ const AuthenticatedProveedorVentasRoute =
     path: '/ventas',
     getParentRoute: () => AuthenticatedProveedorRoute,
   } as any)
+const ApiPrivateCronAutoRenewalsRoute =
+  ApiPrivateCronAutoRenewalsRouteImport.update({
+    id: '/api/private/cron/auto-renewals',
+    path: '/api/private/cron/auto-renewals',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicWebhooksFloidRoute = ApiPublicWebhooksFloidRouteImport.update({
   id: '/api/public/webhooks/floid',
   path: '/api/public/webhooks/floid',
@@ -312,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/distribuidor/': typeof AuthenticatedDistribuidorIndexRoute
   '/proveedor/': typeof AuthenticatedProveedorIndexRoute
+  '/api/private/cron/auto-renewals': typeof ApiPrivateCronAutoRenewalsRoute
   '/api/public/webhooks/floid': typeof ApiPublicWebhooksFloidRoute
 }
 export interface FileRoutesByTo {
@@ -350,6 +358,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/distribuidor': typeof AuthenticatedDistribuidorIndexRoute
   '/proveedor': typeof AuthenticatedProveedorIndexRoute
+  '/api/private/cron/auto-renewals': typeof ApiPrivateCronAutoRenewalsRoute
   '/api/public/webhooks/floid': typeof ApiPublicWebhooksFloidRoute
 }
 export interface FileRoutesById {
@@ -393,6 +402,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/distribuidor/': typeof AuthenticatedDistribuidorIndexRoute
   '/_authenticated/proveedor/': typeof AuthenticatedProveedorIndexRoute
+  '/api/private/cron/auto-renewals': typeof ApiPrivateCronAutoRenewalsRoute
   '/api/public/webhooks/floid': typeof ApiPublicWebhooksFloidRoute
 }
 export interface FileRouteTypes {
@@ -436,6 +446,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/distribuidor/'
     | '/proveedor/'
+    | '/api/private/cron/auto-renewals'
     | '/api/public/webhooks/floid'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -474,6 +485,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/distribuidor'
     | '/proveedor'
+    | '/api/private/cron/auto-renewals'
     | '/api/public/webhooks/floid'
   id:
     | '__root__'
@@ -516,6 +528,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/distribuidor/'
     | '/_authenticated/proveedor/'
+    | '/api/private/cron/auto-renewals'
     | '/api/public/webhooks/floid'
   fileRoutesById: FileRoutesById
 }
@@ -531,6 +544,7 @@ export interface RootRouteChildren {
   PlataformasSlugRoute: typeof PlataformasSlugRoute
   TiendaPublicaSlugRoute: typeof TiendaPublicaSlugRoute
   PlataformasIndexRoute: typeof PlataformasIndexRoute
+  ApiPrivateCronAutoRenewalsRoute: typeof ApiPrivateCronAutoRenewalsRoute
   ApiPublicWebhooksFloidRoute: typeof ApiPublicWebhooksFloidRoute
 }
 
@@ -809,6 +823,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProveedorVentasRouteImport
       parentRoute: typeof AuthenticatedProveedorRoute
     }
+    '/api/private/cron/auto-renewals': {
+      id: '/api/private/cron/auto-renewals'
+      path: '/api/private/cron/auto-renewals'
+      fullPath: '/api/private/cron/auto-renewals'
+      preLoaderRoute: typeof ApiPrivateCronAutoRenewalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/webhooks/floid': {
       id: '/api/public/webhooks/floid'
       path: '/api/public/webhooks/floid'
@@ -935,6 +956,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlataformasSlugRoute: PlataformasSlugRoute,
   TiendaPublicaSlugRoute: TiendaPublicaSlugRoute,
   PlataformasIndexRoute: PlataformasIndexRoute,
+  ApiPrivateCronAutoRenewalsRoute: ApiPrivateCronAutoRenewalsRoute,
   ApiPublicWebhooksFloidRoute: ApiPublicWebhooksFloidRoute,
 }
 export const routeTree = rootRouteImport

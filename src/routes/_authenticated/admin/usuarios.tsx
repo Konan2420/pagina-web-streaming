@@ -56,7 +56,7 @@ function UsersManagement() {
     switch (role) {
       case "admin":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/10 text-primary border border-primary/20">
             <ShieldAlert className="w-3 h-3" /> Admin
           </span>
         );
@@ -74,7 +74,7 @@ function UsersManagement() {
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/5 text-white/40 border border-white/10">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-muted/55 text-muted-foreground border border-border">
             <UserIcon className="w-3 h-3" /> Usuario
           </span>
         );
@@ -88,13 +88,13 @@ function UsersManagement() {
     >
       <div className="flex items-center justify-between gap-4 mb-6">
         <div className="relative w-full sm:w-96">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Buscar por nombre, correo o WhatsApp..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+            className="w-full bg-card border border-border rounded-xl py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
           />
         </div>
         <span className="hidden shrink-0 rounded-full border border-primary/25 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary sm:inline-flex">
@@ -102,11 +102,11 @@ function UsersManagement() {
         </span>
       </div>
 
-      <div className="glass-card rounded-2xl border border-white/5 overflow-hidden">
+      <div className="glass-card rounded-2xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-xs text-white/40 border-b border-white/5 bg-white/[0.02]">
+              <tr className="text-left text-xs text-muted-foreground border-b border-border bg-muted/45">
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Usuario</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">WhatsApp</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Registro</th>
@@ -119,31 +119,31 @@ function UsersManagement() {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-border">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-white/30 italic">
+                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground italic">
                     No se encontraron usuarios.
                   </td>
                 </tr>
               ) : (
                 filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-white/5 transition-colors group">
+                  <tr key={user.id} className="hover:bg-muted/45 transition-colors group">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40">
+                        <div className="w-8 h-8 rounded-full bg-muted/55 border border-border flex items-center justify-center text-muted-foreground">
                           <UserIcon className="w-4 h-4" />
                         </div>
-                        <span className="font-semibold text-white">
+                        <span className="font-semibold text-foreground">
                           {user.nombre_completo || "Sin nombre"}
                         </span>
-                        {user.email && <span className="hidden text-xs text-white/40 xl:inline">{user.email}</span>}
+                        {user.email && <span className="hidden text-xs text-muted-foreground xl:inline">{user.email}</span>}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-white/40 font-mono text-xs">
+                    <td className="px-6 py-4 whitespace-nowrap text-muted-foreground font-mono text-xs">
                       {user.whatsapp || "—"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-xs text-white/45">
+                    <td className="px-6 py-4 whitespace-nowrap text-xs text-muted-foreground">
                       {new Intl.DateTimeFormat("es-PE", { dateStyle: "medium" }).format(
                         new Date(user.created_at),
                       )}
@@ -165,7 +165,7 @@ function UsersManagement() {
                               void handleUpdateRole(user.id, role);
                             }
                           }}
-                          className="bg-ink border border-white/10 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
+                          className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 disabled:opacity-50"
                         >
                           <option value="user">Usuario</option>
                           <option value="proveedor">Proveedor</option>

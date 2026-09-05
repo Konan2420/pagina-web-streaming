@@ -409,7 +409,7 @@ export function ClientsPanel({
   if (!canManage) {
     return (
       <section className="mx-auto mt-6 max-w-4xl px-4 pb-24 sm:px-6">
-        <div className="rounded-xl border border-border bg-background p-8 text-center text-sm text-white/65">
+        <div className="rounded-xl border border-border bg-card p-8 text-center text-sm text-muted-foreground">
           Esta sección está disponible solo para administrador, proveedor o distribuidor.
         </div>
       </section>
@@ -428,15 +428,15 @@ export function ClientsPanel({
       <header className="mb-7 flex flex-col gap-4 border-b border-border/70 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">Mi negocio</p>
-          <h1 className="mt-1 font-display text-3xl tracking-tight text-white sm:text-4xl">Clientes</h1>
-          <p className="mt-2 max-w-2xl text-sm text-white/55 sm:text-base">
+          <h1 className="mt-1 font-display text-3xl tracking-tight text-foreground sm:text-4xl">Clientes</h1>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
             Administra los contactos de tu negocio y prepara tus próximas ventas desde un solo lugar.
           </p>
         </div>
         <button
           type="button"
           onClick={onGoShop}
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-border bg-background px-3.5 text-xs font-bold text-white/80 transition hover:border-primary/55 hover:text-white sm:h-10 sm:self-auto"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 self-start rounded-lg border border-border bg-card px-3.5 text-xs font-bold text-foreground transition hover:border-primary/55 sm:h-10 sm:self-auto"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           Volver al catálogo
@@ -449,11 +449,11 @@ export function ClientsPanel({
             <div className="flex items-start gap-4">
               <Icon className="mt-1 h-5 w-5 text-primary" aria-hidden="true" />
               <div>
-                <p className="text-base font-bold text-white">{label}</p>
-                <p className="mt-1 text-sm text-white/50">{description}</p>
+                <p className="text-base font-bold text-foreground">{label}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{description}</p>
               </div>
             </div>
-            <span className="font-display text-2xl text-white">{value}</span>
+            <span className="font-display text-2xl text-foreground">{value}</span>
           </div>
         ))}
       </div>
@@ -462,19 +462,19 @@ export function ClientsPanel({
         <button type="button" onClick={openCreate} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary/90">
           <Plus className="h-4 w-4" /> Nuevo Cliente
         </button>
-        <button type="button" onClick={() => setTagsDialogOpen(true)} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-bold text-white/85 transition hover:border-primary/50 hover:text-white">
+        <button type="button" onClick={() => setTagsDialogOpen(true)} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50">
           <Tags className="h-4 w-4" /> Etiquetas
         </button>
-        <button type="button" onClick={() => setHideAmounts((value) => !value)} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-bold text-white/85 transition hover:border-primary/50 hover:text-white">
+        <button type="button" onClick={() => setHideAmounts((value) => !value)} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50">
           {hideAmounts ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           {hideAmounts ? "Mostrar números" : "Ocultar números"}
         </button>
-        <button type="button" onClick={exportExcel} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-bold text-white/85 transition hover:border-primary/50 hover:text-white">
+        <button type="button" onClick={exportExcel} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50">
           <Download className="h-4 w-4" /> Exportar Excel
         </button>
         {isAdmin && (
-          <label className="ml-auto flex h-11 min-w-52 items-center rounded-lg border border-border bg-background px-3 text-sm text-white/75">
-            <span className="mr-2 whitespace-nowrap text-white/45">Ver clientes de:</span>
+          <label className="ml-auto flex h-11 min-w-52 items-center rounded-lg border border-border bg-card px-3 text-sm text-foreground">
+            <span className="mr-2 whitespace-nowrap text-muted-foreground">Ver clientes de:</span>
             <select value={ownerFilter ?? ""} onChange={(event) => setOwnerFilter(event.target.value || null)} className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none">
               <option value="">Toda la plataforma</option>
               {(ownersQuery.data ?? []).map((owner) => <option key={owner.owner_id} value={owner.owner_id}>{owner.display_name}</option>)}
@@ -483,18 +483,18 @@ export function ClientsPanel({
         )}
       </div>
 
-      <label className="mt-5 flex h-14 items-center gap-3 rounded-lg border border-border bg-card/50 px-4 text-white/60 focus-within:border-primary/60">
+      <label className="mt-5 flex h-14 items-center gap-3 rounded-lg border border-border bg-card/50 px-4 text-muted-foreground focus-within:border-primary/60">
         <Search className="h-5 w-5" aria-hidden="true" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar clientes" className="h-full min-w-0 flex-1 bg-transparent text-base text-white outline-none placeholder:text-white/35" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar clientes" className="h-full min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground" />
       </label>
 
       <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border/70 bg-background/45 p-3 sm:flex-row sm:items-center">
-        <label className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-border bg-card/55 px-3 text-xs text-white/60 sm:w-52">
-          <span className="shrink-0 font-semibold text-white/75">Estado</span>
+        <label className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-border bg-card/55 px-3 text-xs text-muted-foreground sm:w-52">
+          <span className="shrink-0 font-semibold text-foreground">Estado</span>
           <select
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value as ClientStatusFilter)}
-            className="min-w-0 flex-1 bg-transparent text-xs font-semibold text-white outline-none"
+            className="min-w-0 flex-1 bg-transparent text-xs font-semibold text-foreground outline-none"
           >
             <option value="all">Todos</option>
             <option value="active">Activos</option>
@@ -502,12 +502,12 @@ export function ClientsPanel({
             <option value="blocked">Bloqueados</option>
           </select>
         </label>
-        <label className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-border bg-card/55 px-3 text-xs text-white/60 sm:w-56">
-          <CalendarDays className="h-3.5 w-3.5 shrink-0 text-white/50" aria-hidden="true" />
+        <label className="flex h-10 min-w-0 items-center gap-2 rounded-md border border-border bg-card/55 px-3 text-xs text-muted-foreground sm:w-56">
+          <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <select
             value={dateFilter}
             onChange={(event) => setDateFilter(event.target.value as ClientDateFilter)}
-            className="min-w-0 flex-1 bg-transparent text-xs font-semibold text-white outline-none"
+            className="min-w-0 flex-1 bg-transparent text-xs font-semibold text-foreground outline-none"
             aria-label="Filtrar clientes por fecha de registro"
           >
             <option value="all">Todas las fechas</option>
@@ -516,7 +516,7 @@ export function ClientsPanel({
             <option value="year">Este año</option>
           </select>
         </label>
-        <p className="text-xs text-white/45 sm:ml-auto">
+        <p className="text-xs text-muted-foreground sm:ml-auto">
           {filteredClients.length} {filteredClients.length === 1 ? "cliente encontrado" : "clientes encontrados"}
         </p>
       </div>
@@ -524,14 +524,14 @@ export function ClientsPanel({
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1120px] text-left text-sm">
-            <thead className="border-b border-border bg-background/70 text-[11px] uppercase tracking-wide text-white/45">
+            <thead className="border-b border-border bg-muted/45 text-[11px] uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="px-4 py-3">Nombre</th><th className="px-4 py-3">Teléfono / WhatsApp</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Registro</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Pedidos / total</th><th className="px-4 py-3">Última actividad</th><th className="px-4 py-3">Etiquetas</th><th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/70">
               {clientsQuery.isLoading ? (
-                <tr><td colSpan={9} className="px-4 py-12 text-center text-white/45"><Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />Cargando clientes…</td></tr>
+                <tr><td colSpan={9} className="px-4 py-12 text-center text-muted-foreground"><Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />Cargando clientes…</td></tr>
               ) : clientsQuery.isError ? (
                 <tr><td colSpan={9} className="px-4 py-12 text-center text-primary">No se pudieron cargar los clientes. <button type="button" className="font-bold underline" onClick={() => void clientsQuery.refetch()}>Reintentar</button></td></tr>
               ) : filteredClients.length === 0 ? (
@@ -539,8 +539,8 @@ export function ClientsPanel({
                   <td colSpan={9} className="px-4 py-12 text-center">
                     <div className="mx-auto flex max-w-sm flex-col items-center">
                       <span className="grid h-11 w-11 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary"><Users className="h-5 w-5" aria-hidden="true" /></span>
-                      <p className="mt-3 font-semibold text-white">{clients.length === 0 ? "Aún no registras clientes" : "No hay resultados para estos filtros"}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-white/45">{clients.length === 0 ? "Crea tu primer cliente para agilizar la asignación de pedidos y conservar su historial." : "Prueba cambiando la búsqueda, el estado o la fecha de registro."}</p>
+                      <p className="mt-3 font-semibold text-foreground">{clients.length === 0 ? "Aún no registras clientes" : "No hay resultados para estos filtros"}</p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{clients.length === 0 ? "Crea tu primer cliente para agilizar la asignación de pedidos y conservar su historial." : "Prueba cambiando la búsqueda, el estado o la fecha de registro."}</p>
                       {clients.length === 0 && <button type="button" onClick={openCreate} className="mt-4 inline-flex h-11 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:bg-primary/90 sm:h-9"><Plus className="h-3.5 w-3.5" /> Registrar cliente</button>}
                     </div>
                   </td>
@@ -548,16 +548,16 @@ export function ClientsPanel({
               ) : visibleClients.map((client) => {
                 const status = client.is_blocked ? "Bloqueado" : isActive(client.last_purchase) ? "Activo" : "Inactivo";
                 const statusClass = client.is_blocked ? "bg-red-500/10 text-red-300" : status === "Activo" ? "bg-emerald-500/10 text-emerald-300" : "bg-amber-500/10 text-amber-200";
-                return <tr key={client.id} className="transition-colors hover:bg-white/[0.025]">
-                  <td className="px-4 py-3.5 font-semibold text-white">{client.nombre}</td>
-                  <td className="px-4 py-3.5 text-white/65">{client.telefono || "—"}</td>
-                  <td className="px-4 py-3.5 text-white/65">{client.email || "—"}</td>
-                  <td className="px-4 py-3.5 text-white/65">{formatDate(client.created_at)}</td>
+                return <tr key={client.id} className="transition-colors hover:bg-muted/45">
+                  <td className="px-4 py-3.5 font-semibold text-foreground">{client.nombre}</td>
+                  <td className="px-4 py-3.5 text-muted-foreground">{client.telefono || "—"}</td>
+                  <td className="px-4 py-3.5 text-muted-foreground">{client.email || "—"}</td>
+                  <td className="px-4 py-3.5 text-muted-foreground">{formatDate(client.created_at)}</td>
                   <td className="px-4 py-3.5"><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusClass}`}>{status}</span></td>
-                  <td className="px-4 py-3.5"><p className="font-semibold text-white">{client.total_purchases} {client.total_purchases === 1 ? "pedido" : "pedidos"}</p><p className="mt-0.5 text-xs text-white/50">{formatCurrency(client.total_spent_pen, hideAmounts)}</p></td>
-                  <td className="px-4 py-3.5 text-white/65">{formatDate(client.last_purchase)}</td>
-                  <td className="px-4 py-3.5"><div className="flex flex-wrap gap-1.5">{client.tags.length ? client.tags.map((tag) => <span key={tag.id} style={{ borderColor: `${tag.color}80`, color: tag.color }} className="rounded-full border px-2 py-0.5 text-[10px] font-bold">{tag.name}</span>) : <span className="text-white/35">—</span>}</div></td>
-                  <td className="px-4 py-3.5"><div className="flex justify-end gap-1.5"><button type="button" onClick={() => openEdit(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/60 transition hover:border-primary/60 hover:text-white sm:h-9 sm:w-9" aria-label={`Editar ${client.nombre}`}><Pencil className="h-3.5 w-3.5" /></button><button type="button" onClick={() => void toggleBlocked(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/60 transition hover:border-primary/60 hover:text-white sm:h-9 sm:w-9" aria-label={client.is_blocked ? `Desbloquear ${client.nombre}` : `Bloquear ${client.nombre}`}>{client.is_blocked ? <ShieldCheck className="h-3.5 w-3.5" /> : <ShieldBan className="h-3.5 w-3.5" />}</button><button type="button" onClick={() => void deleteClient(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/60 transition hover:border-red-400/60 hover:text-red-300 sm:h-9 sm:w-9" aria-label={`Eliminar ${client.nombre}`}><Trash2 className="h-3.5 w-3.5" /></button></div></td>
+                  <td className="px-4 py-3.5"><p className="font-semibold text-foreground">{client.total_purchases} {client.total_purchases === 1 ? "pedido" : "pedidos"}</p><p className="mt-0.5 text-xs text-muted-foreground">{formatCurrency(client.total_spent_pen, hideAmounts)}</p></td>
+                  <td className="px-4 py-3.5 text-muted-foreground">{formatDate(client.last_purchase)}</td>
+                  <td className="px-4 py-3.5"><div className="flex flex-wrap gap-1.5">{client.tags.length ? client.tags.map((tag) => <span key={tag.id} style={{ borderColor: `${tag.color}80`, color: tag.color }} className="rounded-full border px-2 py-0.5 text-[10px] font-bold">{tag.name}</span>) : <span className="text-muted-foreground">—</span>}</div></td>
+                  <td className="px-4 py-3.5"><div className="flex justify-end gap-1.5"><button type="button" onClick={() => openEdit(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground sm:h-9 sm:w-9" aria-label={`Editar ${client.nombre}`}><Pencil className="h-3.5 w-3.5" /></button><button type="button" onClick={() => void toggleBlocked(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground sm:h-9 sm:w-9" aria-label={client.is_blocked ? `Desbloquear ${client.nombre}` : `Bloquear ${client.nombre}`}>{client.is_blocked ? <ShieldCheck className="h-3.5 w-3.5" /> : <ShieldBan className="h-3.5 w-3.5" />}</button><button type="button" onClick={() => void deleteClient(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-destructive/60 hover:text-destructive sm:h-9 sm:w-9" aria-label={`Eliminar ${client.nombre}`}><Trash2 className="h-3.5 w-3.5" /></button></div></td>
                 </tr>;
               })}
             </tbody>
@@ -565,7 +565,7 @@ export function ClientsPanel({
         </div>
         {!clientsQuery.isLoading && !clientsQuery.isError && filteredClients.length > 0 && (
           <div className="flex flex-col gap-3 border-t border-border/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs text-white/45">
+            <p className="text-xs text-muted-foreground">
               Mostrando {pageStart + 1}–{Math.min(pageStart + CLIENTS_PAGE_SIZE, filteredClients.length)} de {filteredClients.length} clientes
             </p>
             <div className="flex items-center gap-2 self-end sm:self-auto">
@@ -573,17 +573,17 @@ export function ClientsPanel({
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setPage((value) => Math.max(1, value - 1))}
-                className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/70 transition hover:border-primary/55 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:h-8 sm:w-8"
+                className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/55 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35 sm:h-8 sm:w-8"
                 aria-label="Página anterior"
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               </button>
-              <span className="min-w-24 text-center text-xs font-semibold text-white/75">Página {currentPage} de {totalPages}</span>
+              <span className="min-w-24 text-center text-xs font-semibold text-foreground">Página {currentPage} de {totalPages}</span>
               <button
                 type="button"
                 disabled={currentPage === totalPages}
                 onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
-                className="grid h-11 w-11 place-items-center rounded-md border border-border text-white/70 transition hover:border-primary/55 hover:text-white disabled:cursor-not-allowed disabled:opacity-35 sm:h-8 sm:w-8"
+                className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/55 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35 sm:h-8 sm:w-8"
                 aria-label="Página siguiente"
               >
                 <ChevronRight className="h-4 w-4" aria-hidden="true" />
@@ -600,10 +600,10 @@ export function ClientsPanel({
             <Field label="Nombre"><input value={draft.nombre} onChange={(event) => setDraft((value) => ({ ...value, nombre: event.target.value }))} placeholder="Nombre completo" className="crm-input" /></Field>
             <Field label="Teléfono / WhatsApp"><input value={draft.telefono} onChange={(event) => setDraft((value) => ({ ...value, telefono: event.target.value }))} placeholder="999 999 999" className="crm-input" /></Field>
             <Field label="Email (opcional)"><input type="email" value={draft.email} onChange={(event) => setDraft((value) => ({ ...value, email: event.target.value }))} placeholder="cliente@correo.com" className="crm-input" /></Field>
-            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card/60 px-3.5 py-3 text-sm"><span><span className="font-bold text-white">Bloquear cliente</span><span className="mt-0.5 block text-xs text-white/45">Impide identificarlo como activo.</span></span><input type="checkbox" checked={draft.is_blocked} onChange={(event) => setDraft((value) => ({ ...value, is_blocked: event.target.checked }))} className="h-4 w-4 accent-primary" /></label>
-            <Field label="Etiquetas"><div className="flex flex-wrap gap-2">{tags.length ? tags.map((tag) => <label key={tag.id} className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-white/75"><input type="checkbox" checked={draft.tagIds.includes(tag.id)} onChange={() => setDraft((value) => ({ ...value, tagIds: value.tagIds.includes(tag.id) ? value.tagIds.filter((id) => id !== tag.id) : [...value.tagIds, tag.id] }))} className="accent-primary" /><span style={{ color: tag.color }}>{tag.name}</span></label>) : <span className="text-xs text-white/40">Crea etiquetas desde el botón Etiquetas.</span>}</div></Field>
+            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card/60 px-3.5 py-3 text-sm"><span><span className="font-bold text-foreground">Bloquear cliente</span><span className="mt-0.5 block text-xs text-muted-foreground">Impide identificarlo como activo.</span></span><input type="checkbox" checked={draft.is_blocked} onChange={(event) => setDraft((value) => ({ ...value, is_blocked: event.target.checked }))} className="h-4 w-4 accent-primary" /></label>
+            <Field label="Etiquetas"><div className="flex flex-wrap gap-2">{tags.length ? tags.map((tag) => <label key={tag.id} className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-foreground"><input type="checkbox" checked={draft.tagIds.includes(tag.id)} onChange={() => setDraft((value) => ({ ...value, tagIds: value.tagIds.includes(tag.id) ? value.tagIds.filter((id) => id !== tag.id) : [...value.tagIds, tag.id] }))} className="accent-primary" /><span style={{ color: tag.color }}>{tag.name}</span></label>) : <span className="text-xs text-muted-foreground">Crea etiquetas desde el botón Etiquetas.</span>}</div></Field>
           </div>
-          <div className="flex justify-end gap-2"><button type="button" onClick={() => setClientDialogOpen(false)} className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-white/70">Cancelar</button><button type="button" disabled={saving} onClick={() => void saveClient()} className="inline-flex min-w-28 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-60">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}</button></div>
+          <div className="flex justify-end gap-2"><button type="button" onClick={() => setClientDialogOpen(false)} className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground">Cancelar</button><button type="button" disabled={saving} onClick={() => void saveClient()} className="inline-flex min-w-28 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-60">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}</button></div>
         </DialogContent>
       </Dialog>
 
@@ -611,7 +611,7 @@ export function ClientsPanel({
         <DialogContent className="max-w-md">
           <DialogHeader><DialogTitle>Etiquetas</DialogTitle><DialogDescription>Categoriza tus clientes, por ejemplo VIP, Mayorista o Nuevo.</DialogDescription></DialogHeader>
           <div className="flex gap-2"><input value={newTagName} onChange={(event) => setNewTagName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void createTag(); } }} placeholder="Nueva etiqueta" className="crm-input" /><button type="button" onClick={() => void createTag()} className="h-11 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground">Crear</button></div>
-          <div className="max-h-64 space-y-2 overflow-y-auto py-2">{tags.length ? tags.map((tag) => <div key={tag.id} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2"><span style={{ color: tag.color }} className="text-sm font-bold">{tag.name}</span><span className="flex gap-1"><button type="button" onClick={() => void renameTag(tag)} className="grid h-11 w-11 place-items-center rounded text-white/45 hover:text-white sm:h-8 sm:w-8" aria-label={`Editar etiqueta ${tag.name}`}><Pencil className="h-4 w-4" /></button><button type="button" onClick={() => void deleteTag(tag.id)} className="grid h-11 w-11 place-items-center rounded text-white/45 hover:text-red-300 sm:h-8 sm:w-8" aria-label={`Eliminar etiqueta ${tag.name}`}><Trash2 className="h-4 w-4" /></button></span></div>) : <p className="py-5 text-center text-sm text-white/45">Aún no hay etiquetas.</p>}</div>
+          <div className="max-h-64 space-y-2 overflow-y-auto py-2">{tags.length ? tags.map((tag) => <div key={tag.id} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2"><span style={{ color: tag.color }} className="text-sm font-bold">{tag.name}</span><span className="flex gap-1"><button type="button" onClick={() => void renameTag(tag)} className="grid h-11 w-11 place-items-center rounded text-muted-foreground hover:text-foreground sm:h-8 sm:w-8" aria-label={`Editar etiqueta ${tag.name}`}><Pencil className="h-4 w-4" /></button><button type="button" onClick={() => void deleteTag(tag.id)} className="grid h-11 w-11 place-items-center rounded text-muted-foreground hover:text-destructive sm:h-8 sm:w-8" aria-label={`Eliminar etiqueta ${tag.name}`}><Trash2 className="h-4 w-4" /></button></span></div>) : <p className="py-5 text-center text-sm text-muted-foreground">Aún no hay etiquetas.</p>}</div>
         </DialogContent>
       </Dialog>
     </section>
@@ -619,5 +619,5 @@ export function ClientsPanel({
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label className="block space-y-1.5"><span className="text-sm font-semibold text-white/85">{label}</span>{children}</label>;
+  return <label className="block space-y-1.5"><span className="text-sm font-semibold text-foreground">{label}</span>{children}</label>;
 }

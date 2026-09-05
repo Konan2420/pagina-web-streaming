@@ -49,6 +49,8 @@ type SupportTicketsPanelProps = {
   onContactSupport: () => void;
   createTicketPrefill?: SupportTicketPrefill | null;
   onCreateTicketPrefillConsumed?: () => void;
+  focusTicketId?: string | null;
+  onFocusTicketConsumed?: () => void;
 };
 
 /** Panel de soporte del cliente: crea, consulta y responde sus propios tickets. */
@@ -59,6 +61,8 @@ export function SupportTicketsPanel({
   onContactSupport,
   createTicketPrefill,
   onCreateTicketPrefillConsumed,
+  focusTicketId,
+  onFocusTicketConsumed,
 }: SupportTicketsPanelProps) {
   const queryClient = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
@@ -156,6 +160,14 @@ export function SupportTicketsPanel({
 
   const tickets = ticketsQuery.data ?? [];
 
+  useEffect(() => {
+    if (!focusTicketId || !ticketsQuery.data) return;
+    const ticket = ticketsQuery.data.find((item) => item.id === focusTicketId);
+    if (!ticket) return;
+    setSelectedTicket(ticket);
+    onFocusTicketConsumed?.();
+  }, [focusTicketId, onFocusTicketConsumed, ticketsQuery.data]);
+
   const openCreateTicket = () => {
     if (!userId) {
       onOpenAuth();
@@ -184,12 +196,16 @@ export function SupportTicketsPanel({
           <div>
             <div className="flex items-center gap-2 text-primary">
               <Ticket className="h-4 w-4" aria-hidden="true" />
-              <span className="text-[10px] font-black uppercase tracking-[0.18em]">Centro de ayuda</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.18em]">
+                Centro de ayuda
+              </span>
             </div>
-            <h1 className="mt-2 font-display text-2xl uppercase tracking-wide text-white">Soporte</h1>
+            <h1 className="mt-2 font-display text-2xl uppercase tracking-wide text-white">
+              Soporte
+            </h1>
             <p className="mt-1 max-w-xl text-sm text-white/60">
-              Crea un ticket para que el equipo revise tu consulta y mantén toda la conversación
-              en un solo lugar.
+              Crea un ticket para que el equipo revise tu consulta y mantén toda la conversación en
+              un solo lugar.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -232,9 +248,12 @@ export function SupportTicketsPanel({
         {!userId ? (
           <div className="mt-4 rounded-xl border border-border bg-background p-6 text-center sm:p-8">
             <Inbox className="mx-auto h-7 w-7 text-white/30" aria-hidden="true" />
-            <h3 className="mt-3 text-sm font-bold text-white">Inicia sesión para ver tus tickets</h3>
+            <h3 className="mt-3 text-sm font-bold text-white">
+              Inicia sesión para ver tus tickets
+            </h3>
             <p className="mx-auto mt-2 max-w-md text-sm text-white/55">
-              Así podremos asociar tu consulta, tus respuestas y el historial de soporte a tu cuenta.
+              Así podremos asociar tu consulta, tus respuestas y el historial de soporte a tu
+              cuenta.
             </p>
             <button
               type="button"
@@ -279,7 +298,9 @@ export function SupportTicketsPanel({
         ) : tickets.length === 0 ? (
           <div className="mt-4 rounded-xl border border-dashed border-border bg-background p-8 text-center sm:p-12">
             <Ticket className="mx-auto h-8 w-8 text-white/25" aria-hidden="true" />
-            <p className="mt-3 text-sm font-semibold text-white/75">Aún no tienes tickets creados.</p>
+            <p className="mt-3 text-sm font-semibold text-white/75">
+              Aún no tienes tickets creados.
+            </p>
             <p className="mt-1 text-xs text-white/45">
               Si necesitas ayuda con un pago, producto o cuenta, crea tu primera solicitud.
             </p>
@@ -301,13 +322,17 @@ export function SupportTicketsPanel({
                   className="grid w-full gap-2 px-4 py-4 text-left transition hover:bg-white/[0.035] md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto_auto] md:items-center md:gap-4"
                 >
                   <span className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-white">{ticket.asunto}</span>
+                    <span className="block truncate text-sm font-semibold text-white">
+                      {ticket.asunto}
+                    </span>
                     <span className="mt-1 flex items-center gap-1 text-[10px] text-white/40 md:hidden">
                       <Clock3 className="h-3 w-3" aria-hidden="true" />
                       {formatTicketDate(ticket.created_at)}
                     </span>
                   </span>
-                  <span className="text-xs text-white/55">{ticketCategoryLabel(ticket.categoria)}</span>
+                  <span className="text-xs text-white/55">
+                    {ticketCategoryLabel(ticket.categoria)}
+                  </span>
                   <span>
                     <TicketStatusBadge status={ticket.estado} />
                   </span>
@@ -384,7 +409,12 @@ function CreateTicketModal({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="create-ticket-title">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="create-ticket-title"
+    >
       <button
         type="button"
         aria-label="Cerrar formulario de ticket"
@@ -397,8 +427,12 @@ function CreateTicketModal({
       >
         <header className="flex items-start justify-between gap-4 border-b border-border p-5 sm:p-6">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-primary">Centro de ayuda</p>
-            <h2 id="create-ticket-title" className="mt-1 text-xl font-black text-white">Crear ticket</h2>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-primary">
+              Centro de ayuda
+            </p>
+            <h2 id="create-ticket-title" className="mt-1 text-xl font-black text-white">
+              Crear ticket
+            </h2>
             <p className="mt-1 text-xs text-white/50">Cuéntanos qué ocurrió para poder ayudarte.</p>
           </div>
           <button
@@ -412,7 +446,9 @@ function CreateTicketModal({
         </header>
         <div className="min-h-0 space-y-4 overflow-y-auto p-5 sm:p-6">
           <label className="block space-y-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">Asunto</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">
+              Asunto
+            </span>
             <input
               required
               maxLength={140}
@@ -423,10 +459,14 @@ function CreateTicketModal({
             />
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">Categoría</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">
+              Categoría
+            </span>
             <select
               value={form.categoria}
-              onChange={(event) => onChange({ ...form, categoria: event.target.value as TicketCategory })}
+              onChange={(event) =>
+                onChange({ ...form, categoria: event.target.value as TicketCategory })
+              }
               className="w-full rounded-lg border border-border bg-background px-3 py-3 text-sm text-white outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
             >
               {TICKET_CATEGORY_OPTIONS.map((option) => (
@@ -437,7 +477,9 @@ function CreateTicketModal({
             </select>
           </label>
           <label className="block space-y-1.5">
-            <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">Descripción</span>
+            <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">
+              Descripción
+            </span>
             <textarea
               required
               minLength={10}
@@ -463,7 +505,11 @@ function CreateTicketModal({
             disabled={pending}
             className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-red-accent px-4 text-[10px] font-black uppercase tracking-wide text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+            {pending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Send className="h-3.5 w-3.5" />
+            )}
             Enviar ticket
           </button>
         </footer>
@@ -494,7 +540,12 @@ function TicketDetailModal({
   const ticketOpen = ticket.estado !== "cerrado";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="ticket-detail-title">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="ticket-detail-title"
+    >
       <button
         type="button"
         aria-label="Cerrar detalle del ticket"
@@ -510,10 +561,15 @@ function TicketDetailModal({
               </p>
               <TicketStatusBadge status={ticket.estado} />
             </div>
-            <h2 id="ticket-detail-title" className="mt-2 truncate text-lg font-black text-white sm:text-xl">
+            <h2
+              id="ticket-detail-title"
+              className="mt-2 truncate text-lg font-black text-white sm:text-xl"
+            >
               {ticket.asunto}
             </h2>
-            <p className="mt-1 text-xs text-white/45">Creado el {formatTicketDate(ticket.created_at)}</p>
+            <p className="mt-1 text-xs text-white/45">
+              Creado el {formatTicketDate(ticket.created_at)}
+            </p>
           </div>
           <button
             type="button"
@@ -534,7 +590,10 @@ function TicketDetailModal({
           />
           {repliesLoading ? (
             <div className="grid min-h-24 place-items-center">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" aria-label="Cargando respuestas" />
+              <Loader2
+                className="h-4 w-4 animate-spin text-primary"
+                aria-label="Cargando respuestas"
+              />
             </div>
           ) : (
             replies.map((reply) => (
@@ -567,7 +626,11 @@ function TicketDetailModal({
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-red-accent text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label="Enviar respuesta"
               >
-                {replyPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                {replyPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
               </button>
             </div>
           ) : (
@@ -602,7 +665,9 @@ function ConversationMessage({
       )}
     >
       <div className="flex items-center justify-between gap-3">
-        <p className={cn("text-xs font-bold", tone === "admin" ? "text-sky-200" : "text-white/80")}>{author}</p>
+        <p className={cn("text-xs font-bold", tone === "admin" ? "text-sky-200" : "text-white/80")}>
+          {author}
+        </p>
         <time className="text-[10px] text-white/40">{formatTicketDate(date)}</time>
       </div>
       <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-white/70">{message}</p>

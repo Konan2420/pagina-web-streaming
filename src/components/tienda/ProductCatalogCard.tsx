@@ -99,7 +99,7 @@ export function ProductCatalogCard({
   };
 
   return (
-    <article className="product-card catalog-product-card group flex h-full min-h-[27rem] flex-col overflow-hidden rounded-xl border border-border bg-card">
+    <article className="product-card catalog-product-card group flex h-full min-h-[24rem] flex-col overflow-hidden rounded-xl border border-border bg-card">
       <div className="relative aspect-square shrink-0 overflow-hidden bg-background">
         {product.image && !product.image.includes("/placeholder.svg") ? (
           <img
@@ -119,6 +119,7 @@ export function ProductCatalogCard({
 
         <div className="pointer-events-none absolute left-2 top-2">
           <span
+            data-cmd-fixed-contrast={product.isRenewable === false ? "" : undefined}
             className={`inline-flex items-center gap-1 rounded-md px-2 py-1 font-sans text-[9px] font-semibold uppercase tracking-[0.06em] text-white shadow-sm ring-1 ring-white/15 ${
               product.isRenewable === false ? "bg-slate-700/95" : "bg-emerald-500/95"
             }`}
@@ -128,7 +129,7 @@ export function ProductCatalogCard({
           </span>
         </div>
         <div className="pointer-events-none absolute right-2 top-2">
-          <span className="rounded-md bg-primary px-2 py-1 font-sans text-[9px] font-semibold uppercase tracking-[0.06em] text-white shadow-sm ring-1 ring-white/15">
+          <span className="cmd-on-accent rounded-md bg-primary px-2 py-1 font-sans text-[9px] font-semibold uppercase tracking-[0.06em] shadow-sm ring-1 ring-white/15">
             {product.duracion}
           </span>
         </div>
@@ -146,7 +147,7 @@ export function ProductCatalogCard({
           className="absolute inset-0 grid place-items-center bg-black/20 transition-colors sm:bg-black/45 sm:opacity-0 sm:group-hover:opacity-100"
           aria-label={`Ver detalles de ${product.name}`}
         >
-          <span className="rounded-lg border border-white/15 bg-black/70 px-3 py-1.5 font-sans text-[10px] font-medium uppercase tracking-[0.1em] text-white backdrop-blur-sm transition-transform duration-300 sm:translate-y-2 sm:group-hover:translate-y-0">
+          <span data-cmd-fixed-contrast className="rounded-lg border border-white/15 bg-black/70 px-3 py-1.5 font-sans text-[10px] font-medium uppercase tracking-[0.1em] text-white backdrop-blur-sm transition-transform duration-300 sm:translate-y-2 sm:group-hover:translate-y-0">
             Ver detalles
           </span>
         </button>
@@ -157,6 +158,7 @@ export function ProductCatalogCard({
           <div className="flex min-w-0 items-center gap-1.5">
             <span
               aria-hidden="true"
+              data-cmd-fixed-contrast
               className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-brand to-blue-950 text-[8px] font-black text-white"
             >
               {initials(sellerName)}
@@ -215,7 +217,7 @@ export function ProductCatalogCard({
                 type="button"
                 onClick={handleAdd}
                 onMouseEnter={onHover}
-                className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 font-sans text-[9px] font-semibold text-white shadow-sm shadow-emerald-500/25 transition hover:brightness-110 active:scale-[0.97] sm:min-h-0"
+                className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 font-sans text-[9px] font-semibold text-emerald-950 shadow-sm shadow-emerald-500/25 transition hover:brightness-110 active:scale-[0.97] sm:min-h-0"
                 aria-label={
                   justAdded
                     ? `${product.name} agregado al carrito`
@@ -245,7 +247,7 @@ export function ProductCatalogCard({
 export function ProductCatalogCardSkeleton() {
   return (
     <article
-      className="flex min-h-[27rem] flex-col overflow-hidden rounded-xl border border-border bg-card"
+      className="flex min-h-[24rem] flex-col overflow-hidden rounded-xl border border-border bg-card"
       role="status"
       aria-label="Cargando producto"
     >

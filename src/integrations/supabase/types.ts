@@ -19,6 +19,7 @@ export type Database = {
           order_id: string | null;
           password: string;
           payment_verified: boolean | null;
+          profile: string | null;
           product_id: string;
           status: string;
           supplier_id: string | null;
@@ -33,6 +34,7 @@ export type Database = {
           order_id?: string | null;
           password: string;
           payment_verified?: boolean | null;
+          profile?: string | null;
           product_id: string;
           status?: string;
           supplier_id?: string | null;
@@ -47,6 +49,7 @@ export type Database = {
           order_id?: string | null;
           password?: string;
           payment_verified?: boolean | null;
+          profile?: string | null;
           product_id?: string;
           status?: string;
           supplier_id?: string | null;
@@ -185,6 +188,7 @@ export type Database = {
           notes: string | null;
           order_id: string;
           password: string | null;
+          profile: string | null;
           updated_at: string | null;
           user_id: string;
         };
@@ -196,6 +200,7 @@ export type Database = {
           notes?: string | null;
           order_id: string;
           password?: string | null;
+          profile?: string | null;
           updated_at?: string | null;
           user_id: string;
         };
@@ -207,6 +212,7 @@ export type Database = {
           notes?: string | null;
           order_id?: string;
           password?: string | null;
+          profile?: string | null;
           updated_at?: string | null;
           user_id?: string;
         };
@@ -261,14 +267,19 @@ export type Database = {
       };
       orders: {
         Row: {
+          account_reference: string | null;
           auto_renew: boolean;
           auto_renew_at: string | null;
+          auto_renew_last_attempt_at: string | null;
+          auto_renew_last_error: string | null;
           business_client_id: string | null;
+          business_status: string;
           client_id: string | null;
           cost_total_pen: number | null;
           created_at: string;
           created_by: string | null;
           estado: string;
+          expires_at: string | null;
           fecha_vencimiento: string | null;
           id: string;
           payment_verified: boolean | null;
@@ -276,20 +287,27 @@ export type Database = {
           producto_id: string;
           producto_nombre: string;
           profit_pen: number | null;
+          renewed_from_order_id: string | null;
           sale_price_pen: number | null;
+          storefront_owner_id: string | null;
           unit_cost_pen: number | null;
           updated_at: string;
           user_id: string;
         };
         Insert: {
+          account_reference?: string | null;
           auto_renew?: boolean;
           auto_renew_at?: string | null;
+          auto_renew_last_attempt_at?: string | null;
+          auto_renew_last_error?: string | null;
           business_client_id?: string | null;
+          business_status?: string;
           client_id?: string | null;
           cost_total_pen?: number | null;
           created_at?: string;
           created_by?: string | null;
           estado?: string;
+          expires_at?: string | null;
           fecha_vencimiento?: string | null;
           id?: string;
           payment_verified?: boolean | null;
@@ -297,20 +315,27 @@ export type Database = {
           producto_id: string;
           producto_nombre: string;
           profit_pen?: number | null;
+          renewed_from_order_id?: string | null;
           sale_price_pen?: number | null;
+          storefront_owner_id?: string | null;
           unit_cost_pen?: number | null;
           updated_at?: string;
           user_id: string;
         };
         Update: {
+          account_reference?: string | null;
           auto_renew?: boolean;
           auto_renew_at?: string | null;
+          auto_renew_last_attempt_at?: string | null;
+          auto_renew_last_error?: string | null;
           business_client_id?: string | null;
+          business_status?: string;
           client_id?: string | null;
           cost_total_pen?: number | null;
           created_at?: string;
           created_by?: string | null;
           estado?: string;
+          expires_at?: string | null;
           fecha_vencimiento?: string | null;
           id?: string;
           payment_verified?: boolean | null;
@@ -318,7 +343,9 @@ export type Database = {
           producto_id?: string;
           producto_nombre?: string;
           profit_pen?: number | null;
+          renewed_from_order_id?: string | null;
           sale_price_pen?: number | null;
+          storefront_owner_id?: string | null;
           unit_cost_pen?: number | null;
           updated_at?: string;
           user_id?: string;
@@ -1256,12 +1283,14 @@ export type Database = {
       social_service_orders: {
         Row: {
           business_client_id: string | null;
+          business_status: string;
           category: string;
           client_id: string;
           cost_total_pen: number;
           created_at: string;
           created_by: string;
           external_order_id: string | null;
+          expires_at: string | null;
           failure_reason: string | null;
           id: string;
           initial_quantity: number | null;
@@ -1281,12 +1310,14 @@ export type Database = {
         };
         Insert: {
           business_client_id?: string | null;
+          business_status?: string;
           category: string;
           client_id: string;
           cost_total_pen: number;
           created_at?: string;
           created_by: string;
           external_order_id?: string | null;
+          expires_at?: string | null;
           failure_reason?: string | null;
           id?: string;
           initial_quantity?: number | null;
@@ -1306,12 +1337,14 @@ export type Database = {
         };
         Update: {
           business_client_id?: string | null;
+          business_status?: string;
           category?: string;
           client_id?: string;
           cost_total_pen?: number;
           created_at?: string;
           created_by?: string;
           external_order_id?: string | null;
+          expires_at?: string | null;
           failure_reason?: string | null;
           id?: string;
           initial_quantity?: number | null;
@@ -1617,6 +1650,82 @@ export type Database = {
           owner_id: string;
         }[];
       };
+      get_business_order_status_counts: {
+        Args: {
+          p_brand?: string | null;
+          p_month?: number | null;
+          p_scope?: string;
+          p_search?: string | null;
+          p_year?: number | null;
+        };
+        Returns: {
+          all_count: number;
+          cancelado_count: number;
+          completado_count: number;
+          en_curso_count: number;
+          interesado_count: number;
+          por_vencer_count: number;
+          vencido_count: number;
+        }[];
+      };
+      create_business_order_ticket: {
+        Args: { p_order_id: string; p_source: string };
+        Returns: string;
+      };
+      get_business_order_credentials: {
+        Args: { p_order_id: string };
+        Returns: {
+          email: string | null;
+          profile: string | null;
+        }[];
+      };
+      get_business_orders: {
+        Args: {
+          p_brand?: string | null;
+          p_limit?: number;
+          p_month?: number | null;
+          p_offset?: number;
+          p_scope?: string;
+          p_search?: string | null;
+          p_status?: string | null;
+          p_year?: number | null;
+        };
+        Returns: {
+          account_reference: string | null;
+          auto_renew: boolean;
+          auto_renew_at: string | null;
+          brand: string;
+          business_client_id: string | null;
+          client_avatar_url: string | null;
+          client_name: string;
+          client_phone: string | null;
+          client_profile_id: string | null;
+          cost_price: number;
+          created_at: string;
+          display_status: string;
+          expires_at: string | null;
+          is_renewable: boolean;
+          order_id: string;
+          product_id: string;
+          product_image_url: string | null;
+          product_name: string;
+          profit: number;
+          sale_price: number;
+          seller_id: string;
+          source: string;
+          total_count: number;
+        }[];
+      };
+      get_my_business_order_notifications: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          body: string;
+          created_at: string;
+          id: string;
+          read_at: string | null;
+          title: string;
+        }[];
+      };
       get_catalog_purchase_context: {
         Args: { p_product_id: string };
         Returns: Json;
@@ -1650,6 +1759,30 @@ export type Database = {
           order_id: string;
           profit_pen: number;
           sale_price_pen: number;
+        }[];
+      };
+      notify_business_order_client: {
+        Args: { p_order_id: string; p_source: string };
+        Returns: {
+          message: string;
+          recorded_internal: boolean;
+          whatsapp: string | null;
+        }[];
+      };
+      process_due_auto_renewals: {
+        Args: { p_limit?: number };
+        Returns: {
+          detail: string | null;
+          order_id: string;
+          renewed_order_id: string | null;
+          result: string;
+        }[];
+      };
+      set_business_order_auto_renew: {
+        Args: { p_enabled: boolean; p_order_id: string };
+        Returns: {
+          auto_renew: boolean;
+          auto_renew_at: string | null;
         }[];
       };
       place_orders_with_inventory: {
@@ -1728,6 +1861,14 @@ export type Database = {
       record_catalog_product_view: {
         Args: { p_product_id: string };
         Returns: number;
+      };
+      renew_business_catalog_order: {
+        Args: { p_order_id: string };
+        Returns: string;
+      };
+      set_business_order_status: {
+        Args: { p_order_id: string; p_source: string; p_status: string };
+        Returns: boolean;
       };
     };
     Enums: {

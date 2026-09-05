@@ -146,7 +146,7 @@ export function StoreSidebar({
           <button
             type="button"
             onClick={onClose}
-            className="absolute right-2 top-1 grid h-11 w-11 place-items-center rounded-lg text-white/55 hover:bg-white/5 hover:text-white lg:hidden"
+            className="absolute right-2 top-1 grid h-11 w-11 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground lg:hidden"
             aria-label="Cerrar menú lateral"
           >
             <X className="h-4 w-4" aria-hidden="true" />
@@ -173,7 +173,7 @@ export function StoreSidebar({
           <button
             type="button"
             onClick={onOpenWallet}
-            className="mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-red-accent text-[10px] font-black text-white transition hover:brightness-110 sm:h-8"
+            className="cmd-on-accent mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-red-accent text-[10px] font-black transition hover:brightness-110 sm:h-8"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
             Recargar saldo
@@ -212,8 +212,8 @@ export function StoreSidebar({
                       className={cn(
                         "flex min-h-11 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
                         active
-                          ? "bg-primary/10 text-white"
-                          : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
+                          ? "cmd-active-subtle"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       {category.label}
@@ -229,8 +229,8 @@ export function StoreSidebar({
                     className={cn(
                       "flex min-h-11 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
                       active
-                        ? "bg-primary/10 text-white"
-                        : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
+                        ? "cmd-active-subtle"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     {category.id === "redes" && (
@@ -271,12 +271,21 @@ export function StoreSidebar({
                       onClick={onOpenStorefront}
                     />
                   )}
-                  <SidebarSubItem
-                    icon={<ShoppingBag />}
-                    label="Pedidos"
-                    active={activePanel === "compras"}
-                    onClick={() => selectProtectedPanel("compras")}
-                  />
+                  {canManageStorefront ? (
+                    <SidebarSubItem
+                      icon={<ShoppingBag />}
+                      label="Mis Pedidos"
+                      active={activePanel === "pedidos"}
+                      onClick={() => selectPanel("pedidos")}
+                    />
+                  ) : (
+                    <SidebarSubItem
+                      icon={<ShoppingBag />}
+                      label="Mis Compras"
+                      active={activePanel === "compras"}
+                      onClick={() => selectProtectedPanel("compras")}
+                    />
+                  )}
                   {canManageStorefront && (
                     <SidebarSubItem
                       icon={<Users />}
@@ -335,11 +344,11 @@ export function StoreSidebar({
                   onClick={onClose}
                   title={collapsed ? "Políticas" : undefined}
                   className={cn(
-                    "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-white/70 transition-[background-color,color,gap,padding] duration-200 ease-out hover:bg-white/[0.045] hover:text-white",
+                    "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-muted-foreground transition-[background-color,color,gap,padding] duration-200 ease-out hover:bg-muted hover:text-foreground",
                     collapsed && "lg:justify-center lg:gap-0 lg:px-0",
                   )}
                 >
-                  <span className="shrink-0 text-white/65 [&>svg]:h-4 [&>svg]:w-4">
+                  <span className="shrink-0 text-muted-foreground [&>svg]:h-4 [&>svg]:w-4">
                     <FileText />
                   </span>
                   <span
@@ -372,7 +381,7 @@ export function StoreSidebar({
               onClick={() => onUnavailable("Vendedor PRO")}
               title={collapsed ? "Vendedor PRO" : undefined}
               className={cn(
-                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-primary/30 bg-primary/10 px-3 text-left text-xs font-black text-white transition hover:border-primary/60 hover:bg-primary/15",
+                "cmd-active-subtle mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border px-3 text-left text-xs font-black transition hover:border-primary/60 hover:bg-primary/15",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
@@ -394,7 +403,7 @@ export function StoreSidebar({
               onClick={onSignOut}
               title={collapsed ? "Cerrar sesión" : undefined}
               className={cn(
-                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-destructive/30 px-3 text-left text-xs font-bold text-red-200 transition hover:border-destructive hover:bg-destructive/10 hover:text-white sm:min-h-10",
+                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-destructive/30 px-3 text-left text-xs font-bold text-destructive transition hover:border-destructive hover:bg-destructive/10 sm:min-h-10",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
@@ -419,11 +428,11 @@ export function StoreSidebar({
                 else selectPanel("perfil");
               }}
               className={cn(
-                "flex min-h-11 w-full items-center gap-2 rounded-lg border border-transparent p-1.5 text-left transition hover:border-border hover:bg-white/[0.05]",
+                "flex min-h-11 w-full items-center gap-2 rounded-lg border border-transparent p-1.5 text-left transition hover:border-border hover:bg-muted/60",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
-              <div className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-red-accent text-[10px] font-black text-white">
+              <div className="cmd-on-accent grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-red-accent text-[10px] font-black">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
@@ -436,16 +445,16 @@ export function StoreSidebar({
                   collapsed ? "lg:max-w-0 lg:opacity-0" : "max-w-[13rem] opacity-100",
                 )}
               >
-                <span className="block truncate text-[10px] font-bold text-white">
+                <span className="block truncate text-[10px] font-bold text-foreground">
                   {profileName}
                 </span>
-                <span className="block text-[9px] text-white/45">
+                <span className="block text-[9px] text-muted-foreground">
                   {sessionActive ? accountRoleLabel : "Inicia sesión"}
                 </span>
               </span>
               <ChevronRight
                 className={cn(
-                  "ml-auto h-3.5 w-3.5 text-white/45 transition-[max-width,opacity] duration-200 ease-out",
+                  "ml-auto h-3.5 w-3.5 text-muted-foreground transition-[max-width,opacity] duration-200 ease-out",
                   collapsed && "lg:ml-0 lg:max-w-0 lg:opacity-0",
                 )}
                 aria-hidden="true"
@@ -503,8 +512,8 @@ function SidebarSubItem({
     disabled
       ? "cursor-not-allowed text-white/30"
       : active
-        ? "bg-primary/10 text-white"
-        : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
+        ? "cmd-active-subtle"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground",
   );
 
   const content = (
@@ -512,7 +521,7 @@ function SidebarSubItem({
       <span className="shrink-0 text-current [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
       <span>{label}</span>
       {badge && (
-        <span className="ml-auto rounded-md bg-white/[0.08] px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-white/55">
+        <span className="ml-auto rounded-md bg-muted px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-muted-foreground">
           {badge}
         </span>
       )}
@@ -559,11 +568,11 @@ function SidebarButton({
         "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out sm:min-h-10",
         collapsed && "lg:justify-center lg:gap-0 lg:px-0",
         active
-          ? "bg-primary/10 text-white"
-          : "text-white/70 hover:bg-white/[0.045] hover:text-white",
+          ? "cmd-active-subtle"
+          : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
-      <span className="shrink-0 text-white/65 [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
+      <span className="shrink-0 text-current [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
       <span
         className={cn(
           "max-w-[15rem] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",

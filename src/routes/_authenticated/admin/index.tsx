@@ -53,9 +53,9 @@ function AdminDashboard() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Recent Sales Table */}
-        <div className="lg:col-span-2 glass-card rounded-2xl border border-white/5 p-6 overflow-hidden">
+        <div className="lg:col-span-2 glass-card rounded-2xl border border-border p-6 overflow-hidden">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Clock className="w-5 h-5 text-primary" />
               Ventas Recientes
             </h3>
@@ -70,17 +70,17 @@ function AdminDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-white/40 border-b border-white/5">
+                <tr className="text-left text-xs text-muted-foreground border-b border-border">
                   <th className="pb-3 font-medium">Usuario</th>
                   <th className="pb-3 font-medium">Producto</th>
                   <th className="pb-3 font-medium">Monto</th>
                   <th className="pb-3 font-medium text-right">Fecha</th>
                 </tr>
               </thead>
-              <tbody className="text-white/70">
+              <tbody className="text-muted-foreground">
                 {stats.recentSales.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-8 text-center text-white/30">
+                    <td colSpan={4} className="py-8 text-center text-muted-foreground">
                       No hay ventas registradas aún.
                     </td>
                   </tr>
@@ -88,16 +88,16 @@ function AdminDashboard() {
                   stats.recentSales.map((sale) => (
                     <tr
                       key={sale.id}
-                      className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors group"
+                      className="border-b border-border last:border-0 hover:bg-muted/45 transition-colors group"
                     >
                       <td className="py-4">
-                        <p className="font-medium text-white truncate w-32">
+                        <p className="font-medium text-foreground truncate w-32">
                           {sale.profiles?.nombre_completo || "Invitado"}
                         </p>
                       </td>
-                      <td className="py-4 text-white/50">{sale.producto_nombre}</td>
+                      <td className="py-4 text-muted-foreground">{sale.producto_nombre}</td>
                       <td className="py-4 font-mono text-primary">S/ {sale.precio.toFixed(2)}</td>
-                      <td className="py-4 text-right text-xs text-white/30 group-hover:text-white/60 transition-colors">
+                      <td className="py-4 text-right text-xs text-muted-foreground group-hover:text-foreground transition-colors">
                         {new Date(sale.created_at).toLocaleDateString()}
                       </td>
                     </tr>
@@ -110,8 +110,8 @@ function AdminDashboard() {
 
         {/* Quick Actions */}
         <div className="space-y-6">
-          <div className="glass-card rounded-2xl border border-white/5 p-6">
-            <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+          <div className="glass-card rounded-2xl border border-border p-6">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">
               Acciones Rápidas
             </h3>
             <div className="space-y-3">
@@ -160,18 +160,18 @@ function StatCard({
   };
 
   return (
-    <div className="glass-card rounded-2xl border border-white/5 p-6 hover:border-white/10 transition-colors">
+    <div className="glass-card rounded-2xl border border-border p-6 hover:border-primary/35 transition-colors">
       <div className="flex items-center gap-3 mb-4">
         <div className={`w-10 h-10 rounded-xl grid place-items-center border ${colors[color]}`}>
           <Icon className="w-5 h-5" />
         </div>
-        <span className="text-xs font-medium text-white/40 uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
       </div>
       <div className="flex items-baseline gap-1">
-        <span className="text-3xl font-display text-white">{value}</span>
-        {unit && <span className="text-lg font-display text-white/40">{unit}</span>}
+        <span className="text-3xl font-display text-foreground">{value}</span>
+        {unit && <span className="text-lg font-display text-muted-foreground">{unit}</span>}
       </div>
-      {secondaryLabel && <p className="text-xs text-white/30 mt-1">{secondaryLabel}</p>}
+      {secondaryLabel && <p className="text-xs text-muted-foreground mt-1">{secondaryLabel}</p>}
     </div>
   );
 }
@@ -190,16 +190,16 @@ function ActionButton({
   return (
     <Link
       to={href}
-      className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-all group border border-transparent hover:border-white/5"
+      className="flex items-start gap-3 p-3 rounded-xl hover:bg-muted/45 transition-all group border border-transparent hover:border-border"
     >
-      <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+      <div className="w-8 h-8 rounded-lg bg-muted/60 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors">
         <Icon className="w-4 h-4" />
       </div>
       <div>
-        <p className="text-sm font-medium text-white group-hover:text-primary transition-colors">
+        <p className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">
           {label}
         </p>
-        <p className="text-xs text-white/40 leading-tight mt-0.5">{description}</p>
+        <p className="text-xs text-muted-foreground leading-tight mt-0.5">{description}</p>
       </div>
     </Link>
   );

@@ -17,7 +17,7 @@ export function StoreHeader({
   onSignOut: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-30 bg-background/80 border-b border-white/5">
+    <header className="sticky top-0 z-30 border-b border-border bg-background/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
         <Link to="/" className="flex items-center gap-2.5 shrink-0">
           <img
@@ -43,7 +43,7 @@ export function StoreHeader({
               </div>
               <button
                 onClick={onSignOut}
-                className="inline-flex items-center gap-1.5 text-xs text-white/70 hover:text-white px-3 py-1.5 rounded-full border border-white/10 hover:border-violet-2/40"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Cerrar sesión</span>
@@ -52,7 +52,7 @@ export function StoreHeader({
           ) : (
             <button
               onClick={onSignIn}
-              className="text-xs text-white px-3 py-1.5 rounded-full gradient-violet"
+              className="cmd-on-accent rounded-full px-3 py-1.5 text-xs gradient-violet"
             >
               Iniciar sesión
             </button>

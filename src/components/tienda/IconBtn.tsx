@@ -15,7 +15,7 @@ export function IconBtn({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="w-11 h-11 rounded-full bg-white/[0.04] border border-white/10 grid place-items-center text-white/80 hover:text-white hover:border-violet-2/40 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-2/70"
+      className="grid h-11 w-11 place-items-center rounded-full border border-border bg-card text-foreground transition hover:border-primary/60 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
     >
       {children}
     </button>
