@@ -253,7 +253,7 @@ export function BusinessOrdersPanel({
     queryKey: ["business-orders", filters, status, page],
     enabled: canManage,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_business_orders", {
+      const { data, error } = await supabase.rpc("get_business_orders_with_automation", {
         ...filters,
         p_status: status,
         p_limit: PAGE_SIZE,
@@ -269,7 +269,10 @@ export function BusinessOrdersPanel({
     queryKey: ["business-order-status-counts", filters],
     enabled: canManage,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_business_order_status_counts", filters);
+      const { data, error } = await supabase.rpc(
+        "get_business_order_status_counts_with_automation",
+        filters,
+      );
       if (error) throw error;
       const count = data?.[0];
       return {

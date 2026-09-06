@@ -452,8 +452,8 @@ export function StorefrontManagement() {
       />
       <StorefrontSettingsEditor
         open={settingsOpen}
-        ownerId={ownerId}
-        ownerName={supervisedOwner?.owner_name || data.settings.display_name}
+        ownerId={ownerId ?? undefined}
+        ownerName={supervisedOwner?.owner_name || data.settings.display_name || "Mi tienda"}
         isAdministrativeEditing={data.isAdmin}
         settings={data.settings as StorefrontSettingsRecord}
         products={previewProducts}

@@ -48,7 +48,28 @@ export type StorefrontSettingsPayload = {
   youtubeUrl: string | null;
 };
 
-type Draft = StorefrontSettingsPayload & StorefrontPreviewSettings;
+type Draft = Omit<
+  StorefrontSettingsPayload,
+  | "avatarFrameKey"
+  | "bannerUrl"
+  | "closesAt"
+  | "description"
+  | "displayName"
+  | "facebookUrl"
+  | "instagramUrl"
+  | "logoUrl"
+  | "opensAt"
+  | "storeSlug"
+  | "templateKey"
+  | "tiktokUrl"
+  | "xUrl"
+  | "youtubeUrl"
+> &
+  StorefrontPreviewSettings & {
+    closesAt: string;
+    description: string;
+    opensAt: string;
+  };
 type PreviewProduct = { id: string; name: string; price: number | null; imageUrl?: string | null };
 
 function initialDraft(settings: StorefrontSettingsRecord): Draft {

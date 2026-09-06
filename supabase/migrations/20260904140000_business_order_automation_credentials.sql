@@ -376,7 +376,11 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_business_order_rows(p_scope text DEFAULT 'mine')
+-- La migración previa ya publicó get_business_order_rows(text). PostgreSQL no
+-- permite cambiar sus columnas OUT mediante CREATE OR REPLACE; mantenemos esa
+-- API para consumidores existentes y exponemos una variante segura con los
+-- campos de automatización.
+CREATE OR REPLACE FUNCTION public.get_business_order_rows_with_automation(p_scope text DEFAULT 'mine')
 RETURNS TABLE(
   order_id uuid, source text, seller_id uuid, business_client_id uuid, client_profile_id uuid,
   product_id text, product_name text, product_image_url text, account_reference text,
@@ -446,7 +450,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION public.get_business_orders(
+CREATE OR REPLACE FUNCTION public.get_business_orders_with_automation(
   p_scope text DEFAULT 'mine', p_search text DEFAULT NULL, p_brand text DEFAULT NULL,
   p_month integer DEFAULT NULL, p_year integer DEFAULT NULL, p_status text DEFAULT NULL,
   p_limit integer DEFAULT 25, p_offset integer DEFAULT 0
@@ -463,7 +467,7 @@ SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
   WITH filtered AS (
-    SELECT * FROM public.get_business_order_rows(p_scope)
+    SELECT * FROM public.get_business_order_rows_with_automation(p_scope)
     WHERE (NULLIF(btrim(p_search), '') IS NULL OR product_name ILIKE '%' || btrim(p_search) || '%'
       OR client_name ILIKE '%' || btrim(p_search) || '%' OR COALESCE(account_reference, '') ILIKE '%' || btrim(p_search) || '%')
       AND (NULLIF(btrim(p_brand), '') IS NULL OR lower(brand) = lower(btrim(p_brand)))
@@ -510,6 +514,48 @@ BEGIN
   RETURNING orders.auto_renew, orders.auto_renew_at INTO auto_renew, auto_renew_at;
   RETURN NEXT;
 END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.get_business_order_status_counts_with_automation(
+  p_scope text DEFAULT 'mine',
+  p_search text DEFAULT NULL,
+  p_brand text DEFAULT NULL,
+  p_month integer DEFAULT NULL,
+  p_year integer DEFAULT NULL
+)
+RETURNS TABLE(
+  all_count bigint,
+  en_curso_count bigint,
+  completado_count bigint,
+  interesado_count bigint,
+  por_vencer_count bigint,
+  vencido_count bigint,
+  cancelado_count bigint
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  WITH filtered AS (
+    SELECT *
+    FROM public.get_business_order_rows_with_automation(p_scope)
+    WHERE (NULLIF(btrim(p_search), '') IS NULL
+      OR product_name ILIKE '%' || btrim(p_search) || '%'
+      OR client_name ILIKE '%' || btrim(p_search) || '%'
+      OR COALESCE(account_reference, '') ILIKE '%' || btrim(p_search) || '%')
+      AND (NULLIF(btrim(p_brand), '') IS NULL OR lower(brand) = lower(btrim(p_brand)))
+      AND (p_month IS NULL OR EXTRACT(MONTH FROM created_at)::integer = p_month)
+      AND (p_year IS NULL OR EXTRACT(YEAR FROM created_at)::integer = p_year)
+  )
+  SELECT
+    count(*)::bigint,
+    count(*) FILTER (WHERE display_status = 'en_curso')::bigint,
+    count(*) FILTER (WHERE display_status = 'completado')::bigint,
+    count(*) FILTER (WHERE display_status = 'interesado')::bigint,
+    count(*) FILTER (WHERE display_status = 'por_vencer')::bigint,
+    count(*) FILTER (WHERE display_status = 'vencido')::bigint,
+    count(*) FILTER (WHERE display_status = 'cancelado')::bigint
+  FROM filtered;
 $$;
 
 CREATE OR REPLACE FUNCTION public.get_business_order_credentials(p_order_id uuid)
@@ -563,7 +609,7 @@ AS $$
 DECLARE actor_id uuid := auth.uid(); order_row record; existing_ticket uuid; created_ticket uuid;
 BEGIN
   IF actor_id IS NULL THEN RAISE EXCEPTION 'Authentication is required'; END IF;
-  SELECT * INTO order_row FROM public.get_business_order_rows(
+  SELECT * INTO order_row FROM public.get_business_order_rows_with_automation(
     CASE WHEN public.has_role(actor_id, 'admin'::public.app_role) THEN 'all' ELSE 'mine' END
   ) WHERE source = p_source AND order_id = p_order_id;
   IF NOT FOUND THEN RAISE EXCEPTION 'Business order was not found or is not yours'; END IF;
@@ -666,14 +712,16 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.get_business_order_rows(text) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.get_business_orders(text, text, text, integer, integer, text, integer, integer) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_business_order_rows_with_automation(text) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.get_business_orders_with_automation(text, text, text, integer, integer, text, integer, integer) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.get_business_order_status_counts_with_automation(text, text, text, integer, integer) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.set_business_order_auto_renew(uuid, boolean) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.get_business_order_credentials(uuid) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.create_business_order_ticket(text, uuid) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.process_due_auto_renewals(integer) FROM PUBLIC, anon, authenticated;
 
-GRANT EXECUTE ON FUNCTION public.get_business_orders(text, text, text, integer, integer, text, integer, integer) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_business_orders_with_automation(text, text, text, integer, integer, text, integer, integer) TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.get_business_order_status_counts_with_automation(text, text, text, integer, integer) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.set_business_order_auto_renew(uuid, boolean) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.get_business_order_credentials(uuid) TO authenticated, service_role;
 GRANT EXECUTE ON FUNCTION public.create_business_order_ticket(text, uuid) TO authenticated, service_role;

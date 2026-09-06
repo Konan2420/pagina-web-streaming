@@ -338,7 +338,7 @@ export function PublicStorefront({ slug }: { slug: string }) {
                   {socialLinks.map(({ href, label, icon: Icon }) => (
                     <a
                       key={label}
-                      href={href}
+                      href={href ?? undefined}
                       target="_blank"
                       rel="noreferrer"
                       aria-label={label}

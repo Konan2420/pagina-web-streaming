@@ -1650,7 +1650,7 @@ export type Database = {
           owner_id: string;
         }[];
       };
-      get_business_order_status_counts: {
+      get_business_order_status_counts_with_automation: {
         Args: {
           p_brand?: string | null;
           p_month?: number | null;
@@ -1679,7 +1679,7 @@ export type Database = {
           profile: string | null;
         }[];
       };
-      get_business_orders: {
+      get_business_orders_with_automation: {
         Args: {
           p_brand?: string | null;
           p_limit?: number;

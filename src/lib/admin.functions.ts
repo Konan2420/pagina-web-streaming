@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import type { User } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { type Tables, type TablesInsert, type TablesUpdate } from "@/integrations/supabase/types";
@@ -217,9 +218,7 @@ export const getUsersWithRoles = createServerFn({ method: "GET" })
     // `profiles` se crea mediante un trigger de Auth. La fuente de verdad para
     // las cuentas registradas es auth.users: así el panel no omite una cuenta
     // aunque su perfil se esté creando o haya fallado históricamente.
-    const authUsers = [] as Awaited<
-      ReturnType<typeof supabaseAdmin.auth.admin.listUsers>
-    >["data"]["users"];
+    const authUsers: User[] = [];
     let page = 1;
     const perPage = 1_000;
 
