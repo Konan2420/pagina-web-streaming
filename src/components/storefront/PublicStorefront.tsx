@@ -69,6 +69,8 @@ type PublicStore = {
   products: PublicStoreProduct[];
 };
 
+const EMPTY_PUBLIC_STORE_PRODUCTS: PublicStoreProduct[] = [];
+
 const categoryLabels: Record<string, string> = {
   todo: "Todo",
   combos: "Combos Premium",
@@ -130,7 +132,7 @@ export function PublicStorefront({ slug }: { slug: string }) {
     queryFn: () => getStorefront({ data: { slug } }),
   });
   const store = storefrontQuery.data as PublicStore | null | undefined;
-  const storeProducts = store?.products ?? [];
+  const storeProducts = store?.products ?? EMPTY_PUBLIC_STORE_PRODUCTS;
   const categories = useMemo(
     () => [
       "todo",

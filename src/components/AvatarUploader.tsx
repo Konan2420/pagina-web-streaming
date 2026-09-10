@@ -36,17 +36,7 @@ async function createCroppedAvatar(source: string, area: Area): Promise<Blob> {
 
   context.imageSmoothingEnabled = true;
   context.imageSmoothingQuality = "high";
-  context.drawImage(
-    image,
-    area.x,
-    area.y,
-    area.width,
-    area.height,
-    0,
-    0,
-    OUTPUT_SIZE,
-    OUTPUT_SIZE,
-  );
+  context.drawImage(image, area.x, area.y, area.width, area.height, 0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
   return new Promise<Blob>((resolve, reject) => {
     canvas.toBlob(
@@ -118,7 +108,9 @@ export function AvatarUploader({ userId, fallbackInitials, avatarUrl, onUploaded
       const { data: authData, error: authError } = await supabase.auth.getUser();
       const authenticatedUserId = authData.user?.id;
       if (authError || !authenticatedUserId || authenticatedUserId !== userId) {
-        throw new Error("Tu sesión ya no es válida. Inicia sesión nuevamente e inténtalo otra vez.");
+        throw new Error(
+          "Tu sesión ya no es válida. Inicia sesión nuevamente e inténtalo otra vez.",
+        );
       }
 
       const avatarBlob = await createCroppedAvatar(previewUrl, croppedAreaPixels);
@@ -134,15 +126,13 @@ export function AvatarUploader({ userId, fallbackInitials, avatarUrl, onUploaded
       const { data: publicUrlData } = supabase.storage
         .from(AVATARS_BUCKET)
         .getPublicUrl(avatarPath);
-      if (!publicUrlData.publicUrl) throw new Error("No se pudo obtener la URL pública del avatar.");
+      if (!publicUrlData.publicUrl)
+        throw new Error("No se pudo obtener la URL pública del avatar.");
 
       const nextAvatarUrl = withCacheVersion(publicUrlData.publicUrl);
       const { data: savedProfile, error: profileError } = await supabase
         .from("profiles")
-        .upsert(
-          { id: authenticatedUserId, avatar_url: nextAvatarUrl },
-          { onConflict: "id" },
-        )
+        .upsert({ id: authenticatedUserId, avatar_url: nextAvatarUrl }, { onConflict: "id" })
         .select("avatar_url")
         .single();
       if (profileError) throw profileError;
@@ -229,7 +219,9 @@ export function AvatarUploader({ userId, fallbackInitials, avatarUrl, onUploaded
                   aria-label="Zoom de la foto"
                 />
               </div>
-              <p className="text-[11px] text-white/70">Arrastra la imagen para encuadrarla dentro del círculo.</p>
+              <p className="text-[11px] text-white/70">
+                Arrastra la imagen para encuadrarla dentro del círculo.
+              </p>
 
               <div className="flex gap-2 pt-1">
                 <button
@@ -238,7 +230,11 @@ export function AvatarUploader({ userId, fallbackInitials, avatarUrl, onUploaded
                   disabled={uploading}
                   className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
                 >
-                  {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                  {uploading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="h-4 w-4" />
+                  )}
                   Guardar foto
                 </button>
                 <button

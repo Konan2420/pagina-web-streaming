@@ -12,7 +12,10 @@ export const Route = createFileRoute("/_authenticated")({
     if (!access.allowed) {
       await supabase.auth.signOut({ scope: "local" });
       throw redirect({
-        href: suspensionUrl({ type: access.block === "ip" ? "ip" : "account", endsAt: access.endsAt }),
+        href: suspensionUrl({
+          type: access.block === "ip" ? "ip" : "account",
+          endsAt: access.endsAt,
+        }),
       });
     }
     return { user: data.user };

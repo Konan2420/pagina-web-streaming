@@ -66,7 +66,10 @@ export const useFuturisticSound = () => {
         // Este callback se ejecuta desde click/tap/Enter. La promesa se maneja
         // explícitamente para que una política del navegador no genere ruido
         // en consola ni rompa los botones.
-        void ctx.resume().then(play).catch(() => undefined);
+        void ctx
+          .resume()
+          .then(play)
+          .catch(() => undefined);
         return;
       }
 

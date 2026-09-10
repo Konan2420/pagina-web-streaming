@@ -68,13 +68,15 @@ export async function recordAuthenticatedRequestIp(userId: string): Promise<stri
 export async function getAccountAccess(userId: string): Promise<AccountAccess> {
   // Refleja inmediatamente los vencimientos antes de consultar/listar.
   const { error: reconcileError } = await db.rpc("reconcile_ban_statuses");
-  if (reconcileError) throw new Error(`No se pudo actualizar el estado de moderación: ${reconcileError.message}`);
+  if (reconcileError)
+    throw new Error(`No se pudo actualizar el estado de moderación: ${reconcileError.message}`);
 
   const [{ data: accountBan, error: accountError }, ip] = await Promise.all([
     activeBanQuery(userId),
     recordAuthenticatedRequestIp(userId),
   ]);
-  if (accountError) throw new Error(`No se pudo validar el estado de la cuenta: ${accountError.message}`);
+  if (accountError)
+    throw new Error(`No se pudo validar el estado de la cuenta: ${accountError.message}`);
 
   if (accountBan) {
     return { allowed: false, block: "account", endsAt: accountBan.ends_at ?? null };

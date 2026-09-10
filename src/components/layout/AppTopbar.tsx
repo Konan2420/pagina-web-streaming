@@ -4,7 +4,7 @@ import { Gift, PanelLeft, Radio, Search, Store } from "lucide-react";
 import { getMyStorefrontPublicLink } from "@/lib/storefront.functions";
 import { WA_NUMBER } from "@/components/tienda/data";
 import { cn } from "@/lib/utils";
-import { ColorModeIcon, useAppChrome } from "./AppChromeProvider";
+import { ColorModeIcon, useAppChrome } from "./AppChromeContext";
 
 type BusinessNavigation = {
   storeHref: "/proveedor/mi-tienda" | "/distribuidor/mi-tienda";
@@ -19,7 +19,8 @@ type AppTopbarProps = {
 
 /** Barra global de la aplicación. Los estados de tema y modo Live viven en AppChromeProvider. */
 export function AppTopbar({ onToggleSidebar, businessNavigation, className }: AppTopbarProps) {
-  const { colorMode, liveMode, toggleColorMode, toggleLiveMode, openCommandPalette } = useAppChrome();
+  const { colorMode, liveMode, toggleColorMode, toggleLiveMode, openCommandPalette } =
+    useAppChrome();
   const getMyPublicStore = useServerFn(getMyStorefrontPublicLink);
   const control = "border-border bg-background text-foreground hover:border-primary/60";
 
@@ -40,7 +41,12 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
   };
 
   return (
-    <header className={cn("sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur", className)}>
+    <header
+      className={cn(
+        "sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur",
+        className,
+      )}
+    >
       <div className="mx-auto flex min-h-14 max-w-[1600px] items-center gap-2 px-4 py-2 sm:px-6">
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {onToggleSidebar && (

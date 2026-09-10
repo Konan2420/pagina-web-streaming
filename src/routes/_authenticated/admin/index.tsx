@@ -165,7 +165,9 @@ function StatCard({
         <div className={`w-10 h-10 rounded-xl grid place-items-center border ${colors[color]}`}>
           <Icon className="w-5 h-5" />
         </div>
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          {label}
+        </span>
       </div>
       <div className="flex items-baseline gap-1">
         <span className="text-3xl font-display text-foreground">{value}</span>

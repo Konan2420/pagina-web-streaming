@@ -35,9 +35,13 @@ function SuspendedAccountPage() {
         <div className="mx-auto grid size-14 place-items-center rounded-full border border-destructive/30 bg-destructive/10 text-destructive">
           {isIpRestriction ? <ShieldAlert className="size-7" /> : <Ban className="size-7" />}
         </div>
-        <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-destructive">Acceso suspendido</p>
+        <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-destructive">
+          Acceso suspendido
+        </p>
         <h1 className="mt-2 text-2xl font-bold text-foreground sm:text-3xl">
-          {isIpRestriction ? "El acceso desde esta red no está disponible" : "Tu cuenta está suspendida"}
+          {isIpRestriction
+            ? "El acceso desde esta red no está disponible"
+            : "Tu cuenta está suspendida"}
         </h1>
         <p className="mt-4 text-sm leading-6 text-muted-foreground">
           {isIpRestriction

@@ -37,8 +37,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthState } from "@/hooks/useAuthState";
 import { withRequestTimeout } from "@/lib/request-timeout";
 import { QueryErrorState, SectionLoadingState } from "@/components/ui/loading-states";
-import { StorefrontSupervisorList, type StorefrontSupervisorRow } from "@/components/storefront/StorefrontSupervisorList";
-import { StorefrontSettingsEditor, type StorefrontSettingsPayload, type StorefrontSettingsRecord } from "@/components/storefront/StorefrontSettingsEditor";
+import {
+  StorefrontSupervisorList,
+  type StorefrontSupervisorRow,
+} from "@/components/storefront/StorefrontSupervisorList";
+import {
+  StorefrontSettingsEditor,
+  type StorefrontSettingsPayload,
+  type StorefrontSettingsRecord,
+} from "@/components/storefront/StorefrontSettingsEditor";
 
 type StoreProduct = {
   sourceType: "master_catalog" | "smm_generator";
@@ -60,6 +67,8 @@ type StoreProduct = {
   displayOrder: number;
   isVisible: boolean;
 };
+
+const EMPTY_STORE_PRODUCTS: StoreProduct[] = [];
 
 const storefrontImageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const storefrontImageLimit = 5 * 1024 * 1024;
@@ -126,6 +135,10 @@ export function StorefrontManagement() {
       return withRequestTimeout(loadStorefront(input));
     },
     retry: false,
+    // Los cambios propios invalidan esta clave explícitamente. Una vuelta a la
+    // ventana puede revalidar en segundo plano sin reemplazar datos visibles.
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
   const data = storefrontQuery.data;
   const salesNotificationsQuery = useQuery({
@@ -136,21 +149,28 @@ export function StorefrontManagement() {
   });
   const supervisionQuery = useQuery({
     queryKey: ["storefront-supervision"],
-    enabled: authStatus === "authenticated" && data?.isAdmin === true && data.mode === "supervision",
+    enabled:
+      authStatus === "authenticated" && data?.isAdmin === true && data.mode === "supervision",
     queryFn: () => withRequestTimeout(loadSupervision()),
     retry: 1,
   });
   const ownerId = data?.ownerId;
-  const products = (data?.products ?? []) as StoreProduct[];
+  const products = (data?.products ?? EMPTY_STORE_PRODUCTS) as StoreProduct[];
   const previewProducts = useMemo(
-    () => products.filter((product) => product.isVisible).slice(0, 4).map((product) => ({
-      id: `${product.sourceType}:${product.sourceId}`,
-      name: product.customName || product.originalName,
-      price: product.promoPricePen ?? product.salePricePen,
-    })),
+    () =>
+      products
+        .filter((product) => product.isVisible)
+        .slice(0, 4)
+        .map((product) => ({
+          id: `${product.sourceType}:${product.sourceId}`,
+          name: product.customName || product.originalName,
+          price: product.promoPricePen ?? product.salePricePen,
+        })),
     [products],
   );
-  const supervisedOwner = (supervisionQuery.data ?? []).find((store) => store.owner_id === ownerId) as StorefrontSupervisorRow | undefined;
+  const supervisedOwner = (supervisionQuery.data ?? []).find(
+    (store) => store.owner_id === ownerId,
+  ) as StorefrontSupervisorRow | undefined;
 
   const refresh = async () => {
     await queryClient.invalidateQueries({ queryKey: ["storefront-management"] });
@@ -212,7 +232,10 @@ export function StorefrontManagement() {
   }, [category, products, provider, query]);
   const groupedProducts = useMemo(() => {
     const groups = new Map<string, StoreProduct[]>();
-    for (const product of [...filteredProducts].sort((a, b) => a.displayOrder - b.displayOrder || a.originalName.localeCompare(b.originalName, "es"))) {
+    for (const product of [...filteredProducts].sort(
+      (a, b) =>
+        a.displayOrder - b.displayOrder || a.originalName.localeCompare(b.originalName, "es"),
+    )) {
       groups.set(product.group, [...(groups.get(product.group) ?? []), product]);
     }
     return [...groups.entries()];
@@ -252,7 +275,9 @@ export function StorefrontManagement() {
     }
   };
 
-  if (authStatus === "checking" || storefrontQuery.isLoading) {
+  // El loader representa únicamente la primera carga: durante cualquier
+  // revalidación se conserva la tabla que ya se haya resuelto.
+  if ((authStatus === "checking" || storefrontQuery.isLoading) && !data) {
     return <SectionLoadingState label="Cargando Mi Tienda…" className="min-h-72" />;
   }
 
@@ -302,19 +327,47 @@ export function StorefrontManagement() {
     <section className="space-y-3">
       <header className="flex flex-col gap-3 rounded-xl border border-border bg-card/70 px-4 py-3 sm:flex-row sm:items-end sm:justify-between sm:px-5">
         <div>
-        <h1 className="font-display text-xl font-black tracking-tight text-white sm:text-2xl">{data.mode === "supervision" ? "Supervisión de Tiendas" : "Mi Tienda"}</h1>
-        <p className="mt-1 max-w-3xl text-xs leading-relaxed text-white/55 sm:text-sm">
-          {data.mode === "supervision" ? "Consulta y administra las tiendas de proveedores y distribuidores de la plataforma." : "Personaliza los productos de la tienda seleccionada, edita nombres, descripciones y gestiona su stock."}
-        </p>
+          <h1 className="font-display text-xl font-black tracking-tight text-white sm:text-2xl">
+            {data.mode === "supervision" ? "Supervisión de Tiendas" : "Mi Tienda"}
+          </h1>
+          <p className="mt-1 max-w-3xl text-xs leading-relaxed text-white/55 sm:text-sm">
+            {data.mode === "supervision"
+              ? "Consulta y administra las tiendas de proveedores y distribuidores de la plataforma."
+              : "Personaliza los productos de la tienda seleccionada, edita nombres, descripciones y gestiona su stock."}
+          </p>
         </div>
-        {data.isAdmin && data.mode === "management" && <button type="button" onClick={() => { setSelectedOwnerId(undefined); setSettingsOpen(false); }} className="h-11 rounded-lg border border-border bg-background px-3 text-xs font-bold text-white/80 transition hover:border-primary/55 hover:text-white sm:h-9">Volver a supervisión</button>}
+        {data.isAdmin && data.mode === "management" && (
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedOwnerId(undefined);
+              setSettingsOpen(false);
+            }}
+            className="h-11 rounded-lg border border-border bg-background px-3 text-xs font-bold text-white/80 transition hover:border-primary/55 hover:text-white sm:h-9"
+          >
+            Volver a supervisión
+          </button>
+        )}
       </header>
 
       {data.isAdmin && (salesNotificationsQuery.data?.length ?? 0) > 0 && (
         <section className="rounded-xl border border-emerald-400/25 bg-emerald-500/[0.06] p-4">
-          <div className="flex items-center gap-2 text-sm font-bold text-emerald-100"><Bell className="h-4 w-4" /> Ventas recientes acreditadas a tu billetera</div>
+          <div className="flex items-center gap-2 text-sm font-bold text-emerald-100">
+            <Bell className="h-4 w-4" /> Ventas recientes acreditadas a tu billetera
+          </div>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-            {salesNotificationsQuery.data?.map((notification) => <article key={notification.id} className="rounded-lg border border-white/10 bg-black/15 p-3"><p className="text-xs font-bold text-white">{notification.title}</p><p className="mt-1 text-xs leading-relaxed text-white/60">{notification.body}</p><p className="mt-2 text-[10px] text-white/35">{new Date(notification.created_at).toLocaleString("es-PE")}</p></article>)}
+            {salesNotificationsQuery.data?.map((notification) => (
+              <article
+                key={notification.id}
+                className="rounded-lg border border-white/10 bg-black/15 p-3"
+              >
+                <p className="text-xs font-bold text-white">{notification.title}</p>
+                <p className="mt-1 text-xs leading-relaxed text-white/60">{notification.body}</p>
+                <p className="mt-2 text-[10px] text-white/35">
+                  {new Date(notification.created_at).toLocaleString("es-PE")}
+                </p>
+              </article>
+            ))}
           </div>
         </section>
       )}
@@ -327,173 +380,177 @@ export function StorefrontManagement() {
         />
       ) : (
         <>
-
-      <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
-        <label className="relative min-w-0 flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar productos..."
-            className="h-11 w-full rounded-lg border border-border bg-card pl-10 pr-3 text-xs text-white outline-none transition placeholder:text-white/35 focus:border-red-accent/70 sm:h-9"
-          />
-        </label>
-        <FilterSelect
-          value={category}
-          onChange={setCategory}
-          label="Todas las categorías"
-          items={categories}
-        />
-        <FilterSelect
-          value={provider}
-          onChange={setProvider}
-          label="Todas las marcas"
-          items={providers}
-        />
-        <div className="flex flex-wrap gap-2 xl:ml-auto xl:flex-nowrap">
-          <button
-            type="button"
-            onClick={() =>
-              window.open(
-                `/tienda-publica/${data.settings.store_slug}`,
-                "_blank",
-                "noopener,noreferrer",
-              )
-            }
-            className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
-          >
-            <Eye className="h-3.5 w-3.5" /> Ver mi tienda
-          </button>
-          <button
-            type="button"
-            onClick={() => void copyList()}
-            className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
-          >
-            <Copy className="h-3.5 w-3.5" /> Copiar Lista
-          </button>
-          <button
-            type="button"
-            onClick={() => setSettingsOpen(true)}
-            className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
-          >
-            <Settings2 className="h-3.5 w-3.5" /> Configurar Tienda
-          </button>
-          <button
-            type="button"
-            onClick={() => setComboOpen(true)}
-            className="inline-flex h-11 items-center gap-2 rounded-lg border border-primary/45 bg-primary/10 px-3 text-xs font-bold text-primary transition hover:bg-primary/20 sm:h-9"
-          >
-            <PackagePlus className="h-3.5 w-3.5" /> Crear Combo
-          </button>
-          <button
-            type="button"
-            onClick={() => void refresh()}
-            className="inline-flex h-11 items-center gap-2 rounded-lg bg-red-accent px-3 text-xs font-bold text-white transition hover:brightness-110 sm:h-9"
-          >
-            {isSaving ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Save className="h-3.5 w-3.5" />
-            )}
-            {isSaving ? "Guardando" : "Guardar Cambios"}
-          </button>
-        </div>
-      </div>
-
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
-        <div className="min-w-[1120px]">
-          <StoreTableHeader />
-          <ComboSection combos={data.combos} comboItems={data.comboItems} />
-          {groupedProducts.map(([group, items]) => (
-            <ProductGroup
-              key={group}
-              title={group}
-              products={items}
-              storeSlug={data.settings.store_slug}
-              saving={overrideMutation.isPending || deleteMutation.isPending}
-              onSave={saveProduct}
-              onDescription={setDescriptionProduct}
-              onDelete={async (product) => {
-                if (!product.overrideId || !ownerId) return;
-                try {
-                  await deleteMutation.mutateAsync({
-                    data: { ownerId, overrideId: product.overrideId },
-                  });
-                  toast.success("Producto retirado de esta tienda.");
-                } catch (error) {
-                  toast.error(
-                    error instanceof Error ? error.message : "No se pudo retirar el producto.",
-                  );
-                }
-              }}
+          <div className="flex flex-col gap-2 xl:flex-row xl:items-center">
+            <label className="relative min-w-0 flex-1">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
+              <input
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Buscar productos..."
+                className="h-11 w-full rounded-lg border border-border bg-card pl-10 pr-3 text-xs text-white outline-none transition placeholder:text-white/35 focus:border-red-accent/70 sm:h-9"
+              />
+            </label>
+            <FilterSelect
+              value={category}
+              onChange={setCategory}
+              label="Todas las categorías"
+              items={categories}
             />
-          ))}
-          {groupedProducts.length === 0 && (
-            <div className="p-10 text-center text-sm text-white/45">
-              No se encontraron productos para estos filtros.
+            <FilterSelect
+              value={provider}
+              onChange={setProvider}
+              label="Todas las marcas"
+              items={providers}
+            />
+            <div className="flex flex-wrap gap-2 xl:ml-auto xl:flex-nowrap">
+              <button
+                type="button"
+                onClick={() =>
+                  window.open(
+                    `/tienda-publica/${data.settings.store_slug}`,
+                    "_blank",
+                    "noopener,noreferrer",
+                  )
+                }
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
+              >
+                <Eye className="h-3.5 w-3.5" /> Ver mi tienda
+              </button>
+              <button
+                type="button"
+                onClick={() => void copyList()}
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
+              >
+                <Copy className="h-3.5 w-3.5" /> Copiar Lista
+              </button>
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-white transition hover:border-white/30 sm:h-9"
+              >
+                <Settings2 className="h-3.5 w-3.5" /> Configurar Tienda
+              </button>
+              <button
+                type="button"
+                onClick={() => setComboOpen(true)}
+                className="inline-flex h-11 items-center gap-2 rounded-lg border border-primary/45 bg-primary/10 px-3 text-xs font-bold text-primary transition hover:bg-primary/20 sm:h-9"
+              >
+                <PackagePlus className="h-3.5 w-3.5" /> Crear Combo
+              </button>
+              <button
+                type="button"
+                onClick={() => void refresh()}
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-red-accent px-3 text-xs font-bold text-white transition hover:brightness-110 sm:h-9"
+              >
+                {isSaving ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Save className="h-3.5 w-3.5" />
+                )}
+                {isSaving ? "Guardando" : "Guardar Cambios"}
+              </button>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      <p className="text-xs text-white/40">
-        Los cambios se guardan automáticamente al salir de cada campo. El costo y la ganancia se
-        calculan desde la fuente original.
-      </p>
+          <div className="overflow-x-auto rounded-xl border border-border bg-card">
+            <div className="min-w-[1120px]">
+              <StoreTableHeader />
+              <ComboSection combos={data.combos} comboItems={data.comboItems} />
+              {groupedProducts.map(([group, items]) => (
+                <ProductGroup
+                  key={group}
+                  title={group}
+                  products={items}
+                  storeSlug={data.settings.store_slug}
+                  saving={overrideMutation.isPending || deleteMutation.isPending}
+                  onSave={saveProduct}
+                  onDescription={setDescriptionProduct}
+                  onDelete={async (product) => {
+                    if (!product.overrideId || !ownerId) return;
+                    try {
+                      await deleteMutation.mutateAsync({
+                        data: { ownerId, overrideId: product.overrideId },
+                      });
+                      toast.success("Producto retirado de esta tienda.");
+                    } catch (error) {
+                      toast.error(
+                        error instanceof Error ? error.message : "No se pudo retirar el producto.",
+                      );
+                    }
+                  }}
+                />
+              ))}
+              {groupedProducts.length === 0 && (
+                <div className="p-10 text-center text-sm text-white/45">
+                  No se encontraron productos para estos filtros.
+                </div>
+              )}
+            </div>
+          </div>
 
-      <DescriptionDialog
-        product={descriptionProduct}
-        saving={overrideMutation.isPending}
-        onClose={() => setDescriptionProduct(null)}
-        onSave={async (description) => {
-          if (!descriptionProduct) return;
-          await saveProduct(descriptionProduct, { customDescription: description });
-        }}
-      />
-      <StorefrontSettingsEditor
-        open={settingsOpen}
-        ownerId={ownerId ?? undefined}
-        ownerName={supervisedOwner?.owner_name || data.settings.display_name || "Mi tienda"}
-        isAdministrativeEditing={data.isAdmin}
-        settings={data.settings as StorefrontSettingsRecord}
-        products={previewProducts}
-        totalSales={data.totalSales ?? 0}
-        saving={settingsMutation.isPending}
-        onClose={() => setSettingsOpen(false)}
-        onPublish={async (settings: StorefrontSettingsPayload) => {
-          if (!ownerId) return;
-          try {
-            await settingsMutation.mutateAsync({ data: { ownerId, ...settings } });
-            toast.success(data.isAdmin ? "Cambios publicados y auditados en esta tienda." : "Cambios publicados en tu tienda.");
-            setSettingsOpen(false);
-            await queryClient.invalidateQueries({ queryKey: ["storefront-supervision"] });
-          } catch (error) {
-            toast.error(
-              error instanceof Error ? error.message : "No se pudieron publicar los cambios.",
-            );
-          }
-        }}
-        onUploadImage={(kind, file) => {
-          if (!ownerId || !file) return Promise.reject(new Error("Selecciona una imagen válida."));
-          return uploadStorefrontImage(ownerId, kind, file);
-        }}
-      />
-      <ComboDialog
-        open={comboOpen}
-        products={products.filter((product) => product.overrideId !== null)}
-        saving={comboMutation.isPending}
-        onClose={() => setComboOpen(false)}
-        onSave={async (combo) => {
-          if (!ownerId) return;
-          try {
-            await comboMutation.mutateAsync({ data: { ownerId, ...combo } });
-            toast.success("Combo creado correctamente.");
-            setComboOpen(false);
-          } catch (error) {
-            toast.error(error instanceof Error ? error.message : "No se pudo crear el combo.");
-          }
-        }}
-      />
+          <p className="text-xs text-white/40">
+            Los cambios se guardan automáticamente al salir de cada campo. El costo y la ganancia se
+            calculan desde la fuente original.
+          </p>
+
+          <DescriptionDialog
+            product={descriptionProduct}
+            saving={overrideMutation.isPending}
+            onClose={() => setDescriptionProduct(null)}
+            onSave={async (description) => {
+              if (!descriptionProduct) return;
+              await saveProduct(descriptionProduct, { customDescription: description });
+            }}
+          />
+          <StorefrontSettingsEditor
+            open={settingsOpen}
+            ownerId={ownerId ?? undefined}
+            ownerName={supervisedOwner?.owner_name || data.settings.display_name || "Mi tienda"}
+            isAdministrativeEditing={data.isAdmin}
+            settings={data.settings as StorefrontSettingsRecord}
+            products={previewProducts}
+            totalSales={data.totalSales ?? 0}
+            saving={settingsMutation.isPending}
+            onClose={() => setSettingsOpen(false)}
+            onPublish={async (settings: StorefrontSettingsPayload) => {
+              if (!ownerId) return;
+              try {
+                await settingsMutation.mutateAsync({ data: { ownerId, ...settings } });
+                toast.success(
+                  data.isAdmin
+                    ? "Cambios publicados y auditados en esta tienda."
+                    : "Cambios publicados en tu tienda.",
+                );
+                setSettingsOpen(false);
+                await queryClient.invalidateQueries({ queryKey: ["storefront-supervision"] });
+              } catch (error) {
+                toast.error(
+                  error instanceof Error ? error.message : "No se pudieron publicar los cambios.",
+                );
+              }
+            }}
+            onUploadImage={(kind, file) => {
+              if (!ownerId || !file)
+                return Promise.reject(new Error("Selecciona una imagen válida."));
+              return uploadStorefrontImage(ownerId, kind, file);
+            }}
+          />
+          <ComboDialog
+            open={comboOpen}
+            products={products.filter((product) => product.overrideId !== null)}
+            saving={comboMutation.isPending}
+            onClose={() => setComboOpen(false)}
+            onSave={async (combo) => {
+              if (!ownerId) return;
+              try {
+                await comboMutation.mutateAsync({ data: { ownerId, ...combo } });
+                toast.success("Combo creado correctamente.");
+                setComboOpen(false);
+              } catch (error) {
+                toast.error(error instanceof Error ? error.message : "No se pudo crear el combo.");
+              }
+            }}
+          />
         </>
       )}
     </section>
@@ -692,7 +749,13 @@ function StoreProductRow({
     setDisplayOrder(product.displayOrder.toString());
     setSalePrice(product.salePricePen?.toString() || "");
     setPromoPrice(product.promoPricePen?.toString() || "");
-  }, [product.customName, product.displayOrder, product.originalName, product.promoPricePen, product.salePricePen]);
+  }, [
+    product.customName,
+    product.displayOrder,
+    product.originalName,
+    product.promoPricePen,
+    product.salePricePen,
+  ]);
   const profit = product.salePricePen === null ? null : product.salePricePen - product.unitCostPen;
   return (
     <div className="grid grid-cols-[68px_120px_minmax(185px,1.45fr)_92px_76px_92px_112px_112px_100px_34px_34px] items-center gap-2 border-t border-white/[0.045] px-3 py-2.5 text-xs text-white/75">
@@ -951,7 +1014,11 @@ function SettingsDialog({
       setForm((current) =>
         kind === "banner" ? { ...current, bannerUrl: url } : { ...current, logoUrl: url },
       );
-      toast.success(kind === "banner" ? "Portada cargada. Guarda para publicarla." : "Logo cargado. Guarda para publicarlo.");
+      toast.success(
+        kind === "banner"
+          ? "Portada cargada. Guarda para publicarla."
+          : "Logo cargado. Guarda para publicarlo.",
+      );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No se pudo cargar la imagen.");
     } finally {
@@ -977,19 +1044,53 @@ function SettingsDialog({
           />
           <div className="grid gap-2 rounded-lg border border-border p-3">
             <p className="text-xs font-semibold text-white">Imagen de portada</p>
-            {form.bannerUrl && <img src={form.bannerUrl} alt="Vista previa de portada" className="h-24 w-full rounded-md object-cover" />}
+            {form.bannerUrl && (
+              <img
+                src={form.bannerUrl}
+                alt="Vista previa de portada"
+                className="h-24 w-full rounded-md object-cover"
+              />
+            )}
             <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-white/15 px-3 text-xs font-semibold text-white transition hover:border-white/35">
-              {uploading === "banner" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageUp className="h-3.5 w-3.5" />} Subir portada
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={!ownerId || uploading !== null} onChange={(event) => void handleImage("banner", event.target.files?.[0])} />
+              {uploading === "banner" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ImageUp className="h-3.5 w-3.5" />
+              )}{" "}
+              Subir portada
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                disabled={!ownerId || uploading !== null}
+                onChange={(event) => void handleImage("banner", event.target.files?.[0])}
+              />
             </label>
             <p className="text-[10px] text-white/45">JPG, PNG o WebP; máximo 5 MB.</p>
           </div>
           <div className="grid gap-2 rounded-lg border border-border p-3">
             <p className="text-xs font-semibold text-white">Logo o foto de perfil</p>
-            {form.logoUrl && <img src={form.logoUrl} alt="Vista previa de logo" className="h-16 w-16 rounded-full object-cover" />}
+            {form.logoUrl && (
+              <img
+                src={form.logoUrl}
+                alt="Vista previa de logo"
+                className="h-16 w-16 rounded-full object-cover"
+              />
+            )}
             <label className="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border border-white/15 px-3 text-xs font-semibold text-white transition hover:border-white/35">
-              {uploading === "logo" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ImageUp className="h-3.5 w-3.5" />} Subir logo
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={!ownerId || uploading !== null} onChange={(event) => void handleImage("logo", event.target.files?.[0])} />
+              {uploading === "logo" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ImageUp className="h-3.5 w-3.5" />
+              )}{" "}
+              Subir logo
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="sr-only"
+                disabled={!ownerId || uploading !== null}
+                onChange={(event) => void handleImage("logo", event.target.files?.[0])}
+              />
             </label>
           </div>
           <label className="grid gap-1.5 text-xs font-semibold text-white/75">
@@ -1009,16 +1110,46 @@ function SettingsDialog({
           </label>
           <label className="flex items-center justify-between rounded-lg border border-border p-3 text-xs font-semibold text-white">
             Disponible ahora
-            <Switch checked={form.isAvailable} onCheckedChange={(isAvailable) => setForm({ ...form, isAvailable })} />
+            <Switch
+              checked={form.isAvailable}
+              onCheckedChange={(isAvailable) => setForm({ ...form, isAvailable })}
+            />
           </label>
           <label className="grid gap-1.5 text-xs font-semibold text-white/75">
             Disponibilidad
-            <select value={form.availabilityMode} onChange={(event) => setForm({ ...form, availabilityMode: event.target.value as "manual" | "schedule" })} className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-white outline-none focus:border-red-accent/70">
+            <select
+              value={form.availabilityMode}
+              onChange={(event) =>
+                setForm({ ...form, availabilityMode: event.target.value as "manual" | "schedule" })
+              }
+              className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-white outline-none focus:border-red-accent/70"
+            >
               <option value="manual">Manual</option>
               <option value="schedule">Por horario</option>
             </select>
           </label>
-          {form.availabilityMode === "schedule" && <div className="grid grid-cols-2 gap-3"><label className="grid gap-1.5 text-xs font-semibold text-white/75">Desde<input type="time" value={form.opensAt} onChange={(event) => setForm({ ...form, opensAt: event.target.value })} className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-white outline-none focus:border-red-accent/70" /></label><label className="grid gap-1.5 text-xs font-semibold text-white/75">Hasta<input type="time" value={form.closesAt} onChange={(event) => setForm({ ...form, closesAt: event.target.value })} className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-white outline-none focus:border-red-accent/70" /></label></div>}
+          {form.availabilityMode === "schedule" && (
+            <div className="grid grid-cols-2 gap-3">
+              <label className="grid gap-1.5 text-xs font-semibold text-white/75">
+                Desde
+                <input
+                  type="time"
+                  value={form.opensAt}
+                  onChange={(event) => setForm({ ...form, opensAt: event.target.value })}
+                  className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-white outline-none focus:border-red-accent/70"
+                />
+              </label>
+              <label className="grid gap-1.5 text-xs font-semibold text-white/75">
+                Hasta
+                <input
+                  type="time"
+                  value={form.closesAt}
+                  onChange={(event) => setForm({ ...form, closesAt: event.target.value })}
+                  className="h-10 rounded-lg border border-border bg-background px-3 text-sm text-white outline-none focus:border-red-accent/70"
+                />
+              </label>
+            </div>
+          )}
         </div>
         <DialogFooter>
           <button

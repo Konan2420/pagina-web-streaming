@@ -51,18 +51,20 @@ export const attachSupabaseAuth = createMiddleware({ type: "function" }).client(
     }
 
     const token = await getUsableAccessToken();
-    return withRequestTimeout(next({
-      // Keep the standard header for compatibility with existing Server
-      // Functions, and send the exact session token in a dedicated header.
-      // Some dev/proxy layers can inject or replace `Authorization`; protected
-      // functions read this dedicated value first so they always validate the
-      // session obtained from Supabase in this browser.
-      headers: token
-        ? {
-            Authorization: `Bearer ${token}`,
-            "x-supabase-access-token": token,
-          }
-        : {},
-    }));
+    return withRequestTimeout(
+      next({
+        // Keep the standard header for compatibility with existing Server
+        // Functions, and send the exact session token in a dedicated header.
+        // Some dev/proxy layers can inject or replace `Authorization`; protected
+        // functions read this dedicated value first so they always validate the
+        // session obtained from Supabase in this browser.
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+              "x-supabase-access-token": token,
+            }
+          : {},
+      }),
+    );
   },
 );

@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 
 type DragState = {
   pointerId: number | null;
@@ -13,7 +19,12 @@ type DragState = {
  */
 export function useHorizontalScroll() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
-  const dragRef = useRef<DragState>({ pointerId: null, startX: 0, startScrollLeft: 0, moved: false });
+  const dragRef = useRef<DragState>({
+    pointerId: null,
+    startX: 0,
+    startScrollLeft: 0,
+    moved: false,
+  });
   const ignoreClickUntil = useRef(0);
   const [isDragging, setIsDragging] = useState(false);
   const [edges, setEdges] = useState({ hasStartOverflow: false, hasEndOverflow: false });
@@ -54,7 +65,8 @@ export function useHorizontalScroll() {
       element.scrollLeft = nextScrollLeft;
     };
 
-    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateEdges);
+    const resizeObserver =
+      typeof ResizeObserver === "undefined" ? null : new ResizeObserver(updateEdges);
     const mutationObserver = new MutationObserver(updateEdges);
 
     updateEdges();
@@ -71,16 +83,19 @@ export function useHorizontalScroll() {
     };
   }, [updateEdges]);
 
-  const finishDrag = useCallback((pointerId: number) => {
-    const element = scrollRef.current;
-    if (dragRef.current.pointerId !== pointerId) return;
+  const finishDrag = useCallback(
+    (pointerId: number) => {
+      const element = scrollRef.current;
+      if (dragRef.current.pointerId !== pointerId) return;
 
-    if (dragRef.current.moved) ignoreClickUntil.current = Date.now() + 180;
-    if (element?.hasPointerCapture(pointerId)) element.releasePointerCapture(pointerId);
-    dragRef.current.pointerId = null;
-    setIsDragging(false);
-    updateEdges();
-  }, [updateEdges]);
+      if (dragRef.current.moved) ignoreClickUntil.current = Date.now() + 180;
+      if (element?.hasPointerCapture(pointerId)) element.releasePointerCapture(pointerId);
+      dragRef.current.pointerId = null;
+      setIsDragging(false);
+      updateEdges();
+    },
+    [updateEdges],
+  );
 
   const onPointerDown = useCallback((event: ReactPointerEvent<HTMLDivElement>) => {
     // En táctil dejamos que el navegador conserve el swipe y la inercia nativos.

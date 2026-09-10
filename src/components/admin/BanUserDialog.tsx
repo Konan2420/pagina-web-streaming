@@ -67,7 +67,11 @@ export function BanUserDialog({
           banAssociatedIp,
         },
       });
-      toast.success(result.ipBanCreated ? "Cuenta e IP asociada suspendidas." : "Cuenta suspendida correctamente.");
+      toast.success(
+        result.ipBanCreated
+          ? "Cuenta e IP asociada suspendidas."
+          : "Cuenta suspendida correctamente.",
+      );
       if (banAssociatedIp && !result.ipBanCreated) {
         toast.info("No había una IP autenticada registrada para esta cuenta.");
       }
@@ -94,7 +98,9 @@ export function BanUserDialog({
             <ShieldAlert className="size-5 text-destructive" /> Suspender cuenta
           </DialogTitle>
           <DialogDescription>
-            Restringirá por completo el acceso de <strong className="text-foreground">{target.name}</strong>. Esta acción queda registrada para auditoría.
+            Restringirá por completo el acceso de{" "}
+            <strong className="text-foreground">{target.name}</strong>. Esta acción queda registrada
+            para auditoría.
           </DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={submit}>
@@ -119,7 +125,9 @@ export function BanUserDialog({
                 onChange={(event) => setStartsAt(event.target.value)}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
               />
-              <span className="block text-xs font-normal text-muted-foreground">Vacío: comienza ahora.</span>
+              <span className="block text-xs font-normal text-muted-foreground">
+                Vacío: comienza ahora.
+              </span>
             </label>
             <label className="block space-y-1.5 text-sm font-medium text-foreground">
               Fin
@@ -129,7 +137,9 @@ export function BanUserDialog({
                 onChange={(event) => setEndsAt(event.target.value)}
                 className="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none focus:border-primary"
               />
-              <span className="block text-xs font-normal text-muted-foreground">Vacío: baneo permanente.</span>
+              <span className="block text-xs font-normal text-muted-foreground">
+                Vacío: baneo permanente.
+              </span>
             </label>
           </div>
           <label className="flex items-start gap-3 rounded-lg border border-border bg-background/60 p-3 text-sm text-foreground">
@@ -141,7 +151,9 @@ export function BanUserDialog({
             />
             <span>
               Bloquear también la última IP autenticada conocida.
-              <span className="mt-0.5 block text-xs text-muted-foreground">Es una medida adicional; puede afectar redes compartidas.</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                Es una medida adicional; puede afectar redes compartidas.
+              </span>
             </span>
           </label>
           <label className="flex items-start gap-3 rounded-lg border border-destructive/25 bg-destructive/5 p-3 text-sm text-foreground">
@@ -158,7 +170,11 @@ export function BanUserDialog({
             <Button type="button" variant="outline" disabled={saving} onClick={() => close(false)}>
               Cancelar
             </Button>
-            <Button type="submit" variant="destructive" disabled={saving || !confirmed || target.role === "admin"}>
+            <Button
+              type="submit"
+              variant="destructive"
+              disabled={saving || !confirmed || target.role === "admin"}
+            >
               {saving && <Loader2 className="size-4 animate-spin" />} Suspender cuenta
             </Button>
           </DialogFooter>

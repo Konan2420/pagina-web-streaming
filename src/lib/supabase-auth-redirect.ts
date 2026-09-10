@@ -24,20 +24,23 @@ function parseAuthErrorParams(rawParams: string): SupabaseAuthRedirectError | nu
   if (code === "invalid_request" || code === "invalid_grant" || code === "bad_code") {
     return {
       code,
-      message: "Este enlace no es válido. Solicita un nuevo correo de recuperación e inténtalo otra vez.",
+      message:
+        "Este enlace no es válido. Solicita un nuevo correo de recuperación e inténtalo otra vez.",
     };
   }
 
   if (error === "access_denied" || error === "unauthorized" || error === "forbidden") {
     return {
       code,
-      message: "No fue posible validar este enlace. Puede haber expirado, sido usado o pertenecer a otro navegador.",
+      message:
+        "No fue posible validar este enlace. Puede haber expirado, sido usado o pertenecer a otro navegador.",
     };
   }
 
   return {
     code,
-    message: "No fue posible completar la autenticación con este enlace. Solicita uno nuevo para continuar.",
+    message:
+      "No fue posible completar la autenticación con este enlace. Solicita uno nuevo para continuar.",
   };
 }
 
@@ -48,9 +51,7 @@ function parseAuthErrorParams(rawParams: string): SupabaseAuthRedirectError | nu
 export function getSupabaseAuthRedirectError(): SupabaseAuthRedirectError | null {
   if (typeof window === "undefined") return null;
 
-  return (
-    parseAuthErrorParams(window.location.hash) ?? parseAuthErrorParams(window.location.search)
-  );
+  return parseAuthErrorParams(window.location.hash) ?? parseAuthErrorParams(window.location.search);
 }
 
 /** Removes only Supabase Auth error parameters after they have been consumed. */

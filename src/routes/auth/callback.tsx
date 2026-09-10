@@ -107,7 +107,10 @@ function AuthCallbackPage() {
         if (!access.allowed) {
           await supabase.auth.signOut({ scope: "local" });
           window.location.assign(
-            suspensionUrl({ type: access.block === "ip" ? "ip" : "account", endsAt: access.endsAt }),
+            suspensionUrl({
+              type: access.block === "ip" ? "ip" : "account",
+              endsAt: access.endsAt,
+            }),
           );
           return;
         }

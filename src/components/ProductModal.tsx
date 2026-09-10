@@ -21,7 +21,9 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { OrderCelebrationDialog } from "@/components/OrderCelebrationDialog";
 import { inviteCatalogOrderClient } from "@/lib/catalog-detail.functions";
+import type { OrderCredentialReceipt } from "@/lib/order-credentials";
 import { saveStorefrontOverride } from "@/lib/storefront.functions";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -65,6 +67,8 @@ type CatalogClient = {
   nombre_completo: string | null;
   whatsapp: string | null;
 };
+
+const EMPTY_CATALOG_CLIENTS: CatalogClient[] = [];
 
 type CatalogPurchaseContext = {
   isAvailable: boolean;
@@ -132,7 +136,9 @@ export function ProductModal({
   const [submitting, setSubmitting] = useState(false);
   const [addingToStore, setAddingToStore] = useState(false);
   const [displayedViewCount, setDisplayedViewCount] = useState(viewCount);
+  const [celebration, setCelebration] = useState<OrderCredentialReceipt | null>(null);
   const canResell = isAuthenticated && !isRoleLoading && (isAdmin || isProvider || isDistributor);
+  const productId = product?.id;
 
   const purchaseContextQuery = useQuery({
     queryKey: ["catalog-purchase-context", product?.id, userId],
@@ -160,7 +166,7 @@ export function ProductModal({
   });
 
   const purchaseContext = purchaseContextQuery.data;
-  const clients = clientsQuery.data ?? [];
+  const clients = clientsQuery.data ?? EMPTY_CATALOG_CLIENTS;
   const effectiveRenewable = purchaseContext?.isRenewable ?? isRenewable;
   const filteredClients = useMemo(() => {
     const normalized = clientSearch.trim().toLocaleLowerCase("es");
@@ -173,7 +179,7 @@ export function ProductModal({
   }, [clientSearch, clients]);
 
   useEffect(() => {
-    if (!product) return;
+    if (!productId) return;
     setClientId("");
     setClientSearch("");
     setSalePrice("");
@@ -182,17 +188,18 @@ export function ProductModal({
     setNewClientName("");
     setNewClientEmail("");
     setNewClientWhatsapp("");
-  }, [product?.id]);
+    setCelebration(null);
+  }, [productId]);
 
   useEffect(() => {
-    if (!product) return;
+    if (!productId) return;
     setDisplayedViewCount(viewCount);
-    void Promise.resolve(supabase.rpc("record_catalog_product_view", { p_product_id: product.id }))
+    void Promise.resolve(supabase.rpc("record_catalog_product_view", { p_product_id: productId }))
       .then(({ data, error }) => {
         if (!error && typeof data === "number") setDisplayedViewCount(data);
       })
       .catch(() => undefined);
-  }, [product?.id, viewCount]);
+  }, [productId, viewCount]);
 
   useEffect(() => {
     if (!isAuthenticated || !userId || !clients.length || clientId) return;
@@ -347,11 +354,45 @@ export function ProductModal({
       void queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
       void queryClient.invalidateQueries({ queryKey: ["wallet-movements"] });
       void queryClient.invalidateQueries({ queryKey: ["public-products"] });
+      let receipt: OrderCredentialReceipt;
+      try {
+        const { data: receiptData, error: receiptError } = await supabase.rpc(
+          "get_order_celebration_receipt",
+          { p_order_id: result.order_id },
+        );
+        if (receiptError) throw receiptError;
+        if (!receiptData?.[0]) throw new Error("No se encontró el recibo seguro del pedido.");
+        receipt = receiptData[0];
+      } catch {
+        // La compra ya se confirmó. Conservamos los datos no sensibles para que la
+        // ventana de éxito siga siendo útil aun si el recibo protegido se retrasa.
+        const selectedClient = clients.find((client) => client.id === clientId);
+        receipt = {
+          order_id: result.order_id,
+          product_name: product.name,
+          client_name: selectedClient ? clientLabel(selectedClient) : "Cliente",
+          client_phone: selectedClient?.whatsapp ?? null,
+          expires_at: null,
+          credential_template: "account",
+          supplier_name: effectiveSupplierName,
+          supplier_whatsapp: purchaseContext.supplierWhatsapp,
+          email: null,
+          password: null,
+          profile: null,
+          two_factor_secret: null,
+          backup_codes: null,
+          redeem_code: null,
+          access_link: null,
+          notes:
+            "El pedido fue creado, pero las credenciales aún no están disponibles. Revísalas desde Mis compras en unos instantes.",
+        };
+        toast.info("Pedido confirmado. Estamos terminando de preparar las credenciales seguras.");
+      }
       toast.success(
         `Pedido confirmado. Se descontó ${money(Number(result.charged_pen))} de tu billetera.`,
       );
       await onOrderCreated?.();
-      onClose();
+      setCelebration(receipt);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "No se pudo confirmar el pedido.");
     } finally {
@@ -369,7 +410,7 @@ export function ProductModal({
     >
       <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" />
       <section
-        className="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-[96rem] flex-col overflow-hidden rounded-xl border border-sky-200/15 bg-popover shadow-[0_20px_90px_rgba(0,0,0,0.6)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
+        className="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-[96rem] flex-col overflow-hidden overscroll-contain rounded-xl border border-sky-200/15 bg-popover shadow-[0_20px_90px_rgba(0,0,0,0.6)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <button
@@ -380,7 +421,7 @@ export function ProductModal({
         >
           <X className="h-4 w-4" />
         </button>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain cmd-dark-scrollbar">
+        <div className="cmd-dark-scrollbar min-h-0 min-w-0 flex-1 touch-pan-y overflow-x-hidden overflow-y-auto overscroll-y-contain">
           <header className="border-b border-white/[0.07] px-5 pb-4 pt-7 text-center sm:px-8 sm:pt-8">
             <h2
               id="product-modal-title"
@@ -392,7 +433,7 @@ export function ProductModal({
               Formulario para comprar o ver opciones del producto
             </p>
           </header>
-          <div className="mx-auto w-full max-w-[76rem] px-5 pb-8 pt-5 sm:px-8">
+          <div className="mx-auto w-full min-w-0 max-w-[76rem] px-5 pb-8 pt-5 sm:px-8">
             <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-white/[0.07] pb-4">
               <div className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-white">
                 <span className="text-white/72">Proveedor:</span>
@@ -459,8 +500,8 @@ export function ProductModal({
                 {effectiveRenewable ? "Renovable" : "No renovable"}
               </span>
             </div>
-            <div className="mt-5 grid gap-7 lg:grid-cols-[minmax(0,0.95fr)_minmax(23rem,1fr)] lg:items-start">
-              <div>
+            <div className="mt-5 grid min-w-0 grid-cols-1 gap-7 lg:grid-cols-[minmax(0,0.95fr)_minmax(23rem,1fr)] lg:items-start">
+              <div className="min-w-0">
                 <div className="overflow-hidden rounded-xl border border-white/10 bg-black">
                   {product.image ? (
                     <img
@@ -515,7 +556,7 @@ export function ProductModal({
                   </p>
                 </details>
               </div>
-              <div className="space-y-5 rounded-xl border border-sky-200/15 bg-[#0b1424]/85 p-4 sm:p-5">
+              <div className="min-w-0 space-y-5 rounded-xl border border-sky-200/15 bg-[#0b1424]/85 p-4 sm:p-5">
                 {!isAuthenticated ? (
                   <div className="rounded-lg border border-sky-200/15 bg-sky-100/[0.04] p-4">
                     <p className="text-sm font-semibold text-white">Inicia sesión para comprar</p>
@@ -758,6 +799,16 @@ export function ProductModal({
           </div>
         </footer>
       </section>
+      {celebration && (
+        <OrderCelebrationDialog
+          receipt={celebration}
+          canShareWithClient={canResell}
+          onClose={() => {
+            setCelebration(null);
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 }

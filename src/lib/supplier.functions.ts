@@ -1,5 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import {
+  normalizeCredentialTemplate,
+  validateInventoryCredentials,
+} from "@/lib/inventory-credentials";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
@@ -15,6 +19,9 @@ const providerProductSchema = z.object({
   service_id: z.string().uuid().nullable().optional(),
   duration_days: z.number().int().positive().max(3_650).default(30),
   is_renewable: z.boolean().default(true),
+  credential_template: z
+    .enum(["account", "account_2fa", "redeem_code", "access_link", "none"])
+    .default("account"),
 });
 
 /** Summary for the provider / distributor dashboard. */
@@ -180,7 +187,8 @@ export const setProviderProductAvailability = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (error) throw new Error(error.message);
-    if (!updated) throw new Error("No puedes cambiar la disponibilidad de un producto que no te pertenece.");
+    if (!updated)
+      throw new Error("No puedes cambiar la disponibilidad de un producto que no te pertenece.");
     return updated;
   });
 
@@ -242,8 +250,13 @@ export const addProviderInventoryBulk = createServerFn({ method: "POST" })
         accounts: z
           .array(
             z.object({
-              email: z.string().trim().email().max(320),
-              password: z.string().min(1).max(500),
+              email: z.string().trim().email().max(320).nullable().optional(),
+              password: z.string().trim().min(1).max(500).nullable().optional(),
+              profile: z.string().trim().max(500).nullable().optional(),
+              two_factor_secret: z.string().trim().min(1).max(500).nullable().optional(),
+              backup_codes: z.string().trim().min(1).max(5_000).nullable().optional(),
+              redeem_code: z.string().trim().min(1).max(2_000).nullable().optional(),
+              access_link: z.string().trim().url().max(2_000).nullable().optional(),
             }),
           )
           .min(1)
@@ -258,13 +271,19 @@ export const addProviderInventoryBulk = createServerFn({ method: "POST" })
 
     const { data: product, error: productError } = await supabaseAdmin
       .from("products")
-      .select("id, supplier_id")
+      .select("id, supplier_id, credential_template")
       .eq("id", data.product_id)
       .maybeSingle();
     if (productError) throw new Error(productError.message);
     if (!product || product.supplier_id !== context.userId) {
       throw new Error("Solo puedes cargar inventario para tus propios productos.");
     }
+
+    const template = normalizeCredentialTemplate(product.credential_template);
+    const validationError = data.accounts
+      .map((account) => validateInventoryCredentials(account, template))
+      .find((error) => error !== null);
+    if (validationError) throw new Error(validationError);
 
     const { error } = await supabaseAdmin.from("account_inventory").insert(
       data.accounts.map((account) => ({

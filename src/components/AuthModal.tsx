@@ -98,7 +98,10 @@ export function AuthModal({
   async function redirectForRole(userId: string) {
     const access = await getCurrentAccountAccess();
     if (!access.allowed) {
-      await redirectToSuspension({ type: access.block === "ip" ? "ip" : "account", endsAt: access.endsAt });
+      await redirectToSuspension({
+        type: access.block === "ip" ? "ip" : "account",
+        endsAt: access.endsAt,
+      });
       return;
     }
     const to = await getAuthDestination(userId);

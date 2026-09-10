@@ -41,3 +41,5 @@ dist-ssr
 
 # Estado temporal generado por la CLI de Supabase.
 supabase/.temp/
+
+.env*

@@ -23,7 +23,13 @@ import {
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadXlsx } from "@/lib/xlsx-export";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type ClientTag = { id: string; name: string; color: string };
 
@@ -40,6 +46,8 @@ type BusinessClient = {
   last_purchase: string | null;
   tags: ClientTag[];
 };
+
+const EMPTY_BUSINESS_CLIENTS: BusinessClient[] = [];
 
 type ClientMetrics = {
   total_clients: number;
@@ -152,12 +160,14 @@ export function ClientsPanel({
         p_owner_id: scopeOwnerId,
       });
       if (error) throw error;
-      return data?.[0] ?? {
-        total_clients: 0,
-        active_clients: 0,
-        inactive_clients: 0,
-        blocked_clients: 0,
-      };
+      return (
+        data?.[0] ?? {
+          total_clients: 0,
+          active_clients: 0,
+          inactive_clients: 0,
+          blocked_clients: 0,
+        }
+      );
     },
   });
 
@@ -185,7 +195,7 @@ export function ClientsPanel({
     },
   });
 
-  const clients = clientsQuery.data ?? [];
+  const clients = clientsQuery.data ?? EMPTY_BUSINESS_CLIENTS;
   const metrics = metricsQuery.data ?? {
     total_clients: 0,
     active_clients: 0,
@@ -205,7 +215,11 @@ export function ClientsPanel({
             : null;
 
     return clients.filter((client) => {
-      const status = client.is_blocked ? "blocked" : isActive(client.last_purchase) ? "active" : "inactive";
+      const status = client.is_blocked
+        ? "blocked"
+        : isActive(client.last_purchase)
+          ? "active"
+          : "inactive";
       const matchesSearch =
         !normalized ||
         [client.nombre, client.telefono, client.email].some((value) =>
@@ -213,7 +227,8 @@ export function ClientsPanel({
         );
       const matchesStatus = statusFilter === "all" || status === statusFilter;
       const matchesRegistrationDate =
-        minimumRegistrationDate === null || new Date(client.created_at).getTime() >= minimumRegistrationDate;
+        minimumRegistrationDate === null ||
+        new Date(client.created_at).getTime() >= minimumRegistrationDate;
 
       return matchesSearch && matchesStatus && matchesRegistrationDate;
     });
@@ -278,7 +293,10 @@ export function ClientsPanel({
       };
       let clientId = editingClient?.id;
       if (editingClient) {
-        const { error } = await supabase.from("business_clients").update(values).eq("id", editingClient.id);
+        const { error } = await supabase
+          .from("business_clients")
+          .update(values)
+          .eq("id", editingClient.id);
         if (error) throw error;
       } else {
         const { data, error } = await supabase
@@ -390,7 +408,17 @@ export function ClientsPanel({
   const exportExcel = () => {
     downloadXlsx(
       `clientes-${new Date().toISOString().slice(0, 10)}.xlsx`,
-      ["Nombre", "Teléfono / WhatsApp", "Email", "Fecha de registro", "Estado", "Pedidos", "Total comprado", "Última actividad", "Etiquetas"],
+      [
+        "Nombre",
+        "Teléfono / WhatsApp",
+        "Email",
+        "Fecha de registro",
+        "Estado",
+        "Pedidos",
+        "Total comprado",
+        "Última actividad",
+        "Etiquetas",
+      ],
       filteredClients.map((client) => [
         client.nombre,
         client.telefono ?? "",
@@ -417,20 +445,45 @@ export function ClientsPanel({
   }
 
   const summaryCards = [
-    { label: "Total Clientes", description: "Registrados en tu cuenta", value: metrics.total_clients, icon: Users },
-    { label: "Activos", description: "Comprando regularmente", value: metrics.active_clients, icon: Check },
-    { label: "Inactivos", description: "Sin compras recientes", value: metrics.inactive_clients, icon: EyeOff },
-    { label: "Bloqueados", description: "Clientes problemáticos", value: metrics.blocked_clients, icon: X },
+    {
+      label: "Total Clientes",
+      description: "Registrados en tu cuenta",
+      value: metrics.total_clients,
+      icon: Users,
+    },
+    {
+      label: "Activos",
+      description: "Comprando regularmente",
+      value: metrics.active_clients,
+      icon: Check,
+    },
+    {
+      label: "Inactivos",
+      description: "Sin compras recientes",
+      value: metrics.inactive_clients,
+      icon: EyeOff,
+    },
+    {
+      label: "Bloqueados",
+      description: "Clientes problemáticos",
+      value: metrics.blocked_clients,
+      icon: X,
+    },
   ];
 
   return (
     <section className="mx-auto mt-6 max-w-[1600px] px-4 pb-24 sm:px-6">
       <header className="mb-7 flex flex-col gap-4 border-b border-border/70 pb-5 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">Mi negocio</p>
-          <h1 className="mt-1 font-display text-3xl tracking-tight text-foreground sm:text-4xl">Clientes</h1>
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+            Mi negocio
+          </p>
+          <h1 className="mt-1 font-display text-3xl tracking-tight text-foreground sm:text-4xl">
+            Clientes
+          </h1>
           <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
-            Administra los contactos de tu negocio y prepara tus próximas ventas desde un solo lugar.
+            Administra los contactos de tu negocio y prepara tus próximas ventas desde un solo
+            lugar.
           </p>
         </div>
         <button
@@ -445,7 +498,10 @@ export function ClientsPanel({
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {summaryCards.map(({ label, description, value, icon: Icon }) => (
-          <div key={label} className="flex min-h-28 items-center justify-between rounded-xl border border-border bg-card/60 px-5 py-4">
+          <div
+            key={label}
+            className="flex min-h-28 items-center justify-between rounded-xl border border-border bg-card/60 px-5 py-4"
+          >
             <div className="flex items-start gap-4">
               <Icon className="mt-1 h-5 w-5 text-primary" aria-hidden="true" />
               <div>
@@ -459,25 +515,49 @@ export function ClientsPanel({
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-2.5">
-        <button type="button" onClick={openCreate} className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary/90">
+        <button
+          type="button"
+          onClick={openCreate}
+          className="inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
+        >
           <Plus className="h-4 w-4" /> Nuevo Cliente
         </button>
-        <button type="button" onClick={() => setTagsDialogOpen(true)} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50">
+        <button
+          type="button"
+          onClick={() => setTagsDialogOpen(true)}
+          className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50"
+        >
           <Tags className="h-4 w-4" /> Etiquetas
         </button>
-        <button type="button" onClick={() => setHideAmounts((value) => !value)} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50">
+        <button
+          type="button"
+          onClick={() => setHideAmounts((value) => !value)}
+          className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50"
+        >
           {hideAmounts ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           {hideAmounts ? "Mostrar números" : "Ocultar números"}
         </button>
-        <button type="button" onClick={exportExcel} className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50">
+        <button
+          type="button"
+          onClick={exportExcel}
+          className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50"
+        >
           <Download className="h-4 w-4" /> Exportar Excel
         </button>
         {isAdmin && (
           <label className="ml-auto flex h-11 min-w-52 items-center rounded-lg border border-border bg-card px-3 text-sm text-foreground">
             <span className="mr-2 whitespace-nowrap text-muted-foreground">Ver clientes de:</span>
-            <select value={ownerFilter ?? ""} onChange={(event) => setOwnerFilter(event.target.value || null)} className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none">
+            <select
+              value={ownerFilter ?? ""}
+              onChange={(event) => setOwnerFilter(event.target.value || null)}
+              className="min-w-0 flex-1 bg-transparent text-sm font-semibold outline-none"
+            >
               <option value="">Toda la plataforma</option>
-              {(ownersQuery.data ?? []).map((owner) => <option key={owner.owner_id} value={owner.owner_id}>{owner.display_name}</option>)}
+              {(ownersQuery.data ?? []).map((owner) => (
+                <option key={owner.owner_id} value={owner.owner_id}>
+                  {owner.display_name}
+                </option>
+              ))}
             </select>
           </label>
         )}
@@ -485,7 +565,12 @@ export function ClientsPanel({
 
       <label className="mt-5 flex h-14 items-center gap-3 rounded-lg border border-border bg-card/50 px-4 text-muted-foreground focus-within:border-primary/60">
         <Search className="h-5 w-5" aria-hidden="true" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar clientes" className="h-full min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground" />
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar clientes"
+          className="h-full min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+        />
       </label>
 
       <div className="mt-3 flex flex-col gap-2 rounded-lg border border-border/70 bg-background/45 p-3 sm:flex-row sm:items-center">
@@ -517,7 +602,8 @@ export function ClientsPanel({
           </select>
         </label>
         <p className="text-xs text-muted-foreground sm:ml-auto">
-          {filteredClients.length} {filteredClients.length === 1 ? "cliente encontrado" : "clientes encontrados"}
+          {filteredClients.length}{" "}
+          {filteredClients.length === 1 ? "cliente encontrado" : "clientes encontrados"}
         </p>
       </div>
 
@@ -526,47 +612,174 @@ export function ClientsPanel({
           <table className="w-full min-w-[1120px] text-left text-sm">
             <thead className="border-b border-border bg-muted/45 text-[11px] uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-4 py-3">Nombre</th><th className="px-4 py-3">Teléfono / WhatsApp</th><th className="px-4 py-3">Email</th><th className="px-4 py-3">Registro</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Pedidos / total</th><th className="px-4 py-3">Última actividad</th><th className="px-4 py-3">Etiquetas</th><th className="px-4 py-3 text-right">Acciones</th>
+                <th className="px-4 py-3">Nombre</th>
+                <th className="px-4 py-3">Teléfono / WhatsApp</th>
+                <th className="px-4 py-3">Email</th>
+                <th className="px-4 py-3">Registro</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3">Pedidos / total</th>
+                <th className="px-4 py-3">Última actividad</th>
+                <th className="px-4 py-3">Etiquetas</th>
+                <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/70">
               {clientsQuery.isLoading ? (
-                <tr><td colSpan={9} className="px-4 py-12 text-center text-muted-foreground"><Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />Cargando clientes…</td></tr>
+                <tr>
+                  <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
+                    <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />
+                    Cargando clientes…
+                  </td>
+                </tr>
               ) : clientsQuery.isError ? (
-                <tr><td colSpan={9} className="px-4 py-12 text-center text-primary">No se pudieron cargar los clientes. <button type="button" className="font-bold underline" onClick={() => void clientsQuery.refetch()}>Reintentar</button></td></tr>
+                <tr>
+                  <td colSpan={9} className="px-4 py-12 text-center text-primary">
+                    No se pudieron cargar los clientes.{" "}
+                    <button
+                      type="button"
+                      className="font-bold underline"
+                      onClick={() => void clientsQuery.refetch()}
+                    >
+                      Reintentar
+                    </button>
+                  </td>
+                </tr>
               ) : filteredClients.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="px-4 py-12 text-center">
                     <div className="mx-auto flex max-w-sm flex-col items-center">
-                      <span className="grid h-11 w-11 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary"><Users className="h-5 w-5" aria-hidden="true" /></span>
-                      <p className="mt-3 font-semibold text-foreground">{clients.length === 0 ? "Aún no registras clientes" : "No hay resultados para estos filtros"}</p>
-                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{clients.length === 0 ? "Crea tu primer cliente para agilizar la asignación de pedidos y conservar su historial." : "Prueba cambiando la búsqueda, el estado o la fecha de registro."}</p>
-                      {clients.length === 0 && <button type="button" onClick={openCreate} className="mt-4 inline-flex h-11 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:bg-primary/90 sm:h-9"><Plus className="h-3.5 w-3.5" /> Registrar cliente</button>}
+                      <span className="grid h-11 w-11 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary">
+                        <Users className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <p className="mt-3 font-semibold text-foreground">
+                        {clients.length === 0
+                          ? "Aún no registras clientes"
+                          : "No hay resultados para estos filtros"}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                        {clients.length === 0
+                          ? "Crea tu primer cliente para agilizar la asignación de pedidos y conservar su historial."
+                          : "Prueba cambiando la búsqueda, el estado o la fecha de registro."}
+                      </p>
+                      {clients.length === 0 && (
+                        <button
+                          type="button"
+                          onClick={openCreate}
+                          className="mt-4 inline-flex h-11 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:bg-primary/90 sm:h-9"
+                        >
+                          <Plus className="h-3.5 w-3.5" /> Registrar cliente
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
-              ) : visibleClients.map((client) => {
-                const status = client.is_blocked ? "Bloqueado" : isActive(client.last_purchase) ? "Activo" : "Inactivo";
-                const statusClass = client.is_blocked ? "bg-red-500/10 text-red-300" : status === "Activo" ? "bg-emerald-500/10 text-emerald-300" : "bg-amber-500/10 text-amber-200";
-                return <tr key={client.id} className="transition-colors hover:bg-muted/45">
-                  <td className="px-4 py-3.5 font-semibold text-foreground">{client.nombre}</td>
-                  <td className="px-4 py-3.5 text-muted-foreground">{client.telefono || "—"}</td>
-                  <td className="px-4 py-3.5 text-muted-foreground">{client.email || "—"}</td>
-                  <td className="px-4 py-3.5 text-muted-foreground">{formatDate(client.created_at)}</td>
-                  <td className="px-4 py-3.5"><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusClass}`}>{status}</span></td>
-                  <td className="px-4 py-3.5"><p className="font-semibold text-foreground">{client.total_purchases} {client.total_purchases === 1 ? "pedido" : "pedidos"}</p><p className="mt-0.5 text-xs text-muted-foreground">{formatCurrency(client.total_spent_pen, hideAmounts)}</p></td>
-                  <td className="px-4 py-3.5 text-muted-foreground">{formatDate(client.last_purchase)}</td>
-                  <td className="px-4 py-3.5"><div className="flex flex-wrap gap-1.5">{client.tags.length ? client.tags.map((tag) => <span key={tag.id} style={{ borderColor: `${tag.color}80`, color: tag.color }} className="rounded-full border px-2 py-0.5 text-[10px] font-bold">{tag.name}</span>) : <span className="text-muted-foreground">—</span>}</div></td>
-                  <td className="px-4 py-3.5"><div className="flex justify-end gap-1.5"><button type="button" onClick={() => openEdit(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground sm:h-9 sm:w-9" aria-label={`Editar ${client.nombre}`}><Pencil className="h-3.5 w-3.5" /></button><button type="button" onClick={() => void toggleBlocked(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground sm:h-9 sm:w-9" aria-label={client.is_blocked ? `Desbloquear ${client.nombre}` : `Bloquear ${client.nombre}`}>{client.is_blocked ? <ShieldCheck className="h-3.5 w-3.5" /> : <ShieldBan className="h-3.5 w-3.5" />}</button><button type="button" onClick={() => void deleteClient(client)} className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-destructive/60 hover:text-destructive sm:h-9 sm:w-9" aria-label={`Eliminar ${client.nombre}`}><Trash2 className="h-3.5 w-3.5" /></button></div></td>
-                </tr>;
-              })}
+              ) : (
+                visibleClients.map((client) => {
+                  const status = client.is_blocked
+                    ? "Bloqueado"
+                    : isActive(client.last_purchase)
+                      ? "Activo"
+                      : "Inactivo";
+                  const statusClass = client.is_blocked
+                    ? "bg-red-500/10 text-red-300"
+                    : status === "Activo"
+                      ? "bg-emerald-500/10 text-emerald-300"
+                      : "bg-amber-500/10 text-amber-200";
+                  return (
+                    <tr key={client.id} className="transition-colors hover:bg-muted/45">
+                      <td className="px-4 py-3.5 font-semibold text-foreground">{client.nombre}</td>
+                      <td className="px-4 py-3.5 text-muted-foreground">
+                        {client.telefono || "—"}
+                      </td>
+                      <td className="px-4 py-3.5 text-muted-foreground">{client.email || "—"}</td>
+                      <td className="px-4 py-3.5 text-muted-foreground">
+                        {formatDate(client.created_at)}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <span
+                          className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusClass}`}
+                        >
+                          {status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <p className="font-semibold text-foreground">
+                          {client.total_purchases}{" "}
+                          {client.total_purchases === 1 ? "pedido" : "pedidos"}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {formatCurrency(client.total_spent_pen, hideAmounts)}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3.5 text-muted-foreground">
+                        {formatDate(client.last_purchase)}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex flex-wrap gap-1.5">
+                          {client.tags.length ? (
+                            client.tags.map((tag) => (
+                              <span
+                                key={tag.id}
+                                style={{ borderColor: `${tag.color}80`, color: tag.color }}
+                                className="rounded-full border px-2 py-0.5 text-[10px] font-bold"
+                              >
+                                {tag.name}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(client)}
+                            className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground sm:h-9 sm:w-9"
+                            aria-label={`Editar ${client.nombre}`}
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void toggleBlocked(client)}
+                            className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground sm:h-9 sm:w-9"
+                            aria-label={
+                              client.is_blocked
+                                ? `Desbloquear ${client.nombre}`
+                                : `Bloquear ${client.nombre}`
+                            }
+                          >
+                            {client.is_blocked ? (
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                            ) : (
+                              <ShieldBan className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void deleteClient(client)}
+                            className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-destructive/60 hover:text-destructive sm:h-9 sm:w-9"
+                            aria-label={`Eliminar ${client.nombre}`}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
         {!clientsQuery.isLoading && !clientsQuery.isError && filteredClients.length > 0 && (
           <div className="flex flex-col gap-3 border-t border-border/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs text-muted-foreground">
-              Mostrando {pageStart + 1}–{Math.min(pageStart + CLIENTS_PAGE_SIZE, filteredClients.length)} de {filteredClients.length} clientes
+              Mostrando {pageStart + 1}–
+              {Math.min(pageStart + CLIENTS_PAGE_SIZE, filteredClients.length)} de{" "}
+              {filteredClients.length} clientes
             </p>
             <div className="flex items-center gap-2 self-end sm:self-auto">
               <button
@@ -578,7 +791,9 @@ export function ClientsPanel({
               >
                 <ChevronLeft className="h-4 w-4" aria-hidden="true" />
               </button>
-              <span className="min-w-24 text-center text-xs font-semibold text-foreground">Página {currentPage} de {totalPages}</span>
+              <span className="min-w-24 text-center text-xs font-semibold text-foreground">
+                Página {currentPage} de {totalPages}
+              </span>
               <button
                 type="button"
                 disabled={currentPage === totalPages}
@@ -595,23 +810,175 @@ export function ClientsPanel({
 
       <Dialog open={clientDialogOpen} onOpenChange={setClientDialogOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{editingClient ? "Editar cliente" : "Nuevo cliente"}</DialogTitle><DialogDescription>Guarda datos de contacto y etiquetas para tus próximas ventas.</DialogDescription></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>{editingClient ? "Editar cliente" : "Nuevo cliente"}</DialogTitle>
+            <DialogDescription>
+              Guarda datos de contacto y etiquetas para tus próximas ventas.
+            </DialogDescription>
+          </DialogHeader>
           <div className="space-y-4 py-2">
-            <Field label="Nombre"><input value={draft.nombre} onChange={(event) => setDraft((value) => ({ ...value, nombre: event.target.value }))} placeholder="Nombre completo" className="crm-input" /></Field>
-            <Field label="Teléfono / WhatsApp"><input value={draft.telefono} onChange={(event) => setDraft((value) => ({ ...value, telefono: event.target.value }))} placeholder="999 999 999" className="crm-input" /></Field>
-            <Field label="Email (opcional)"><input type="email" value={draft.email} onChange={(event) => setDraft((value) => ({ ...value, email: event.target.value }))} placeholder="cliente@correo.com" className="crm-input" /></Field>
-            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card/60 px-3.5 py-3 text-sm"><span><span className="font-bold text-foreground">Bloquear cliente</span><span className="mt-0.5 block text-xs text-muted-foreground">Impide identificarlo como activo.</span></span><input type="checkbox" checked={draft.is_blocked} onChange={(event) => setDraft((value) => ({ ...value, is_blocked: event.target.checked }))} className="h-4 w-4 accent-primary" /></label>
-            <Field label="Etiquetas"><div className="flex flex-wrap gap-2">{tags.length ? tags.map((tag) => <label key={tag.id} className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-foreground"><input type="checkbox" checked={draft.tagIds.includes(tag.id)} onChange={() => setDraft((value) => ({ ...value, tagIds: value.tagIds.includes(tag.id) ? value.tagIds.filter((id) => id !== tag.id) : [...value.tagIds, tag.id] }))} className="accent-primary" /><span style={{ color: tag.color }}>{tag.name}</span></label>) : <span className="text-xs text-muted-foreground">Crea etiquetas desde el botón Etiquetas.</span>}</div></Field>
+            <Field label="Nombre">
+              <input
+                value={draft.nombre}
+                onChange={(event) =>
+                  setDraft((value) => ({ ...value, nombre: event.target.value }))
+                }
+                placeholder="Nombre completo"
+                className="crm-input"
+              />
+            </Field>
+            <Field label="Teléfono / WhatsApp">
+              <input
+                value={draft.telefono}
+                onChange={(event) =>
+                  setDraft((value) => ({ ...value, telefono: event.target.value }))
+                }
+                placeholder="999 999 999"
+                className="crm-input"
+              />
+            </Field>
+            <Field label="Email (opcional)">
+              <input
+                type="email"
+                value={draft.email}
+                onChange={(event) => setDraft((value) => ({ ...value, email: event.target.value }))}
+                placeholder="cliente@correo.com"
+                className="crm-input"
+              />
+            </Field>
+            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card/60 px-3.5 py-3 text-sm">
+              <span>
+                <span className="font-bold text-foreground">Bloquear cliente</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Impide identificarlo como activo.
+                </span>
+              </span>
+              <input
+                type="checkbox"
+                checked={draft.is_blocked}
+                onChange={(event) =>
+                  setDraft((value) => ({ ...value, is_blocked: event.target.checked }))
+                }
+                className="h-4 w-4 accent-primary"
+              />
+            </label>
+            <Field label="Etiquetas">
+              <div className="flex flex-wrap gap-2">
+                {tags.length ? (
+                  tags.map((tag) => (
+                    <label
+                      key={tag.id}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-foreground"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={draft.tagIds.includes(tag.id)}
+                        onChange={() =>
+                          setDraft((value) => ({
+                            ...value,
+                            tagIds: value.tagIds.includes(tag.id)
+                              ? value.tagIds.filter((id) => id !== tag.id)
+                              : [...value.tagIds, tag.id],
+                          }))
+                        }
+                        className="accent-primary"
+                      />
+                      <span style={{ color: tag.color }}>{tag.name}</span>
+                    </label>
+                  ))
+                ) : (
+                  <span className="text-xs text-muted-foreground">
+                    Crea etiquetas desde el botón Etiquetas.
+                  </span>
+                )}
+              </div>
+            </Field>
           </div>
-          <div className="flex justify-end gap-2"><button type="button" onClick={() => setClientDialogOpen(false)} className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground">Cancelar</button><button type="button" disabled={saving} onClick={() => void saveClient()} className="inline-flex min-w-28 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-60">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}</button></div>
+          <div className="flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setClientDialogOpen(false)}
+              className="rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              disabled={saving}
+              onClick={() => void saveClient()}
+              className="inline-flex min-w-28 items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground disabled:opacity-60"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Guardar"}
+            </button>
+          </div>
         </DialogContent>
       </Dialog>
 
       <Dialog open={tagsDialogOpen} onOpenChange={setTagsDialogOpen}>
         <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Etiquetas</DialogTitle><DialogDescription>Categoriza tus clientes, por ejemplo VIP, Mayorista o Nuevo.</DialogDescription></DialogHeader>
-          <div className="flex gap-2"><input value={newTagName} onChange={(event) => setNewTagName(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); void createTag(); } }} placeholder="Nueva etiqueta" className="crm-input" /><button type="button" onClick={() => void createTag()} className="h-11 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground">Crear</button></div>
-          <div className="max-h-64 space-y-2 overflow-y-auto py-2">{tags.length ? tags.map((tag) => <div key={tag.id} className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2"><span style={{ color: tag.color }} className="text-sm font-bold">{tag.name}</span><span className="flex gap-1"><button type="button" onClick={() => void renameTag(tag)} className="grid h-11 w-11 place-items-center rounded text-muted-foreground hover:text-foreground sm:h-8 sm:w-8" aria-label={`Editar etiqueta ${tag.name}`}><Pencil className="h-4 w-4" /></button><button type="button" onClick={() => void deleteTag(tag.id)} className="grid h-11 w-11 place-items-center rounded text-muted-foreground hover:text-destructive sm:h-8 sm:w-8" aria-label={`Eliminar etiqueta ${tag.name}`}><Trash2 className="h-4 w-4" /></button></span></div>) : <p className="py-5 text-center text-sm text-muted-foreground">Aún no hay etiquetas.</p>}</div>
+          <DialogHeader>
+            <DialogTitle>Etiquetas</DialogTitle>
+            <DialogDescription>
+              Categoriza tus clientes, por ejemplo VIP, Mayorista o Nuevo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2">
+            <input
+              value={newTagName}
+              onChange={(event) => setNewTagName(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  void createTag();
+                }
+              }}
+              placeholder="Nueva etiqueta"
+              className="crm-input"
+            />
+            <button
+              type="button"
+              onClick={() => void createTag()}
+              className="h-11 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground"
+            >
+              Crear
+            </button>
+          </div>
+          <div className="max-h-64 space-y-2 overflow-y-auto py-2">
+            {tags.length ? (
+              tags.map((tag) => (
+                <div
+                  key={tag.id}
+                  className="flex items-center justify-between rounded-lg border border-border bg-card/50 px-3 py-2"
+                >
+                  <span style={{ color: tag.color }} className="text-sm font-bold">
+                    {tag.name}
+                  </span>
+                  <span className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => void renameTag(tag)}
+                      className="grid h-11 w-11 place-items-center rounded text-muted-foreground hover:text-foreground sm:h-8 sm:w-8"
+                      aria-label={`Editar etiqueta ${tag.name}`}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void deleteTag(tag.id)}
+                      className="grid h-11 w-11 place-items-center rounded text-muted-foreground hover:text-destructive sm:h-8 sm:w-8"
+                      aria-label={`Eliminar etiqueta ${tag.name}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </span>
+                </div>
+              ))
+            ) : (
+              <p className="py-5 text-center text-sm text-muted-foreground">
+                Aún no hay etiquetas.
+              </p>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </section>
@@ -619,5 +986,10 @@ export function ClientsPanel({
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label className="block space-y-1.5"><span className="text-sm font-semibold text-foreground">{label}</span>{children}</label>;
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-sm font-semibold text-foreground">{label}</span>
+      {children}
+    </label>
+  );
 }

@@ -440,6 +440,35 @@ export function TiendaPage({
     }
   }, [sidebarCollapsed]);
 
+  // En móvil el menú es un drawer modal: el catálogo no debe desplazarse por
+  // detrás mientras se navega dentro de la barra lateral. El estado se restaura
+  // exactamente como estaba al cerrarlo o al desmontar la página.
+  useEffect(() => {
+    if (!sidebarOpen || !window.matchMedia("(max-width: 1023px)").matches) return;
+
+    const body = document.body;
+    const root = document.documentElement;
+    const previousBodyOverflow = body.style.overflow;
+    const previousBodyOverscroll = body.style.overscrollBehavior;
+    const previousRootOverflow = root.style.overflow;
+
+    body.style.overflow = "hidden";
+    body.style.overscrollBehavior = "none";
+    root.style.overflow = "hidden";
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSidebarOpen(false);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape);
+      body.style.overflow = previousBodyOverflow;
+      body.style.overscrollBehavior = previousBodyOverscroll;
+      root.style.overflow = previousRootOverflow;
+    };
+  }, [sidebarOpen]);
+
   const handleSidebarToggle = useCallback(() => {
     if (window.matchMedia("(min-width: 1024px)").matches) {
       setSidebarCollapsed((value) => !value);
@@ -1244,7 +1273,10 @@ export function TiendaPage({
         onOpenAdmin={handleOpenAdmin}
         onOpenStorefront={handleOpenStorefront}
         onOpenWallet={handleWallet}
-        onOpenAuth={openAuth}
+        onOpenAuth={() => {
+          setSidebarOpen(false);
+          openAuth();
+        }}
         onSignOut={handleSignOut}
         onUnavailable={handleUnavailableSection}
       />
@@ -1334,7 +1366,7 @@ export function TiendaPage({
                   }}
                 />
               ) : isCatalogLoading ? (
-                <div className="grid auto-rows-fr grid-cols-1 gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7 xl:gap-3">
+                <div className="grid grid-cols-1 items-start gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7 xl:gap-2">
                   {Array.from({ length: 12 }, (_, index) => (
                     <ProductCatalogCardSkeleton key={index} />
                   ))}
@@ -1411,7 +1443,7 @@ export function TiendaPage({
                       </button>
                     </div>
                   )}
-                  <div className="grid auto-rows-fr grid-cols-1 gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7 xl:gap-3">
+                  <div className="grid grid-cols-1 items-start gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7 xl:gap-2">
                     {renderedVisibleProducts.map((p) => (
                       <ProductCatalogCard
                         key={p.id}
@@ -1482,7 +1514,7 @@ export function TiendaPage({
         {panel === "mi-tienda" && (
           <section className="relative z-10 mt-6 pb-24">
             <div className="mx-auto max-w-[1600px] px-4">
-              {!session || isRoleLoading ? (
+              {isRoleLoading && !session ? (
                 <div className="flex min-h-72 items-center justify-center gap-2 text-sm text-white/55">
                   <Loader2 className="h-4 w-4 animate-spin" /> Cargando Mi Tienda…
                 </div>

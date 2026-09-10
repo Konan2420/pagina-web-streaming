@@ -7,13 +7,7 @@ export type PolicySection = {
 };
 
 export type PolicyDocument = {
-  id:
-    | "terminos"
-    | "reembolsos"
-    | "privacidad"
-    | "renovacion"
-    | "pagos"
-    | "uso-aceptable";
+  id: "terminos" | "reembolsos" | "privacidad" | "renovacion" | "pagos" | "uso-aceptable";
   title: string;
   shortTitle: string;
   summary: string;
@@ -69,7 +63,9 @@ export const POLICY_DOCUMENTS: PolicyDocument[] = [
       },
       {
         heading: "Casos que cubre",
-        paragraphs: ["La garantía puede aplicar cuando el acceso entregado no funciona desde el inicio o deja de funcionar por una causa ajena al comprador."],
+        paragraphs: [
+          "La garantía puede aplicar cuando el acceso entregado no funciona desde el inicio o deja de funcionar por una causa ajena al comprador.",
+        ],
         bullets: [
           "Cuenta caída o sin acceso dentro del plazo de garantía.",
           "Clave modificada por el proveedor o una situación técnica no causada por el comprador.",
@@ -78,7 +74,9 @@ export const POLICY_DOCUMENTS: PolicyDocument[] = [
       },
       {
         heading: "Casos no cubiertos",
-        paragraphs: ["No es posible asegurar reposición o reembolso cuando el problema se produce por un uso fuera de las indicaciones del producto."],
+        paragraphs: [
+          "No es posible asegurar reposición o reembolso cuando el problema se produce por un uso fuera de las indicaciones del producto.",
+        ],
         bullets: [
           "Cambiar correo, contraseña, PIN, perfiles o métodos de recuperación de la cuenta.",
           "Compartir el acceso con más personas, perfiles o dispositivos de los permitidos.",

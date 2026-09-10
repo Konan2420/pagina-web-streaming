@@ -12,47 +12,56 @@ export type Database = {
         Row: {
           access_link: string | null;
           assigned_at: string | null;
+          backup_codes: string | null;
           created_at: string | null;
-          email: string;
+          email: string | null;
           id: string;
           notes: string | null;
           order_id: string | null;
-          password: string;
+          password: string | null;
           payment_verified: boolean | null;
           profile: string | null;
           product_id: string;
+          redeem_code: string | null;
           status: string;
           supplier_id: string | null;
+          two_factor_secret: string | null;
         };
         Insert: {
           access_link?: string | null;
           assigned_at?: string | null;
+          backup_codes?: string | null;
           created_at?: string | null;
-          email: string;
+          email?: string | null;
           id?: string;
           notes?: string | null;
           order_id?: string | null;
-          password: string;
+          password?: string | null;
           payment_verified?: boolean | null;
           profile?: string | null;
           product_id: string;
+          redeem_code?: string | null;
           status?: string;
           supplier_id?: string | null;
+          two_factor_secret?: string | null;
         };
         Update: {
           access_link?: string | null;
           assigned_at?: string | null;
+          backup_codes?: string | null;
           created_at?: string | null;
-          email?: string;
+          email?: string | null;
           id?: string;
           notes?: string | null;
           order_id?: string | null;
-          password?: string;
+          password?: string | null;
           payment_verified?: boolean | null;
           profile?: string | null;
           product_id?: string;
+          redeem_code?: string | null;
           status?: string;
           supplier_id?: string | null;
+          two_factor_secret?: string | null;
         };
         Relationships: [
           {
@@ -182,6 +191,7 @@ export type Database = {
       delivered_accounts: {
         Row: {
           access_link: string | null;
+          backup_codes: string | null;
           created_at: string | null;
           email: string | null;
           id: string;
@@ -189,11 +199,14 @@ export type Database = {
           order_id: string;
           password: string | null;
           profile: string | null;
+          redeem_code: string | null;
+          two_factor_secret: string | null;
           updated_at: string | null;
           user_id: string;
         };
         Insert: {
           access_link?: string | null;
+          backup_codes?: string | null;
           created_at?: string | null;
           email?: string | null;
           id?: string;
@@ -201,11 +214,14 @@ export type Database = {
           order_id: string;
           password?: string | null;
           profile?: string | null;
+          redeem_code?: string | null;
+          two_factor_secret?: string | null;
           updated_at?: string | null;
           user_id: string;
         };
         Update: {
           access_link?: string | null;
+          backup_codes?: string | null;
           created_at?: string | null;
           email?: string | null;
           id?: string;
@@ -213,6 +229,8 @@ export type Database = {
           order_id?: string;
           password?: string | null;
           profile?: string | null;
+          redeem_code?: string | null;
+          two_factor_secret?: string | null;
           updated_at?: string | null;
           user_id?: string;
         };
@@ -526,6 +544,7 @@ export type Database = {
           category: string | null;
           account_type: string;
           access_scope: string;
+          credential_template: string;
           created_at: string | null;
           descripcion_larga: string | null;
           description: string | null;
@@ -549,6 +568,7 @@ export type Database = {
           category?: string | null;
           account_type?: string;
           access_scope?: string;
+          credential_template?: string;
           created_at?: string | null;
           descripcion_larga?: string | null;
           description?: string | null;
@@ -572,6 +592,7 @@ export type Database = {
           category?: string | null;
           account_type?: string;
           access_scope?: string;
+          credential_template?: string;
           created_at?: string | null;
           descripcion_larga?: string | null;
           description?: string | null;
@@ -1677,6 +1698,55 @@ export type Database = {
         Returns: {
           email: string | null;
           profile: string | null;
+        }[];
+      };
+      get_order_celebration_receipt: {
+        Args: { p_order_id: string };
+        Returns: {
+          access_link: string | null;
+          backup_codes: string | null;
+          client_name: string;
+          client_phone: string | null;
+          credential_template: string;
+          email: string | null;
+          expires_at: string | null;
+          notes: string | null;
+          order_id: string;
+          password: string | null;
+          product_name: string;
+          profile: string | null;
+          redeem_code: string | null;
+          supplier_name: string;
+          supplier_whatsapp: string | null;
+          two_factor_secret: string | null;
+        }[];
+      };
+      create_order_credential_share_link: {
+        Args: { p_order_id: string };
+        Returns: {
+          expires_at: string;
+          share_token: string;
+        }[];
+      };
+      consume_order_credential_share_link: {
+        Args: { p_token: string };
+        Returns: {
+          access_link: string | null;
+          backup_codes: string | null;
+          client_name: string;
+          client_phone: string | null;
+          credential_template: string;
+          email: string | null;
+          expires_at: string | null;
+          notes: string | null;
+          order_id: string;
+          password: string | null;
+          product_name: string;
+          profile: string | null;
+          redeem_code: string | null;
+          supplier_name: string;
+          supplier_whatsapp: string | null;
+          two_factor_secret: string | null;
         }[];
       };
       get_business_orders_with_automation: {

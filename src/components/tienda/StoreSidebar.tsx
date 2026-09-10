@@ -1,29 +1,5 @@
 import { useState, type ReactNode } from "react";
-import {
-  BadgeCheck,
-  BookOpen,
-  Bot,
-  Briefcase,
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  FolderTree,
-  GraduationCap,
-  Inbox,
-  LayoutDashboard,
-  LogOut,
-  Megaphone,
-  Phone,
-  Plus,
-  Settings,
-  Share2,
-  ShoppingBag,
-  Store,
-  Users,
-  Video,
-  Wallet,
-  X,
-} from "lucide-react";
+import { BadgeCheck, ChevronDown, ChevronRight, LogOut, Plus, Wallet, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { categories, type PanelTab } from "./data";
 import { cn } from "@/lib/utils";
@@ -60,6 +36,50 @@ const socialNetworksCategory = {
   label: "Redes Sociales",
   accent: "#38bdf8",
 };
+
+const sidebarEmojis = {
+  academy: "🎓",
+  business: "💼",
+  catalog: "🛍️",
+  clients: "👥",
+  codeBot: "🤖",
+  courses: "📚",
+  dashboard: "📊",
+  gameKeys: "🔑",
+  giftcards: "🎁",
+  inbox: "📬",
+  meets: "🎥",
+  orders: "📦",
+  platforms: "📺",
+  policies: "📄",
+  publicity: "📣",
+  recharge: "🎮",
+  settings: "⚙️",
+  socialNetworks: "📱",
+  store: "🏪",
+  support: "🎧",
+} as const;
+
+type SidebarEmoji = keyof typeof sidebarEmojis;
+
+const catalogEmojiByCategory: Record<string, SidebarEmoji> = {
+  giftcards: "giftcards",
+  recargas: "recharge",
+  redes: "socialNetworks",
+  todo: "platforms",
+  videojuegos: "gameKeys",
+};
+
+function SidebarEmojiIcon({ icon }: { icon: SidebarEmoji }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="inline-flex h-5 w-5 shrink-0 select-none items-center justify-center text-[16px] leading-none"
+    >
+      {sidebarEmojis[icon]}
+    </span>
+  );
+}
 
 /** Barra lateral del catálogo con navegación comercial y accesos de cuenta. */
 export function StoreSidebar({
@@ -117,13 +137,13 @@ export function StoreSidebar({
         aria-label="Cerrar menú lateral"
         onClick={onClose}
         className={cn(
-          "fixed inset-0 z-40 bg-black/70 transition-opacity lg:hidden",
+          "fixed inset-0 z-40 bg-slate-950/55 backdrop-blur-md transition-opacity duration-300 lg:hidden",
           open ? "opacity-100" : "pointer-events-none opacity-0",
         )}
       />
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-[var(--store-sidebar-mobile-width)] flex-col border-r border-border bg-card p-3 text-foreground transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:w-[var(--store-sidebar-width)] lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex h-[100dvh] max-h-[100dvh] w-[var(--store-sidebar-mobile-width)] flex-col overflow-hidden border-r border-border bg-card p-3 text-foreground shadow-2xl transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] lg:w-[var(--store-sidebar-width)] lg:translate-x-0 lg:shadow-none",
           open ? "translate-x-0" : "-translate-x-full",
           collapsed && "lg:w-[var(--store-sidebar-collapsed-width)]",
         )}
@@ -183,14 +203,14 @@ export function StoreSidebar({
         <nav
           aria-label="Navegación principal"
           className={cn(
-            "cmd-sidebar-scroll min-h-0 flex-1 overflow-y-auto pr-1.5 text-sm",
+            "cmd-sidebar-scroll min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1.5 text-sm touch-pan-y",
             collapsed && "lg:pr-0",
           )}
         >
           <div className="space-y-0.5">
             <SidebarButton
               collapsed={collapsed}
-              icon={<FolderTree />}
+              icon="catalog"
               label="Catálogo"
               expanded={catalogOpen}
               onClick={() => setCatalogOpen((value) => !value)}
@@ -210,12 +230,13 @@ export function StoreSidebar({
                       href={catalogOnly ? "/catalogo" : "/tienda"}
                       onClick={onClose}
                       className={cn(
-                        "flex min-h-11 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
+                        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
                         active
                           ? "cmd-active-subtle"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
+                      <SidebarEmojiIcon icon={catalogEmojiByCategory[category.id] ?? "platforms"} />
                       {category.label}
                     </a>
                   );
@@ -227,15 +248,13 @@ export function StoreSidebar({
                     type="button"
                     onClick={() => selectCategory(category.id)}
                     className={cn(
-                      "flex min-h-11 w-full items-center rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
+                      "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[13px] font-semibold transition-colors sm:min-h-9",
                       active
                         ? "cmd-active-subtle"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
-                    {category.id === "redes" && (
-                      <Share2 className="mr-2 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                    )}
+                    <SidebarEmojiIcon icon={catalogEmojiByCategory[category.id] ?? "platforms"} />
                     {category.label}
                   </button>
                 );
@@ -244,7 +263,7 @@ export function StoreSidebar({
 
             <SidebarButton
               collapsed={collapsed}
-              icon={<LayoutDashboard />}
+              icon="dashboard"
               label="Dashboard"
               onClick={() => selectCategory("todo")}
             />
@@ -257,7 +276,7 @@ export function StoreSidebar({
               <div className="space-y-0.5">
                 <SidebarButton
                   collapsed={collapsed}
-                  icon={<Briefcase />}
+                  icon="business"
                   label="Mi Negocio"
                   expanded={businessOpen}
                   onClick={() => setBusinessOpen((value) => !value)}
@@ -265,7 +284,7 @@ export function StoreSidebar({
                 <SidebarSubmenu open={businessOpen} collapsed={collapsed}>
                   {canManageStorefront && (
                     <SidebarSubItem
-                      icon={<Store />}
+                      icon="store"
                       label="Mi Tienda"
                       active={activePanel === "mi-tienda"}
                       onClick={onOpenStorefront}
@@ -273,14 +292,14 @@ export function StoreSidebar({
                   )}
                   {canManageStorefront ? (
                     <SidebarSubItem
-                      icon={<ShoppingBag />}
+                      icon="orders"
                       label="Mis Pedidos"
                       active={activePanel === "pedidos"}
                       onClick={() => selectPanel("pedidos")}
                     />
                   ) : (
                     <SidebarSubItem
-                      icon={<ShoppingBag />}
+                      icon="orders"
                       label="Mis Compras"
                       active={activePanel === "compras"}
                       onClick={() => selectProtectedPanel("compras")}
@@ -288,15 +307,15 @@ export function StoreSidebar({
                   )}
                   {canManageStorefront && (
                     <SidebarSubItem
-                      icon={<Users />}
+                      icon="clients"
                       label="Clientes"
                       active={activePanel === "clientes"}
                       onClick={() => selectPanel("clientes")}
                     />
                   )}
-                  <SidebarSubItem icon={<Bot />} label="Bot de Códigos" disabled badge="Próx" />
+                  <SidebarSubItem icon="codeBot" label="Bot de Códigos" disabled badge="Próx" />
                   <SidebarSubItem
-                    icon={<Inbox />}
+                    icon="inbox"
                     label="Buzón"
                     active={activePanel === "buzon"}
                     onClick={() => selectProtectedPanel("buzon")}
@@ -305,7 +324,7 @@ export function StoreSidebar({
 
                 <SidebarButton
                   collapsed={collapsed}
-                  icon={<Phone />}
+                  icon="support"
                   label="Soporte"
                   active={activePanel === "soporte"}
                   onClick={() => selectPanel("soporte")}
@@ -313,26 +332,26 @@ export function StoreSidebar({
 
                 <SidebarButton
                   collapsed={collapsed}
-                  icon={<GraduationCap />}
+                  icon="academy"
                   label="Academia"
                   expanded={academyOpen}
                   onClick={() => setAcademyOpen((value) => !value)}
                 />
                 <SidebarSubmenu open={academyOpen} collapsed={collapsed}>
                   <SidebarSubItem
-                    icon={<Megaphone />}
+                    icon="publicity"
                     label="Publicidad"
                     active={activePanel === "publicidad"}
                     onClick={() => selectPanel("publicidad")}
                   />
                   <SidebarSubItem
-                    icon={<BookOpen />}
+                    icon="courses"
                     label="Cursos"
                     active={activePanel === "cursos"}
                     onClick={() => selectPanel("cursos")}
                   />
                   <SidebarSubItem
-                    icon={<Video />}
+                    icon="meets"
                     label="Meets"
                     active={activePanel === "meets"}
                     onClick={() => selectPanel("meets")}
@@ -348,9 +367,7 @@ export function StoreSidebar({
                     collapsed && "lg:justify-center lg:gap-0 lg:px-0",
                   )}
                 >
-                  <span className="shrink-0 text-muted-foreground [&>svg]:h-4 [&>svg]:w-4">
-                    <FileText />
-                  </span>
+                  <SidebarEmojiIcon icon="policies" />
                   <span
                     className={cn(
                       "max-w-[15rem] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",
@@ -362,7 +379,7 @@ export function StoreSidebar({
                 </a>
                 <SidebarButton
                   collapsed={collapsed}
-                  icon={<Settings />}
+                  icon="settings"
                   label="Configuración"
                   active={activePanel === "perfil"}
                   onClick={() => selectProtectedPanel("perfil")}
@@ -500,7 +517,7 @@ function SidebarSubItem({
   badge,
   onClick,
 }: {
-  icon: ReactNode;
+  icon: SidebarEmoji;
   label: string;
   active?: boolean;
   disabled?: boolean;
@@ -518,7 +535,7 @@ function SidebarSubItem({
 
   const content = (
     <>
-      <span className="shrink-0 text-current [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
+      <SidebarEmojiIcon icon={icon} />
       <span>{label}</span>
       {badge && (
         <span className="ml-auto rounded-md bg-muted px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wide text-muted-foreground">
@@ -552,7 +569,7 @@ function SidebarButton({
   onClick,
 }: {
   collapsed: boolean;
-  icon: ReactNode;
+  icon: SidebarEmoji;
   label: string;
   active?: boolean;
   expanded?: boolean;
@@ -567,12 +584,10 @@ function SidebarButton({
       className={cn(
         "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out sm:min-h-10",
         collapsed && "lg:justify-center lg:gap-0 lg:px-0",
-        active
-          ? "cmd-active-subtle"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground",
+        active ? "cmd-active-subtle" : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
-      <span className="shrink-0 text-current [&>svg]:h-4 [&>svg]:w-4">{icon}</span>
+      <SidebarEmojiIcon icon={icon} />
       <span
         className={cn(
           "max-w-[15rem] overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",

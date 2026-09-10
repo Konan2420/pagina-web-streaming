@@ -37,9 +37,11 @@ async function loadPublicSupabaseConfig(): Promise<PublicSupabaseConfig | null> 
   // este módulo compartido: Vite lo llegaba a incluir en el grafo del navegador
   // y demoraba/corrompía la hidratación durante el arranque local.
   if (!config && typeof window === "undefined") {
-    const serverEnv = (globalThis as typeof globalThis & {
-      process?: { env?: Record<string, string | undefined> };
-    }).process?.env;
+    const serverEnv = (
+      globalThis as typeof globalThis & {
+        process?: { env?: Record<string, string | undefined> };
+      }
+    ).process?.env;
     const url = serverEnv?.NITRO_SUPABASE_URL || serverEnv?.SUPABASE_URL;
     const publishableKey =
       serverEnv?.NITRO_SUPABASE_PUBLISHABLE_KEY || serverEnv?.SUPABASE_PUBLISHABLE_KEY;

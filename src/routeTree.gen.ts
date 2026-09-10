@@ -22,6 +22,7 @@ import { Route as AuthenticatedDistribuidorRouteImport } from './routes/_authent
 import { Route as AuthenticatedProveedorRouteImport } from './routes/_authenticated/proveedor'
 import { Route as AuthenticatedRedesSocialesRouteImport } from './routes/_authenticated/redes-sociales'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as CredencialesTokenRouteImport } from './routes/credenciales/$token'
 import { Route as PlataformasIndexRouteImport } from './routes/plataformas/index'
 import { Route as PlataformasSlugRouteImport } from './routes/plataformas/$slug'
 import { Route as TiendaPublicaSlugRouteImport } from './routes/tienda-publica/$slug'
@@ -115,6 +116,11 @@ const AuthenticatedRedesSocialesRoute =
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CredencialesTokenRoute = CredencialesTokenRouteImport.update({
+  id: '/credenciales/$token',
+  path: '/credenciales/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlataformasIndexRoute = PlataformasIndexRouteImport.update({
@@ -293,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/proveedor': typeof AuthenticatedProveedorRouteWithChildren
   '/redes-sociales': typeof AuthenticatedRedesSocialesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/credenciales/$token': typeof CredencialesTokenRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
@@ -332,6 +339,7 @@ export interface FileRoutesByTo {
   '/catalogo': typeof AuthenticatedCatalogoRoute
   '/redes-sociales': typeof AuthenticatedRedesSocialesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/credenciales/$token': typeof CredencialesTokenRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas': typeof PlataformasIndexRoute
@@ -376,6 +384,7 @@ export interface FileRoutesById {
   '/_authenticated/proveedor': typeof AuthenticatedProveedorRouteWithChildren
   '/_authenticated/redes-sociales': typeof AuthenticatedRedesSocialesRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/credenciales/$token': typeof CredencialesTokenRoute
   '/plataformas/$slug': typeof PlataformasSlugRoute
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
@@ -420,6 +429,7 @@ export interface FileRouteTypes {
     | '/proveedor'
     | '/redes-sociales'
     | '/auth/callback'
+    | '/credenciales/$token'
     | '/plataformas/$slug'
     | '/tienda-publica/$slug'
     | '/plataformas/'
@@ -459,6 +469,7 @@ export interface FileRouteTypes {
     | '/catalogo'
     | '/redes-sociales'
     | '/auth/callback'
+    | '/credenciales/$token'
     | '/plataformas/$slug'
     | '/tienda-publica/$slug'
     | '/plataformas'
@@ -502,6 +513,7 @@ export interface FileRouteTypes {
     | '/_authenticated/proveedor'
     | '/_authenticated/redes-sociales'
     | '/auth/callback'
+    | '/credenciales/$token'
     | '/plataformas/$slug'
     | '/tienda-publica/$slug'
     | '/plataformas/'
@@ -541,6 +553,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TiendaRoute: typeof TiendaRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  CredencialesTokenRoute: typeof CredencialesTokenRoute
   PlataformasSlugRoute: typeof PlataformasSlugRoute
   TiendaPublicaSlugRoute: typeof TiendaPublicaSlugRoute
   PlataformasIndexRoute: typeof PlataformasIndexRoute
@@ -639,6 +652,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credenciales/$token': {
+      id: '/credenciales/$token'
+      path: '/credenciales/$token'
+      fullPath: '/credenciales/$token'
+      preLoaderRoute: typeof CredencialesTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plataformas/': {
@@ -953,6 +973,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TiendaRoute: TiendaRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  CredencialesTokenRoute: CredencialesTokenRoute,
   PlataformasSlugRoute: PlataformasSlugRoute,
   TiendaPublicaSlugRoute: TiendaPublicaSlugRoute,
   PlataformasIndexRoute: PlataformasIndexRoute,

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { getCredentialFields, type OrderCredentialReceipt } from "@/lib/order-credentials";
 import { downloadXlsx } from "@/lib/xlsx-export";
 import { cn } from "@/lib/utils";
 
@@ -75,6 +76,36 @@ const EMPTY_COUNTS: StatusCounts = {
   vencido: 0,
   cancelado: 0,
 };
+
+type SupabaseQueryError = {
+  code?: string;
+  message?: string;
+  details?: string | null;
+  hint?: string | null;
+};
+
+/** Registra el diagnóstico de PostgREST sólo durante desarrollo, sin secretos. */
+function reportBusinessOrdersError(operation: string, error: unknown) {
+  if (!import.meta.env.DEV) return;
+
+  const details = (error ?? {}) as SupabaseQueryError;
+  console.error(`[Mis Pedidos] Error al ${operation}:`, {
+    code: details.code,
+    message: details.message,
+    details: details.details,
+    hint: details.hint,
+  });
+}
+
+function describeBusinessOrdersError(error: unknown) {
+  const details = (error ?? {}) as SupabaseQueryError;
+  const code = details.code?.trim();
+  const message = details.message?.trim();
+
+  if (code && message) return `${code}: ${message}`;
+  if (message) return message;
+  return "La consulta fue rechazada por la base de datos. Reintenta en unos instantes.";
+}
 
 function money(value: number) {
   return `S/ ${Number(value ?? 0).toFixed(2)}`;
@@ -259,7 +290,10 @@ export function BusinessOrdersPanel({
         p_limit: PAGE_SIZE,
         p_offset: (page - 1) * PAGE_SIZE,
       });
-      if (error) throw error;
+      if (error) {
+        reportBusinessOrdersError("cargar la lista", error);
+        throw error;
+      }
       return (data ?? []) as BusinessOrder[];
     },
     staleTime: 15_000,
@@ -273,7 +307,10 @@ export function BusinessOrdersPanel({
         "get_business_order_status_counts_with_automation",
         filters,
       );
-      if (error) throw error;
+      if (error) {
+        reportBusinessOrdersError("cargar los contadores", error);
+        throw error;
+      }
       const count = data?.[0];
       return {
         all: Number(count?.all_count ?? 0),
@@ -381,7 +418,7 @@ export function BusinessOrdersPanel({
     enabled: selected?.source === "catalog",
     queryFn: async () => {
       if (!selected) return null;
-      const { data, error } = await supabase.rpc("get_business_order_credentials", {
+      const { data, error } = await supabase.rpc("get_order_celebration_receipt", {
         p_order_id: selected.order_id,
       });
       if (error) throw error;
@@ -392,6 +429,8 @@ export function BusinessOrdersPanel({
 
   const orders = ordersQuery.data ?? [];
   const counts = countsQuery.data ?? EMPTY_COUNTS;
+  const loadError = ordersQuery.error ?? countsQuery.error;
+  const hasLoadError = ordersQuery.isError || countsQuery.isError;
   const total = orders[0]?.total_count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const brands = Array.from(new Set(orders.map((order) => order.brand).filter(Boolean))).sort();
@@ -576,15 +615,17 @@ export function BusinessOrdersPanel({
 
         {ordersQuery.isLoading ? (
           <OrdersSkeleton />
-        ) : ordersQuery.isError ? (
+        ) : hasLoadError ? (
           <div className="mt-5 rounded-xl border border-destructive/35 bg-destructive/10 p-6 text-center">
             <p className="font-bold text-destructive">No se pudieron cargar tus pedidos.</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Aplica la migración de Mis Pedidos y vuelve a intentar.
+              {describeBusinessOrdersError(loadError)}
             </p>
             <button
               type="button"
-              onClick={() => void ordersQuery.refetch()}
+              onClick={() => {
+                void Promise.all([ordersQuery.refetch(), countsQuery.refetch()]);
+              }}
               className="mt-4 rounded-lg border border-destructive/40 px-3 py-2 text-xs font-bold text-destructive"
             >
               Reintentar
@@ -1082,7 +1123,7 @@ function OrderDetailDialog({
   onClose,
 }: {
   order: BusinessOrder;
-  credentials: { email: string | null; profile: string | null } | null;
+  credentials: OrderCredentialReceipt | null;
   credentialsLoading: boolean;
   credentialsError: boolean;
   onClose: () => void;
@@ -1136,8 +1177,19 @@ function OrderDetailDialog({
                 </p>
               ) : (
                 <div className="mt-3 grid gap-3">
-                  <CredentialField label="Correo" value={credentials?.email} />
-                  <CredentialField label="Perfil" value={credentials?.profile} />
+                  {credentials ? (
+                    getCredentialFields(credentials).length > 0 ? (
+                      getCredentialFields(credentials).map((field) => (
+                        <CredentialField key={field.id} label={field.label} value={field.value} />
+                      ))
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        Este producto no requiere credenciales de acceso.
+                      </p>
+                    )
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Sin credenciales registradas.</p>
+                  )}
                 </div>
               )}
             </section>

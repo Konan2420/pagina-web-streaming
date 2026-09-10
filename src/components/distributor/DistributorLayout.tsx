@@ -16,7 +16,9 @@ function DistributorPageFrame({ children, title, subtitle }: DistributorLayoutPr
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-300">
             Panel de distribuidor
           </p>
-          <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-white">{title}</h1>
+          <h1 className="mt-2 font-display text-3xl uppercase tracking-tight text-white">
+            {title}
+          </h1>
           {subtitle && <p className="mt-2 max-w-2xl text-sm text-white/50">{subtitle}</p>}
         </header>
         {children}

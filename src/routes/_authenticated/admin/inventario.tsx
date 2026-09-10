@@ -55,6 +55,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  credentialTemplateLabel,
+  inventoryFormatHint,
+  normalizeCredentialTemplate,
+  parseInventoryLine,
+  validateInventoryCredentials,
+  type CredentialTemplate,
+} from "@/lib/inventory-credentials";
 
 export const Route = createFileRoute("/_authenticated/admin/inventario")({
   component: InventoryPage,
@@ -64,10 +72,15 @@ function InventoryPage() {
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<string>("");
+  const [selectedCredentialType, setSelectedCredentialType] = useState<CredentialTemplate | "">("");
   const [bulkMode, setBulkMode] = useState(false);
   const [credentials, setCredentials] = useState({
     email: "",
     password: "",
+    profile: "",
+    two_factor_secret: "",
+    backup_codes: "",
+    redeem_code: "",
     access_link: "",
     notes: "",
   });
@@ -80,13 +93,21 @@ function InventoryPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name")
+        .select("id, name, credential_template")
         .eq("is_active", true)
         .order("name");
       if (error) throw error;
       return data;
     },
   });
+  const selectedTemplate = normalizeCredentialTemplate(
+    products?.find((product) => product.id === selectedProduct)?.credential_template,
+  );
+  const compatibleProducts = products?.filter(
+    (product) =>
+      !selectedCredentialType ||
+      normalizeCredentialTemplate(product.credential_template) === selectedCredentialType,
+  );
 
   // Fetch inventory
   const { data: inventory, isLoading } = useQuery({
@@ -119,33 +140,41 @@ function InventoryPage() {
   const addMutation = useMutation({
     mutationFn: async () => {
       if (!selectedProduct) throw new Error("Selecciona un producto");
+      if (!selectedCredentialType) throw new Error("Selecciona el tipo de credencial.");
+      if (selectedCredentialType !== selectedTemplate) {
+        throw new Error("El tipo debe coincidir con la configuración del producto.");
+      }
+      if (selectedTemplate === "none") {
+        throw new Error(
+          "Este producto está configurado sin credenciales y no requiere inventario.",
+        );
+      }
 
       if (bulkMode) {
-        // Bulk mode: email:password
-        const lines = bulkText.split("\n").filter((l) => l.trim().includes(":"));
-        if (lines.length === 0) throw new Error("Formato inválido. Usa email:password por línea");
+        const lines = bulkText.split("\n").filter((line) => line.trim());
+        if (lines.length === 0) throw new Error("Agrega una entrega por línea.");
 
-        const inserts = lines.map((line) => {
-          const [email, ...rest] = line.split(":");
-          return {
-            product_id: selectedProduct,
-            email: email.trim(),
-            password: rest.join(":").trim(),
-            status: "available",
-          };
+        const inserts = lines.map((line, index) => {
+          const credentials = parseInventoryLine(line, selectedTemplate);
+          const validationError = validateInventoryCredentials(credentials, selectedTemplate);
+          if (validationError) throw new Error(`Línea ${index + 1}: ${validationError}`);
+          return { product_id: selectedProduct, ...credentials, status: "available" };
         });
 
         const { error } = await supabase.from("account_inventory").insert(inserts);
         if (error) throw error;
       } else {
-        // Single mode
-        if (!credentials.email || !credentials.password)
-          throw new Error("Email y contraseña requeridos");
+        const validationError = validateInventoryCredentials(credentials, selectedTemplate);
+        if (validationError) throw new Error(validationError);
         const { error } = await supabase.from("account_inventory").insert([
           {
             product_id: selectedProduct,
             email: credentials.email,
             password: credentials.password,
+            profile: credentials.profile || null,
+            two_factor_secret: credentials.two_factor_secret || null,
+            backup_codes: credentials.backup_codes || null,
+            redeem_code: credentials.redeem_code || null,
             access_link: credentials.access_link,
             notes: credentials.notes,
             status: "available",
@@ -158,7 +187,16 @@ function InventoryPage() {
       queryClient.invalidateQueries({ queryKey: ["admin-account-inventory"] });
       toast.success(bulkMode ? "Cuentas agregadas en lote" : "Cuenta agregada exitosamente");
       setIsAddOpen(false);
-      setCredentials({ email: "", password: "", access_link: "", notes: "" });
+      setCredentials({
+        email: "",
+        password: "",
+        profile: "",
+        two_factor_secret: "",
+        backup_codes: "",
+        redeem_code: "",
+        access_link: "",
+        notes: "",
+      });
       setBulkText("");
     },
     onError: (error) => {
@@ -214,7 +252,7 @@ function InventoryPage() {
 
   const filteredInventory = inventory?.filter(
     (item) =>
-      item.email.toLowerCase().includes(search.toLowerCase()) ||
+      (item.email ?? "").toLowerCase().includes(search.toLowerCase()) ||
       item.products?.name.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -280,13 +318,50 @@ function InventoryPage() {
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
+                <label className="text-sm font-medium">Tipo de credencial</label>
+                <Select
+                  value={selectedCredentialType}
+                  onValueChange={(value) => {
+                    const type = value as CredentialTemplate;
+                    setSelectedCredentialType(type);
+                    if (
+                      selectedProduct &&
+                      normalizeCredentialTemplate(
+                        products?.find((product) => product.id === selectedProduct)
+                          ?.credential_template,
+                      ) !== type
+                    ) {
+                      setSelectedProduct("");
+                    }
+                    setBulkText("");
+                  }}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10">
+                    <SelectValue placeholder="Selecciona el formato de entrega" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-ink border-white/10">
+                    {(["account", "account_2fa", "access_link", "redeem_code"] as const).map(
+                      (type) => (
+                        <SelectItem key={type} value={type}>
+                          {credentialTemplateLabel(type)}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-white/40">
+                  Solo se muestran productos configurados con el tipo elegido.
+                </p>
+              </div>
+
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Producto Relacionado</label>
                 <Select value={selectedProduct} onValueChange={setSelectedProduct}>
                   <SelectTrigger className="bg-white/5 border-white/10">
                     <SelectValue placeholder="Selecciona un producto" />
                   </SelectTrigger>
                   <SelectContent className="bg-ink border-white/10">
-                    {products?.map((p) => (
+                    {compatibleProducts?.map((p) => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.name}
                       </SelectItem>
@@ -316,49 +391,111 @@ function InventoryPage() {
 
               {bulkMode ? (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Lista de Cuentas (email:password)</label>
+                  <label className="text-sm font-medium">Lista de entregas</label>
                   <Textarea
-                    placeholder="correo@ejemplo.com:clave123&#10;otro@ejemplo.com:clave456"
+                    placeholder={inventoryFormatHint(selectedTemplate)}
                     className="bg-white/5 border-white/10 h-32 font-mono text-sm"
                     value={bulkText}
                     onChange={(e) => setBulkText(e.target.value)}
                   />
                   <p className="text-[10px] text-white/40">
-                    Una línea por cuenta. Separado por dos puntos.
+                    Una línea por entrega. Formato: {inventoryFormatHint(selectedTemplate)}
                   </p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <label className="text-sm">Email</label>
-                      <Input
-                        value={credentials.email}
-                        onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
-                        className="bg-white/5 border-white/10"
-                      />
+                  {(selectedTemplate === "account" || selectedTemplate === "account_2fa") && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-2">
+                          <label className="text-sm">Email</label>
+                          <Input
+                            value={credentials.email}
+                            onChange={(e) =>
+                              setCredentials({ ...credentials, email: e.target.value })
+                            }
+                            className="bg-white/5 border-white/10"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm">Contraseña</label>
+                          <Input
+                            value={credentials.password}
+                            onChange={(e) =>
+                              setCredentials({ ...credentials, password: e.target.value })
+                            }
+                            className="bg-white/5 border-white/10"
+                          />
+                        </div>
+                      </div>
+                      {selectedTemplate === "account" && (
+                        <div className="space-y-2">
+                          <label className="text-sm">Perfil (opcional)</label>
+                          <Input
+                            value={credentials.profile}
+                            onChange={(e) =>
+                              setCredentials({ ...credentials, profile: e.target.value })
+                            }
+                            className="bg-white/5 border-white/10"
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {selectedTemplate === "account_2fa" && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <label className="text-sm">Secreto TOTP</label>
+                        <Input
+                          value={credentials.two_factor_secret}
+                          onChange={(e) =>
+                            setCredentials({ ...credentials, two_factor_secret: e.target.value })
+                          }
+                          className="bg-white/5 border-white/10"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm">Códigos de recuperación</label>
+                        <Input
+                          value={credentials.backup_codes}
+                          onChange={(e) =>
+                            setCredentials({ ...credentials, backup_codes: e.target.value })
+                          }
+                          className="bg-white/5 border-white/10"
+                        />
+                      </div>
                     </div>
+                  )}
+                  {selectedTemplate === "redeem_code" && (
                     <div className="space-y-2">
-                      <label className="text-sm">Contraseña</label>
+                      <label className="text-sm">Código de canje</label>
                       <Input
-                        value={credentials.password}
+                        value={credentials.redeem_code}
                         onChange={(e) =>
-                          setCredentials({ ...credentials, password: e.target.value })
+                          setCredentials({ ...credentials, redeem_code: e.target.value })
                         }
                         className="bg-white/5 border-white/10"
                       />
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm">Link de Acceso (opcional)</label>
-                    <Input
-                      value={credentials.access_link}
-                      onChange={(e) =>
-                        setCredentials({ ...credentials, access_link: e.target.value })
-                      }
-                      className="bg-white/5 border-white/10"
-                    />
-                  </div>
+                  )}
+                  {selectedTemplate === "access_link" && (
+                    <div className="space-y-2">
+                      <label className="text-sm">Link de acceso</label>
+                      <Input
+                        type="url"
+                        value={credentials.access_link}
+                        onChange={(e) =>
+                          setCredentials({ ...credentials, access_link: e.target.value })
+                        }
+                        className="bg-white/5 border-white/10"
+                      />
+                    </div>
+                  )}
+                  {selectedTemplate === "none" && (
+                    <p className="rounded-lg border border-dashed border-white/10 bg-white/5 p-3 text-xs text-white/50">
+                      Este producto no requiere credenciales ni inventario.
+                    </p>
+                  )}
                   <div className="space-y-2">
                     <label className="text-sm">Notas/PIN (opcional)</label>
                     <Input
@@ -415,7 +552,7 @@ function InventoryPage() {
                     <div className="font-medium text-white">{item.products?.name}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-white/80">{item.email}</div>
+                    <div className="text-white/80">{item.email || "Entrega sin correo"}</div>
                     <div className="text-xs text-white/40 font-mono">****</div>
                   </TableCell>
                   <TableCell>

@@ -1,10 +1,6 @@
 import { createMiddleware } from "@tanstack/react-start";
 
-type CsrfSecFetchSite =
-  | "same-origin"
-  | "same-site"
-  | "cross-site"
-  | "none";
+type CsrfSecFetchSite = "same-origin" | "same-site" | "cross-site" | "none";
 
 type CsrfRequestContext = {
   request: Request;
@@ -14,10 +10,7 @@ type CsrfRequestContext = {
 type CsrfMatcher<TValue extends string> =
   | TValue
   | Array<TValue>
-  | ((
-      value: TValue | (string & {}),
-      context: CsrfRequestContext,
-    ) => boolean | Promise<boolean>);
+  | ((value: TValue | (string & {}), context: CsrfRequestContext) => boolean | Promise<boolean>);
 
 type CsrfMiddlewareOptions = {
   /** Return true only for requests that should be checked. */
@@ -28,17 +21,9 @@ type CsrfMiddlewareOptions = {
   secFetchSite?: CsrfMatcher<CsrfSecFetchSite>;
   /** Use Referer when Sec-Fetch-Site and Origin are absent. */
   referer?:
-    | boolean
-    | ((
-        referer: string,
-        context: CsrfRequestContext,
-      ) => boolean | Promise<boolean>);
+    boolean | ((referer: string, context: CsrfRequestContext) => boolean | Promise<boolean>);
   allowRequestsWithoutOriginCheck?: boolean;
-  failureResponse?:
-    | Response
-    | ((
-        context: CsrfRequestContext,
-      ) => Response | Promise<Response>);
+  failureResponse?: Response | ((context: CsrfRequestContext) => Response | Promise<Response>);
 };
 
 const csrfSymbol = Symbol.for("tanstack-start:csrf-middleware");
@@ -72,7 +57,9 @@ async function isCsrfRequestAllowed(
   context: CsrfRequestContext,
 ): Promise<boolean> {
   const result = await getCsrfRequestValidationResult(options, context);
-  return result === true || (result === undefined && options.allowRequestsWithoutOriginCheck === true);
+  return (
+    result === true || (result === undefined && options.allowRequestsWithoutOriginCheck === true)
+  );
 }
 
 async function getCsrfRequestValidationResult(

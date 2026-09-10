@@ -121,15 +121,17 @@ export function WalletRechargeModal({
         tone: order.estado === "cancelado" ? "rejected" : "completed",
       }));
 
-      const manualOrderMovements: WalletMovement[] = (manualOrdersResult.data ?? []).map((order) => ({
-        id: `orden-manual-${order.id}`,
-        date: order.created_at ?? order.fecha_adquisicion ?? new Date().toISOString(),
-        type: "Compra",
-        method: order.producto_nombre || "Producto CMD",
-        amount: formatRechargeAmount(Number(order.monto ?? 0), "PEN"),
-        status: order.estado === "cancelado" ? "Cancelado" : "Completado",
-        tone: order.estado === "cancelado" ? "rejected" : "completed",
-      }));
+      const manualOrderMovements: WalletMovement[] = (manualOrdersResult.data ?? []).map(
+        (order) => ({
+          id: `orden-manual-${order.id}`,
+          date: order.created_at ?? order.fecha_adquisicion ?? new Date().toISOString(),
+          type: "Compra",
+          method: order.producto_nombre || "Producto CMD",
+          amount: formatRechargeAmount(Number(order.monto ?? 0), "PEN"),
+          status: order.estado === "cancelado" ? "Cancelado" : "Completado",
+          tone: order.estado === "cancelado" ? "rejected" : "completed",
+        }),
+      );
 
       return [...rechargeMovements, ...orderMovements, ...manualOrderMovements].sort(
         (first, second) => new Date(second.date).getTime() - new Date(first.date).getTime(),
@@ -165,21 +167,29 @@ export function WalletRechargeModal({
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : "No se pudo registrar la recarga.";
-      toast.error(message.includes("recipient") ? "El correo receptor debe tener una cuenta CMD." : message);
+      toast.error(
+        message.includes("recipient") ? "El correo receptor debe tener una cuenta CMD." : message,
+      );
     },
   });
 
   const selectedMethod = RECHARGE_METHODS.find((method) => method.value === activeMethod)!;
   const settings = settingsQuery.data ?? null;
   const methodInstructions = getMethodInstructions(activeMethod, settings);
-  const nameLabel = activeMethod === "binance" ? "Nombre o ID de Binance Pay" : "Primer nombre o tag declarado";
+  const nameLabel =
+    activeMethod === "binance" ? "Nombre o ID de Binance Pay" : "Primer nombre o tag declarado";
   const qrUrl =
     activeMethod === "lemon_cash"
       ? settings?.lemon_qr_url
       : activeMethod === "yape_plin"
         ? settings?.yape_plin_qr_url
         : settings?.binance_qr_url;
-  const qrLabel = activeMethod === "lemon_cash" ? "Lemon Cash" : activeMethod === "yape_plin" ? "Yape / Plin" : "Binance Pay";
+  const qrLabel =
+    activeMethod === "lemon_cash"
+      ? "Lemon Cash"
+      : activeMethod === "yape_plin"
+        ? "Yape / Plin"
+        : "Binance Pay";
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -195,7 +205,12 @@ export function WalletRechargeModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="wallet-recharge-title">
+    <div
+      className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="wallet-recharge-title"
+    >
       <button
         type="button"
         aria-label="Cerrar recarga de saldo"
@@ -207,10 +222,16 @@ export function WalletRechargeModal({
           <div>
             <div className="flex items-center gap-2 text-primary">
               <WalletCards className="h-4 w-4" aria-hidden="true" />
-              <span className="text-[10px] font-black uppercase tracking-[0.16em]">Mi Billetera</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.16em]">
+                Mi Billetera
+              </span>
             </div>
-            <h2 id="wallet-recharge-title" className="mt-1 text-xl font-black text-white">Recargar saldo</h2>
-            <p className="mt-1 text-xs text-white/50">Registra tu pago para que sea verificado por el equipo CMD.</p>
+            <h2 id="wallet-recharge-title" className="mt-1 text-xl font-black text-white">
+              Recargar saldo
+            </h2>
+            <p className="mt-1 text-xs text-white/50">
+              Registra tu pago para que sea verificado por el equipo CMD.
+            </p>
           </div>
           <button
             type="button"
@@ -257,31 +278,48 @@ export function WalletRechargeModal({
               ))}
             </div>
             {methodsScroll.hasStartOverflow && (
-              <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent" />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent"
+              />
             )}
             {methodsScroll.hasEndOverflow && (
-              <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent" />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent"
+              />
             )}
           </div>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(15rem,0.9fr)]">
-            <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-white/[0.02] p-4 sm:p-5">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4 rounded-xl border border-border bg-white/[0.02] p-4 sm:p-5"
+            >
               <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/[0.07] p-3">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
-                <p className="text-xs leading-relaxed text-white/70">{methodInstructions.primary}</p>
+                <p className="text-xs leading-relaxed text-white/70">
+                  {methodInstructions.primary}
+                </p>
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/45">Métodos soportados</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/45">
+                  Métodos soportados
+                </p>
                 <p className="mt-1 text-sm text-white/75">{methodInstructions.supported}</p>
               </div>
               <label className="block space-y-1.5">
-                <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">{nameLabel}</span>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">
+                  {nameLabel}
+                </span>
                 <input
                   required
                   maxLength={120}
                   value={declaredName}
                   onChange={(event) => setDeclaredName(event.target.value)}
-                  placeholder={activeMethod === "lemon_cash" ? "Ej.: mariana o @mariana" : "Ej.: Mariana Pérez"}
+                  placeholder={
+                    activeMethod === "lemon_cash" ? "Ej.: mariana o @mariana" : "Ej.: Mariana Pérez"
+                  }
                   className="w-full rounded-lg border border-border bg-background px-3 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
                 />
               </label>
@@ -309,12 +347,16 @@ export function WalletRechargeModal({
                 />
                 <span>
                   ¿La recarga es para otro usuario?
-                  <span className="mt-0.5 block text-xs text-white/40">El receptor debe tener una cuenta registrada en CMD Streaming.</span>
+                  <span className="mt-0.5 block text-xs text-white/40">
+                    El receptor debe tener una cuenta registrada en CMD Streaming.
+                  </span>
                 </span>
               </label>
               {forAnotherUser && (
                 <label className="block space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">Correo del usuario receptor</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wide text-white/55">
+                    Correo del usuario receptor
+                  </span>
                   <input
                     required
                     type="email"
@@ -330,7 +372,11 @@ export function WalletRechargeModal({
                 disabled={createRechargeMutation.isPending}
                 className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-red-accent px-4 text-[10px] font-black uppercase tracking-wide text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {createRechargeMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+                {createRechargeMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="h-4 w-4" />
+                )}
                 Ya pagué, verificar
               </button>
               <button
@@ -366,18 +412,29 @@ export function WalletRechargeModal({
                   : methodInstructions.reference}
               </p>
               <div className="mt-5 border-t border-border pt-4">
-                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/40">Importante</p>
-                <p className="mt-2 text-xs leading-relaxed text-white/60">{methodInstructions.detail}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-white/40">
+                  Importante
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-white/60">
+                  {methodInstructions.detail}
+                </p>
               </div>
             </aside>
           </div>
 
-          <section className="mt-6 border-t border-border pt-5" aria-labelledby="wallet-history-title">
+          <section
+            className="mt-6 border-t border-border pt-5"
+            aria-labelledby="wallet-history-title"
+          >
             <div className="flex items-center gap-2">
               <History className="h-4 w-4 text-primary" aria-hidden="true" />
-              <h3 id="wallet-history-title" className="text-base font-bold text-white">Historial de movimientos</h3>
+              <h3 id="wallet-history-title" className="text-base font-bold text-white">
+                Historial de movimientos
+              </h3>
             </div>
-            <p className="mt-1 text-xs text-white/45">Recargas solicitadas y compras asociadas a tu cuenta.</p>
+            <p className="mt-1 text-xs text-white/45">
+              Recargas solicitadas y compras asociadas a tu cuenta.
+            </p>
 
             {movementsQuery.isLoading ? (
               <div
@@ -417,19 +474,34 @@ export function WalletRechargeModal({
             ) : (
               <div className="mt-4 overflow-hidden rounded-xl border border-border bg-background">
                 <div className="hidden grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] gap-4 border-b border-border px-4 py-3 text-[9px] font-black uppercase tracking-[0.14em] text-white/40 sm:grid">
-                  <span>Fecha</span><span>Tipo</span><span>Método</span><span>Monto</span><span>Estado</span>
+                  <span>Fecha</span>
+                  <span>Tipo</span>
+                  <span>Método</span>
+                  <span>Monto</span>
+                  <span>Estado</span>
                 </div>
                 <div className="divide-y divide-border">
                   {(movementsQuery.data ?? []).map((movement) => (
-                    <div key={movement.id} className="grid gap-1 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4">
-                      <span className="text-[10px] text-white/40">{formatRechargeDate(movement.date)}</span>
+                    <div
+                      key={movement.id}
+                      className="grid gap-1 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4"
+                    >
+                      <span className="text-[10px] text-white/40">
+                        {formatRechargeDate(movement.date)}
+                      </span>
                       <span className="flex items-center gap-1.5 text-xs font-semibold text-white/80">
-                        {movement.type === "Recarga" ? <ReceiptText className="h-3.5 w-3.5 text-primary" /> : <ShoppingBag className="h-3.5 w-3.5 text-sky-300" />}
+                        {movement.type === "Recarga" ? (
+                          <ReceiptText className="h-3.5 w-3.5 text-primary" />
+                        ) : (
+                          <ShoppingBag className="h-3.5 w-3.5 text-sky-300" />
+                        )}
                         {movement.type}
                       </span>
                       <span className="truncate text-xs text-white/55">{movement.method}</span>
                       <span className="text-xs font-bold text-white">{movement.amount}</span>
-                      <span><MovementStatus tone={movement.tone} label={movement.status} /></span>
+                      <span>
+                        <MovementStatus tone={movement.tone} label={movement.status} />
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -450,32 +522,52 @@ function MovementStatus({ tone, label }: { tone: WalletMovement["tone"]; label: 
     completed: "border-sky-400/25 bg-sky-400/10 text-sky-200",
   };
 
-  return <span className={cn("inline-flex rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-wide", styles[tone])}>{label}</span>;
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-wide",
+        styles[tone],
+      )}
+    >
+      {label}
+    </span>
+  );
 }
 
 function getMethodInstructions(method: RechargeMethod, settings: PaymentSettings | null) {
   if (method === "lemon_cash") {
     return {
-      primary: "Escanea el QR. Debes enviar el monto EXACTO que ingresaste para que el sistema lo verifique correctamente.",
+      primary:
+        "Escanea el QR. Debes enviar el monto EXACTO que ingresaste para que el sistema lo verifique correctamente.",
       supported: "Yape, Plin, BCP, Interbank y transferencias desde otra cuenta Lemon Cash.",
-      reference: settings?.lemon_tag ? `LemonTag: ${settings.lemon_tag}` : "El QR real será configurado por administración.",
-      detail: "El QR mostrado es una referencia hasta que el equipo configure los datos reales de cobro. No envíes dinero si no has confirmado el destino con CMD.",
+      reference: settings?.lemon_tag
+        ? `LemonTag: ${settings.lemon_tag}`
+        : "El QR real será configurado por administración.",
+      detail:
+        "El QR mostrado es una referencia hasta que el equipo configure los datos reales de cobro. No envíes dinero si no has confirmado el destino con CMD.",
     };
   }
 
   if (method === "yape_plin") {
     return {
-      primary: "Realiza el pago por Yape o Plin con el monto exacto ingresado y registra aquí el nombre mostrado en tu comprobante.",
+      primary:
+        "Realiza el pago por Yape o Plin con el monto exacto ingresado y registra aquí el nombre mostrado en tu comprobante.",
       supported: "Yape y Plin mediante los datos oficiales mostrados por CMD Streaming.",
-      reference: settings?.yape_plin_contact || "Los datos de Yape/Plin serán configurados por administración.",
-      detail: "La solicitud quedará pendiente hasta que el equipo verifique el pago. Conserva tu comprobante por si necesitas reportarlo manualmente.",
+      reference:
+        settings?.yape_plin_contact ||
+        "Los datos de Yape/Plin serán configurados por administración.",
+      detail:
+        "La solicitud quedará pendiente hasta que el equipo verifique el pago. Conserva tu comprobante por si necesitas reportarlo manualmente.",
     };
   }
 
   return {
-    primary: "Envía el monto exacto en USD mediante Binance Pay y registra el nombre o ID usado para el pago.",
+    primary:
+      "Envía el monto exacto en USD mediante Binance Pay y registra el nombre o ID usado para el pago.",
     supported: "Binance Pay en USD con el identificador oficial de CMD Streaming.",
-    reference: settings?.binance_pay_id || "El ID de Binance Pay será configurado por administración.",
-    detail: "El administrador definirá el monto equivalente acreditado en PEN al verificar la operación. No se aplica una conversión automática.",
+    reference:
+      settings?.binance_pay_id || "El ID de Binance Pay será configurado por administración.",
+    detail:
+      "El administrador definirá el monto equivalente acreditado en PEN al verificar la operación. No se aplica una conversión automática.",
   };
 }

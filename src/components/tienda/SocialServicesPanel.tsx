@@ -59,6 +59,8 @@ type SocialService = Pick<
   | "provider_updated_at"
 >;
 
+const EMPTY_SOCIAL_SERVICES: SocialService[] = [];
+
 type SocialClient = Pick<Tables<"profiles">, "id" | "nombre_completo" | "whatsapp">;
 
 type SocialPlatform = {
@@ -243,7 +245,7 @@ export function SocialServicesPanel({
     retry: 1,
   });
 
-  const services = (serviceCatalogQuery.data ?? []) as SocialService[];
+  const services = (serviceCatalogQuery.data ?? EMPTY_SOCIAL_SERVICES) as SocialService[];
   const providerStatus = providerStatusQuery.data;
   const effectiveClients = useMemo<SocialClient[]>(() => {
     const loadedClients = clientsQuery.data?.clients ?? [];
@@ -604,7 +606,14 @@ export function SocialServicesPanel({
                   {clientsQuery.isError && (
                     <span role="alert" className="text-[10px] leading-relaxed text-amber-100/80">
                       No se pudo comprobar la lista de clientes. Solo se mantiene seleccionable tu
-                      propia cuenta. <button type="button" onClick={() => void clientsQuery.refetch()} className="font-bold underline underline-offset-2 hover:text-white">Reintentar</button>
+                      propia cuenta.{" "}
+                      <button
+                        type="button"
+                        onClick={() => void clientsQuery.refetch()}
+                        className="font-bold underline underline-offset-2 hover:text-white"
+                      >
+                        Reintentar
+                      </button>
                     </span>
                   )}
                   {clientsQuery.data && !clientsQuery.data.canAssignOtherClients && (
@@ -779,15 +788,27 @@ export function SocialServicesPanel({
                   </span>
                 </div>
                 {providerStatusQuery.isError ? (
-                  <div role="alert" className="mb-3 rounded-lg border border-destructive/30 bg-destructive/[0.07] px-3 py-2 text-[10px] leading-relaxed text-red-100/85">
-                    No se pudo verificar el proveedor SMM. El cobro permanece bloqueado por seguridad. {" "}
-                    <button type="button" onClick={() => void providerStatusQuery.refetch()} className="font-bold underline underline-offset-2 hover:text-white">Reintentar</button>
+                  <div
+                    role="alert"
+                    className="mb-3 rounded-lg border border-destructive/30 bg-destructive/[0.07] px-3 py-2 text-[10px] leading-relaxed text-red-100/85"
+                  >
+                    No se pudo verificar el proveedor SMM. El cobro permanece bloqueado por
+                    seguridad.{" "}
+                    <button
+                      type="button"
+                      onClick={() => void providerStatusQuery.refetch()}
+                      className="font-bold underline underline-offset-2 hover:text-white"
+                    >
+                      Reintentar
+                    </button>
                   </div>
-                ) : !providerStatus?.is_configured && (
-                  <p className="mb-3 rounded-lg border border-amber-400/20 bg-amber-400/[0.07] px-3 py-2 text-[10px] leading-relaxed text-amber-100/80">
-                    El cobro se habilitará al conectar una API SMM real. No se descuenta saldo
-                    mientras tanto.
-                  </p>
+                ) : (
+                  !providerStatus?.is_configured && (
+                    <p className="mb-3 rounded-lg border border-amber-400/20 bg-amber-400/[0.07] px-3 py-2 text-[10px] leading-relaxed text-amber-100/80">
+                      El cobro se habilitará al conectar una API SMM real. No se descuenta saldo
+                      mientras tanto.
+                    </p>
+                  )
                 )}
                 <button
                   type="button"
@@ -973,8 +994,11 @@ function OrdersTab({
   onRefresh: () => void;
   onRetry: () => void;
 }) {
-  const activeDashboard: SocialOrdersDashboard =
-    dashboard ?? { view: "customer", canViewAllOrders: false, orders: [] };
+  const activeDashboard: SocialOrdersDashboard = dashboard ?? {
+    view: "customer",
+    canViewAllOrders: false,
+    orders: [],
+  };
   const isInternalView = activeDashboard.view === "internal";
   const orders = activeDashboard.orders;
   const inProgress = orders.filter(
@@ -1102,7 +1126,10 @@ function OrdersTab({
 
       <div className="overflow-x-auto rounded-xl border border-border bg-card">
         {loading ? (
-          <SectionLoadingState label="Cargando órdenes…" className="min-h-52 rounded-none border-0" />
+          <SectionLoadingState
+            label="Cargando órdenes…"
+            className="min-h-52 rounded-none border-0"
+          />
         ) : error ? (
           <QueryErrorState
             error={error}

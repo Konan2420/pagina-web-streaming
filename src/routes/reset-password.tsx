@@ -36,8 +36,12 @@ export const Route = createFileRoute("/reset-password")({
 function ResetPasswordPage() {
   const authError = useMemo(() => getSupabaseAuthRedirectError(), []);
   const link = useMemo(() => readRecoveryLink(), []);
-  const [status, setStatus] = useState<RecoveryStatus>(authError || link.hasError ? "invalid" : "checking");
-  const [message, setMessage] = useState(authError?.message ?? "Estamos verificando tu enlace de recuperación…");
+  const [status, setStatus] = useState<RecoveryStatus>(
+    authError || link.hasError ? "invalid" : "checking",
+  );
+  const [message, setMessage] = useState(
+    authError?.message ?? "Estamos verificando tu enlace de recuperación…",
+  );
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -50,7 +54,9 @@ function ResetPasswordPage() {
 
     if (!link.hasTokens) {
       setStatus("invalid");
-      setMessage("Este enlace no es válido o está incompleto. Solicita un nuevo correo de recuperación.");
+      setMessage(
+        "Este enlace no es válido o está incompleto. Solicita un nuevo correo de recuperación.",
+      );
       return;
     }
 
@@ -63,7 +69,9 @@ function ResetPasswordPage() {
 
       if (error || !data.session) {
         setStatus("invalid");
-        setMessage("Este enlace expiró, ya fue usado o no se pudo validar. Solicita un nuevo correo de recuperación.");
+        setMessage(
+          "Este enlace expiró, ya fue usado o no se pudo validar. Solicita un nuevo correo de recuperación.",
+        );
         return;
       }
 
@@ -98,7 +106,9 @@ function ResetPasswordPage() {
 
     if (error) {
       setSubmitting(false);
-      setMessage("No se pudo actualizar la contraseña. Solicita un nuevo enlace e inténtalo nuevamente.");
+      setMessage(
+        "No se pudo actualizar la contraseña. Solicita un nuevo enlace e inténtalo nuevamente.",
+      );
       return;
     }
 
@@ -111,33 +121,102 @@ function ResetPasswordPage() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl sm:p-8">
         <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
-          {status === "checking" ? <Loader2 className="size-6 animate-spin" /> : status === "invalid" ? <TriangleAlert className="size-6" /> : status === "completed" ? <CheckCircle2 className="size-6" /> : <KeyRound className="size-6" />}
+          {status === "checking" ? (
+            <Loader2 className="size-6 animate-spin" />
+          ) : status === "invalid" ? (
+            <TriangleAlert className="size-6" />
+          ) : status === "completed" ? (
+            <CheckCircle2 className="size-6" />
+          ) : (
+            <KeyRound className="size-6" />
+          )}
         </div>
 
-        {status === "checking" && <div className="mt-5 text-center"><h1 className="text-xl font-bold text-foreground">Verificando enlace</h1><p className="mt-2 text-sm text-muted-foreground">{message}</p></div>}
+        {status === "checking" && (
+          <div className="mt-5 text-center">
+            <h1 className="text-xl font-bold text-foreground">Verificando enlace</h1>
+            <p className="mt-2 text-sm text-muted-foreground">{message}</p>
+          </div>
+        )}
 
         {status === "invalid" && (
           <div className="mt-5 text-center">
             <h1 className="text-xl font-bold text-foreground">Enlace no disponible</h1>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">{message}</p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <a href="/tienda?auth=forgot" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Solicitar correo</a>
-              <a href="/tienda?auth=login" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-input px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent">Volver al login</a>
+              <a
+                href="/tienda?auth=forgot"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+              >
+                Solicitar correo
+              </a>
+              <a
+                href="/tienda?auth=login"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg border border-input px-4 text-sm font-semibold text-foreground transition-colors hover:bg-accent"
+              >
+                Volver al login
+              </a>
             </div>
           </div>
         )}
 
         {status === "ready" && (
           <form className="mt-5 space-y-4" onSubmit={submit}>
-            <div className="text-center"><h1 className="text-xl font-bold text-foreground">Crea una nueva contraseña</h1><p className="mt-2 text-sm text-muted-foreground">Usa al menos 8 caracteres para proteger tu cuenta.</p></div>
-            <label className="block text-sm font-medium text-foreground">Nueva contraseña<input autoComplete="new-password" className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground outline-none transition-colors focus:border-primary" onChange={(event) => setPassword(event.target.value)} type="password" value={password} /></label>
-            <label className="block text-sm font-medium text-foreground">Confirmar contraseña<input autoComplete="new-password" className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground outline-none transition-colors focus:border-primary" onChange={(event) => setConfirmation(event.target.value)} type="password" value={confirmation} /></label>
-            {message && <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">{message}</p>}
-            <button className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70" disabled={submitting} type="submit">{submitting && <Loader2 className="size-4 animate-spin" />}Guardar nueva contraseña</button>
+            <div className="text-center">
+              <h1 className="text-xl font-bold text-foreground">Crea una nueva contraseña</h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Usa al menos 8 caracteres para proteger tu cuenta.
+              </p>
+            </div>
+            <label className="block text-sm font-medium text-foreground">
+              Nueva contraseña
+              <input
+                autoComplete="new-password"
+                className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground outline-none transition-colors focus:border-primary"
+                onChange={(event) => setPassword(event.target.value)}
+                type="password"
+                value={password}
+              />
+            </label>
+            <label className="block text-sm font-medium text-foreground">
+              Confirmar contraseña
+              <input
+                autoComplete="new-password"
+                className="mt-2 h-11 w-full rounded-lg border border-input bg-background px-3 text-foreground outline-none transition-colors focus:border-primary"
+                onChange={(event) => setConfirmation(event.target.value)}
+                type="password"
+                value={confirmation}
+              />
+            </label>
+            {message && (
+              <p className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {message}
+              </p>
+            )}
+            <button
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={submitting}
+              type="submit"
+            >
+              {submitting && <Loader2 className="size-4 animate-spin" />}Guardar nueva contraseña
+            </button>
           </form>
         )}
 
-        {status === "completed" && <div className="mt-5 text-center"><h1 className="text-xl font-bold text-foreground">Contraseña actualizada</h1><p className="mt-2 text-sm leading-6 text-muted-foreground">Ya puedes iniciar sesión con tu nueva contraseña.</p><a href="/tienda?auth=login" className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90">Ir al login</a></div>}
+        {status === "completed" && (
+          <div className="mt-5 text-center">
+            <h1 className="text-xl font-bold text-foreground">Contraseña actualizada</h1>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Ya puedes iniciar sesión con tu nueva contraseña.
+            </p>
+            <a
+              href="/tienda?auth=login"
+              className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              Ir al login
+            </a>
+          </div>
+        )}
       </section>
     </main>
   );

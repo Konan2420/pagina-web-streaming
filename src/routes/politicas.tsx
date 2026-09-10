@@ -1,11 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
-import {
-  POLICY_DOCUMENTS,
-  POLICY_LAST_UPDATED,
-  type PolicyDocument,
-} from "@/content/politicas";
+import { POLICY_DOCUMENTS, POLICY_LAST_UPDATED, type PolicyDocument } from "@/content/politicas";
 import { cn } from "@/lib/utils";
 import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
 
@@ -34,7 +30,8 @@ export const Route = createFileRoute("/politicas")({
 function PoliciesPage() {
   const [selectedId, setSelectedId] = useState<PolicyDocument["id"]>(POLICY_DOCUMENTS[0].id);
   const mobilePolicyScroll = useHorizontalScroll();
-  const selectedPolicy = POLICY_DOCUMENTS.find((policy) => policy.id === selectedId) ?? POLICY_DOCUMENTS[0];
+  const selectedPolicy =
+    POLICY_DOCUMENTS.find((policy) => policy.id === selectedId) ?? POLICY_DOCUMENTS[0];
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
@@ -122,10 +119,16 @@ function PoliciesPage() {
               ))}
             </div>
             {mobilePolicyScroll.hasStartOverflow && (
-              <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent" />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-background to-transparent"
+              />
             )}
             {mobilePolicyScroll.hasEndOverflow && (
-              <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent" />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent"
+              />
             )}
           </div>
 
@@ -211,7 +214,10 @@ function PolicyTab({
           : "text-white/55 hover:bg-white/[0.045] hover:text-white/85",
       )}
     >
-      <FileText className={cn("mt-0.5 h-3.5 w-3.5 shrink-0", active ? "text-primary" : "text-white/40")} aria-hidden="true" />
+      <FileText
+        className={cn("mt-0.5 h-3.5 w-3.5 shrink-0", active ? "text-primary" : "text-white/40")}
+        aria-hidden="true"
+      />
       <span>{policy.title}</span>
     </button>
   );

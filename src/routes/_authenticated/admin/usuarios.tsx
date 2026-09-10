@@ -137,7 +137,11 @@ function UsersManagement() {
                         <span className="font-semibold text-foreground">
                           {user.nombre_completo || "Sin nombre"}
                         </span>
-                        {user.email && <span className="hidden text-xs text-muted-foreground xl:inline">{user.email}</span>}
+                        {user.email && (
+                          <span className="hidden text-xs text-muted-foreground xl:inline">
+                            {user.email}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-muted-foreground font-mono text-xs">

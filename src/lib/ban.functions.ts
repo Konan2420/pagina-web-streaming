@@ -2,7 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import { requireSupabaseAuth, requireSupabaseSession } from "@/integrations/supabase/auth-middleware";
+import {
+  requireSupabaseAuth,
+  requireSupabaseSession,
+} from "@/integrations/supabase/auth-middleware";
 
 type ModerationDb = SupabaseClient;
 async function getModerationDb(): Promise<ModerationDb> {
@@ -74,21 +77,28 @@ export const getUserBans = createServerFn({ method: "GET" })
 
     const { data: bans, error: bansError } = await db
       .from("user_bans")
-      .select("id, user_id, banned_by, reason, ip_address, starts_at, ends_at, status, revoked_by, revoked_at, revocation_reason, created_at")
+      .select(
+        "id, user_id, banned_by, reason, ip_address, starts_at, ends_at, status, revoked_by, revoked_at, revocation_reason, created_at",
+      )
       .order("created_at", { ascending: false })
       .limit(500);
     if (bansError) throw new Error(bansError.message);
 
     const rows = bans ?? [];
-    const ids = [...new Set(rows.flatMap((row) => [row.user_id, row.banned_by, row.revoked_by]).filter(Boolean))];
-    const [{ data: profiles, error: profilesError }, { data: roles, error: rolesError }] = await Promise.all([
-      ids.length
-        ? db.from("profiles").select("id, nombre_completo, email").in("id", ids)
-        : Promise.resolve({ data: [], error: null }),
-      ids.length
-        ? db.from("user_roles").select("user_id, role").in("user_id", ids)
-        : Promise.resolve({ data: [], error: null }),
-    ]);
+    const ids = [
+      ...new Set(
+        rows.flatMap((row) => [row.user_id, row.banned_by, row.revoked_by]).filter(Boolean),
+      ),
+    ];
+    const [{ data: profiles, error: profilesError }, { data: roles, error: rolesError }] =
+      await Promise.all([
+        ids.length
+          ? db.from("profiles").select("id, nombre_completo, email").in("id", ids)
+          : Promise.resolve({ data: [], error: null }),
+        ids.length
+          ? db.from("user_roles").select("user_id, role").in("user_id", ids)
+          : Promise.resolve({ data: [], error: null }),
+      ]);
     if (profilesError) throw new Error(profilesError.message);
     if (rolesError) throw new Error(rolesError.message);
 
@@ -139,7 +149,8 @@ export const createUserBan = createServerFn({ method: "POST" })
 
     const startsAt = dateFromInput(data.startsAt, new Date());
     const endsAt = data.endsAt ? dateFromInput(data.endsAt, startsAt) : null;
-    if (endsAt && endsAt <= startsAt) throw new Error("La fecha de fin debe ser posterior al inicio.");
+    if (endsAt && endsAt <= startsAt)
+      throw new Error("La fecha de fin debe ser posterior al inicio.");
 
     const { error: reconcileError } = await db.rpc("reconcile_ban_statuses");
     if (reconcileError) throw new Error(reconcileError.message);
@@ -207,9 +218,7 @@ export const createUserBan = createServerFn({ method: "POST" })
 export const revokeUserBan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((value) =>
-    z
-      .object({ banId: uuid, reason: z.string().trim().max(1_000).optional() })
-      .parse(value),
+    z.object({ banId: uuid, reason: z.string().trim().max(1_000).optional() }).parse(value),
   )
   .handler(async ({ data, context }) => {
     const db = await getModerationDb();

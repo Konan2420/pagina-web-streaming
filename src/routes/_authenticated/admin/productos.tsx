@@ -148,6 +148,8 @@ function ProductsManagement() {
       is_catalog_available: formData.get("is_catalog_available") === "on",
       is_renewable: formData.get("is_renewable") === "on",
       duration_days: Number(formData.get("duration_days")) || 30,
+      credential_template: formData.get("credential_template") as
+        "account" | "account_2fa" | "redeem_code" | "access_link" | "none",
       descripcion_larga: formData.get("descripcion_larga") as string,
     };
 
@@ -193,7 +195,12 @@ function ProductsManagement() {
   const handleSavePricingSettings = async () => {
     const nextMarkup = Number(markupPercent);
     const nextPenPerUsd = Number(penPerUsd);
-    if (!Number.isFinite(nextMarkup) || nextMarkup < 0 || !Number.isFinite(nextPenPerUsd) || nextPenPerUsd <= 0) {
+    if (
+      !Number.isFinite(nextMarkup) ||
+      nextMarkup < 0 ||
+      !Number.isFinite(nextPenPerUsd) ||
+      nextPenPerUsd <= 0
+    ) {
       toast.error("Ingresa valores válidos para margen y tipo de cambio.");
       return;
     }
@@ -284,23 +291,48 @@ function ProductsManagement() {
             <div>
               <h3 className="text-base font-bold text-white">Precio sugerido de reventa</h3>
               <p className="mt-1 text-sm text-white/60">
-                La PDP usa este margen sobre el costo privado solo para sugerir un precio a roles comerciales.
+                La PDP usa este margen sobre el costo privado solo para sugerir un precio a roles
+                comerciales.
               </p>
             </div>
-            <button onClick={() => setShowPricingSettings(false)} className="text-white/45 hover:text-white" aria-label="Cerrar configuración de precios"><X className="h-5 w-5" /></button>
+            <button
+              onClick={() => setShowPricingSettings(false)}
+              className="text-white/45 hover:text-white"
+              aria-label="Cerrar configuración de precios"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-medium text-white/80">
               Margen estándar (%)
-              <input value={markupPercent} onChange={(event) => setMarkupPercent(event.target.value)} type="number" min="0" step="0.1" className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-background px-3 text-white outline-none focus:border-sky-300/50" />
+              <input
+                value={markupPercent}
+                onChange={(event) => setMarkupPercent(event.target.value)}
+                type="number"
+                min="0"
+                step="0.1"
+                className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-background px-3 text-white outline-none focus:border-sky-300/50"
+              />
             </label>
             <label className="text-sm font-medium text-white/80">
               Tipo de cambio PEN por USD
-              <input value={penPerUsd} onChange={(event) => setPenPerUsd(event.target.value)} type="number" min="0.01" step="0.0001" className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-background px-3 text-white outline-none focus:border-sky-300/50" />
+              <input
+                value={penPerUsd}
+                onChange={(event) => setPenPerUsd(event.target.value)}
+                type="number"
+                min="0.01"
+                step="0.0001"
+                className="mt-2 h-11 w-full rounded-xl border border-white/10 bg-background px-3 text-white outline-none focus:border-sky-300/50"
+              />
             </label>
           </div>
           <div className="mt-5 flex justify-end">
-            <button onClick={() => void handleSavePricingSettings()} disabled={savingPricing || pricingSettingsQuery.isLoading} className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white disabled:opacity-60">
+            <button
+              onClick={() => void handleSavePricingSettings()}
+              disabled={savingPricing || pricingSettingsQuery.isLoading}
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white disabled:opacity-60"
+            >
               {savingPricing && <Loader2 className="h-4 w-4 animate-spin" />} Guardar configuración
             </button>
           </div>
@@ -526,6 +558,36 @@ function ProductsManagement() {
                   </select>
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-white/40 uppercase tracking-widest">
+                    Tipo de entrega
+                  </label>
+                  <select
+                    name="credential_template"
+                    defaultValue={editingProduct?.credential_template ?? "account"}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="account" className="bg-[#121212]">
+                      Cuenta y contraseña
+                    </option>
+                    <option value="account_2fa" className="bg-[#121212]">
+                      Cuenta con 2FA y códigos de recuperación
+                    </option>
+                    <option value="redeem_code" className="bg-[#121212]">
+                      Código de canje
+                    </option>
+                    <option value="access_link" className="bg-[#121212]">
+                      Enlace de acceso
+                    </option>
+                    <option value="none" className="bg-[#121212]">
+                      Sin credenciales
+                    </option>
+                  </select>
+                  <p className="text-[10px] leading-relaxed text-white/35">
+                    Define qué datos se revelan de forma segura después de la compra.
+                  </p>
+                </div>
+
                 <div className="space-y-1.5 sm:col-span-2">
                   <label className="text-xs font-bold text-white/40 uppercase tracking-widest">
                     Ícono / Plataforma de la tienda
@@ -625,9 +687,7 @@ function ProductsManagement() {
                       type="checkbox"
                       id="is_catalog_available"
                       name="is_catalog_available"
-                      defaultChecked={
-                        editingProduct ? editingProduct.is_catalog_available : true
-                      }
+                      defaultChecked={editingProduct ? editingProduct.is_catalog_available : true}
                       className="w-5 h-5 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50"
                     />
                     <label htmlFor="is_catalog_available" className="text-sm text-white">

@@ -27,7 +27,10 @@ export function IconPicker({ value = null, onSelect }: IconPickerProps) {
   );
 
   return (
-    <section className="rounded-xl border border-white/10 bg-white/[0.025] p-3 sm:p-4" aria-label="Selector de ícono">
+    <section
+      className="rounded-xl border border-white/10 bg-white/[0.025] p-3 sm:p-4"
+      aria-label="Selector de ícono"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-xs font-bold text-white/80">Ícono predefinido</p>
@@ -48,7 +51,10 @@ export function IconPicker({ value = null, onSelect }: IconPickerProps) {
       </div>
 
       <label className="relative mt-3 block">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/35" aria-hidden="true" />
+        <Search
+          className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/35"
+          aria-hidden="true"
+        />
         <input
           type="search"
           value={query}
@@ -92,7 +98,9 @@ export function IconPicker({ value = null, onSelect }: IconPickerProps) {
                     className="h-8 w-8 transition-transform duration-200 group-hover:scale-105"
                     iconClassName="h-4 w-4"
                   />
-                  <span className="w-full truncate text-center text-[8px] font-bold leading-tight">{icon.name}</span>
+                  <span className="w-full truncate text-center text-[8px] font-bold leading-tight">
+                    {icon.name}
+                  </span>
                   {isSelected && (
                     <span className="absolute right-1 top-1 grid h-3.5 w-3.5 place-items-center rounded-full bg-primary text-white">
                       <Check className="h-2.5 w-2.5" strokeWidth={3} aria-hidden="true" />
@@ -103,7 +111,9 @@ export function IconPicker({ value = null, onSelect }: IconPickerProps) {
             })}
           </div>
         ) : (
-          <p className="py-6 text-center text-xs text-white/40">No encontramos un ícono con esa búsqueda.</p>
+          <p className="py-6 text-center text-xs text-white/40">
+            No encontramos un ícono con esa búsqueda.
+          </p>
         )}
       </div>
     </section>

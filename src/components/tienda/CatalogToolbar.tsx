@@ -155,7 +155,10 @@ export function CatalogToolbar({
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-2 px-4 py-3 sm:gap-3">
           <div className="relative min-w-0 basis-full sm:flex-1">
             <div className="relative flex h-9 items-center rounded-lg border border-border bg-background pl-9 pr-8 transition-colors focus-within:border-primary/60">
-              <Search className="absolute left-3 h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+              <Search
+                className="absolute left-3 h-3.5 w-3.5 text-muted-foreground"
+                aria-hidden="true"
+              />
               <input
                 ref={inputRef}
                 value={query}
@@ -284,7 +287,9 @@ export function CatalogToolbar({
       <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
         <DialogContent className="max-w-2xl gap-0 overflow-hidden border-border bg-card p-0 shadow-2xl shadow-black/25">
           <DialogHeader className="border-b border-border p-5 pr-12 text-left sm:p-6">
-            <DialogTitle className="text-lg font-black text-foreground">Filtros avanzados</DialogTitle>
+            <DialogTitle className="text-lg font-black text-foreground">
+              Filtros avanzados
+            </DialogTitle>
             <DialogDescription className="mt-1 text-xs leading-relaxed text-muted-foreground">
               Combina precio, duración, disponibilidad y tipo de cuenta para afinar el catálogo.
             </DialogDescription>

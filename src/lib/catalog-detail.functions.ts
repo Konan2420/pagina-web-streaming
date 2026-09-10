@@ -122,7 +122,8 @@ export const getCatalogPurchaseContext = createServerFn({ method: "GET" })
           .eq("is_public", true)
           .maybeSingle(),
       ]);
-      supplierName = supplier?.display_name?.trim() || profile?.nombre_completo?.trim() || supplierName;
+      supplierName =
+        supplier?.display_name?.trim() || profile?.nombre_completo?.trim() || supplierName;
       supplierWhatsapp = profile?.whatsapp?.trim() || null;
       storeSlug = storefront?.store_slug ?? null;
     }

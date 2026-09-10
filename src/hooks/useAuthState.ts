@@ -65,7 +65,16 @@ async function enforceAccountAccess(session: Session): Promise<boolean> {
 async function loadAuth(attempt = 0): Promise<void> {
   if (refreshPromise) return refreshPromise;
 
-  publish({ ...snapshot, status: "checking", error: null });
+  // Las comprobaciones periódicas no deben convertir una sesión ya resuelta en
+  // "checking": todos los consumidores comparten este snapshot y Mi Tienda
+  // usa ese estado exclusivamente para su carga inicial.
+  const isBackgroundRefresh = snapshot.status === "authenticated" && snapshot.session !== null;
+  if (!isBackgroundRefresh) {
+    publish({ ...snapshot, status: "checking", error: null });
+  } else if (snapshot.error) {
+    publish({ ...snapshot, error: null });
+  }
+
   refreshPromise = (async () => {
     try {
       const { data, error } = await withRequestTimeout(supabase.auth.getSession());
@@ -103,7 +112,14 @@ async function loadAuth(attempt = 0): Promise<void> {
         }, 1_500);
         return;
       }
-      publish({ ...signedOutSnapshot, status: "error", error });
+      // Una incidencia temporal durante una revalidación no debe ocultar una
+      // sesión y roles ya confirmados. SIGNED_OUT y las cuentas bloqueadas se
+      // siguen resolviendo en sus ramas específicas.
+      if (isBackgroundRefresh && snapshot.session) {
+        publish({ ...snapshot, status: "authenticated", error });
+      } else {
+        publish({ ...signedOutSnapshot, status: "error", error });
+      }
     } finally {
       refreshPromise = null;
     }

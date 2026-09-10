@@ -79,7 +79,10 @@ Deno.serve(async (request) => {
   if (!activeTokens.length) {
     await supabase
       .from("admin_event_log")
-      .update({ push_attempted_at: new Date().toISOString(), push_result: { sent: 0, reason: "no_active_tokens" } })
+      .update({
+        push_attempted_at: new Date().toISOString(),
+        push_result: { sent: 0, reason: "no_active_tokens" },
+      })
       .eq("id", event.id);
     return json({ sent: 0, reason: "no_active_tokens" });
   }
@@ -110,18 +113,17 @@ Deno.serve(async (request) => {
 
     const batchTickets = Array.isArray(responseBody?.data) ? responseBody.data : [];
     tickets.push(...batchTickets);
-    batchTickets.forEach((ticket: { status?: string; details?: { error?: string } }, index: number) => {
-      if (ticket.status === "error" && ticket.details?.error === "DeviceNotRegistered") {
-        invalidTokenIds.push(batch[index].id);
-      }
-    });
+    batchTickets.forEach(
+      (ticket: { status?: string; details?: { error?: string } }, index: number) => {
+        if (ticket.status === "error" && ticket.details?.error === "DeviceNotRegistered") {
+          invalidTokenIds.push(batch[index].id);
+        }
+      },
+    );
   }
 
   if (invalidTokenIds.length) {
-    await supabase
-      .from("admin_push_tokens")
-      .update({ is_active: false })
-      .in("id", invalidTokenIds);
+    await supabase.from("admin_push_tokens").update({ is_active: false }).in("id", invalidTokenIds);
   }
 
   await supabase

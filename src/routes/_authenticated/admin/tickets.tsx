@@ -1,17 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  CheckCircle2,
-  Clock3,
-  Inbox,
-  Loader2,
-  Search,
-  Send,
-  Ticket,
-  User,
-  X,
-} from "lucide-react";
+import { CheckCircle2, Clock3, Inbox, Loader2, Search, Send, Ticket, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -192,7 +182,9 @@ function TicketsAdminPage() {
             onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
             className="w-full rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60"
           >
-            <option value="todos" className="bg-card">Todos los estados</option>
+            <option value="todos" className="bg-card">
+              Todos los estados
+            </option>
             {Object.entries(TICKET_STATUS_LABELS).map(([value, label]) => (
               <option key={value} value={value} className="bg-card">
                 {label}
@@ -207,7 +199,9 @@ function TicketsAdminPage() {
             onChange={(event) => setCategoryFilter(event.target.value as CategoryFilter)}
             className="w-full rounded-xl border border-white/10 bg-black/15 px-3 py-2.5 text-sm text-white outline-none focus:border-primary/60"
           >
-            <option value="todas" className="bg-card">Todas las categorías</option>
+            <option value="todas" className="bg-card">
+              Todas las categorías
+            </option>
             {TICKET_CATEGORY_OPTIONS.map((option) => (
               <option key={option.value} value={option.value} className="bg-card">
                 {option.label}
@@ -228,7 +222,9 @@ function TicketsAdminPage() {
       ) : filteredTickets.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-12 text-center">
           <Inbox className="mx-auto h-8 w-8 text-white/25" aria-hidden="true" />
-          <p className="mt-3 text-sm font-semibold text-white/70">No hay tickets para estos filtros.</p>
+          <p className="mt-3 text-sm font-semibold text-white/70">
+            No hay tickets para estos filtros.
+          </p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
@@ -247,7 +243,9 @@ function TicketsAdminPage() {
                 className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-white/[0.045] md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] md:items-center md:gap-4"
               >
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold text-white">{ticket.asunto}</span>
+                  <span className="block truncate text-sm font-semibold text-white">
+                    {ticket.asunto}
+                  </span>
                   <span className="mt-1 block text-[10px] text-white/40">
                     {ticketCategoryLabel(ticket.categoria)}
                   </span>
@@ -261,7 +259,9 @@ function TicketsAdminPage() {
                     {ticket.profile?.email || ticket.profile?.whatsapp || "Sin contacto"}
                   </span>
                 </span>
-                <span><AdminTicketStatusBadge status={ticket.estado} /></span>
+                <span>
+                  <AdminTicketStatusBadge status={ticket.estado} />
+                </span>
                 <span className="flex items-center gap-1 text-[10px] text-white/40">
                   <Clock3 className="h-3 w-3" aria-hidden="true" />
                   {formatTicketDate(ticket.updated_at)}
@@ -293,7 +293,15 @@ function TicketsAdminPage() {
   );
 }
 
-function TicketStat({ label, value, tone }: { label: string; value: number; tone: "amber" | "sky" | "slate" }) {
+function TicketStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "amber" | "sky" | "slate";
+}) {
   const tones = {
     amber: "border-amber-400/20 bg-amber-400/[0.08] text-amber-200",
     sky: "border-sky-400/20 bg-sky-400/[0.08] text-sky-200",
@@ -352,7 +360,12 @@ function AdminTicketModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="admin-ticket-title">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="admin-ticket-title"
+    >
       <button
         type="button"
         onClick={onClose}
@@ -368,11 +381,15 @@ function AdminTicketModal({
               </p>
               <AdminTicketStatusBadge status={ticket.estado} />
             </div>
-            <h2 id="admin-ticket-title" className="mt-2 truncate text-lg font-black text-white sm:text-xl">
+            <h2
+              id="admin-ticket-title"
+              className="mt-2 truncate text-lg font-black text-white sm:text-xl"
+            >
               {ticket.asunto}
             </h2>
             <p className="mt-1 text-xs text-white/45">
-              {ticket.profile?.nombre_completo || "Usuario"} · {ticket.profile?.email || "Sin correo"}
+              {ticket.profile?.nombre_completo || "Usuario"} ·{" "}
+              {ticket.profile?.email || "Sin correo"}
             </p>
           </div>
           <button
@@ -394,13 +411,20 @@ function AdminTicketModal({
           />
           {repliesLoading ? (
             <div className="grid min-h-24 place-items-center">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" aria-label="Cargando respuestas" />
+              <Loader2
+                className="h-4 w-4 animate-spin text-primary"
+                aria-label="Cargando respuestas"
+              />
             </div>
           ) : (
             replies.map((reply) => (
               <AdminConversationMessage
                 key={reply.id}
-                author={reply.autor === "admin" ? "Administrador" : ticket.profile?.nombre_completo || "Cliente"}
+                author={
+                  reply.autor === "admin"
+                    ? "Administrador"
+                    : ticket.profile?.nombre_completo || "Cliente"
+                }
                 date={reply.created_at}
                 message={reply.mensaje}
                 tone={reply.autor === "admin" ? "admin" : "user"}
@@ -427,7 +451,11 @@ function AdminTicketModal({
                   disabled={closePending || replyPending}
                   className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-white/15 px-4 text-[10px] font-black uppercase tracking-wide text-white/70 transition hover:border-white/30 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {closePending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCircle2 className="h-3.5 w-3.5" />}
+                  {closePending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                  )}
                   Cerrar ticket
                 </button>
                 <button
@@ -435,7 +463,11 @@ function AdminTicketModal({
                   disabled={replyPending || closePending || !replyMessage.trim()}
                   className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-[10px] font-black uppercase tracking-wide text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {replyPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                  {replyPending ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Send className="h-3.5 w-3.5" />
+                  )}
                   Responder
                 </button>
               </div>
@@ -473,7 +505,9 @@ function AdminConversationMessage({
       )}
     >
       <div className="flex items-center justify-between gap-3">
-        <p className={cn("text-xs font-bold", tone === "admin" ? "text-primary" : "text-white/80")}>{author}</p>
+        <p className={cn("text-xs font-bold", tone === "admin" ? "text-primary" : "text-white/80")}>
+          {author}
+        </p>
         <time className="text-[10px] text-white/40">{formatTicketDate(date)}</time>
       </div>
       <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-white/70">{message}</p>

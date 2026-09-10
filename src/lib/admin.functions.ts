@@ -231,7 +231,9 @@ export const getUsersWithRoles = createServerFn({ method: "GET" })
     }
 
     const rolePriority = ["admin", "proveedor", "distribuidor", "user"] as const;
-    const profilesById = new Map((profiles as Tables<"profiles">[]).map((profile) => [profile.id, profile]));
+    const profilesById = new Map(
+      (profiles as Tables<"profiles">[]).map((profile) => [profile.id, profile]),
+    );
     const rolesByUserId = new Map<string, string[]>();
     for (const role of roles) {
       const assigned = rolesByUserId.get(role.user_id) ?? [];
@@ -392,6 +394,9 @@ export const upsertProduct = createServerFn({ method: "POST" })
         is_catalog_available: z.boolean().default(true),
         is_renewable: z.boolean().default(true),
         duration_days: z.number().int().positive().default(30),
+        credential_template: z
+          .enum(["account", "account_2fa", "redeem_code", "access_link", "none"])
+          .default("account"),
         descripcion_larga: z.string().optional(),
       })
       .parse(d),

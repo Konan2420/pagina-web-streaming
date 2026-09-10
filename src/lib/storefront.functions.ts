@@ -34,8 +34,16 @@ const storefrontSettingsSchema = ownerTargetSchema.extend({
   storeSlug: z.string().trim().min(3).max(63),
   availabilityMode: z.enum(["manual", "schedule"]).default("manual"),
   isAvailable: z.boolean().default(true),
-  opensAt: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable().optional(),
-  closesAt: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).nullable().optional(),
+  opensAt: z
+    .string()
+    .regex(/^\d{2}:\d{2}(:\d{2})?$/)
+    .nullable()
+    .optional(),
+  closesAt: z
+    .string()
+    .regex(/^\d{2}:\d{2}(:\d{2})?$/)
+    .nullable()
+    .optional(),
   timezone: z.string().trim().min(3).max(64).default("America/Lima"),
 });
 
@@ -130,15 +138,21 @@ async function getStorefrontOwnerOptions() {
   const [profilesResult, suppliersResult, distributorsResult] = await Promise.all([
     supabaseAdmin.from("profiles").select("id, nombre_completo").in("id", ownerIds),
     supabaseAdmin.from("supplier_profiles").select("user_id, display_name").in("user_id", ownerIds),
-    supabaseAdmin.from("distributor_profiles").select("user_id, display_name").in("user_id", ownerIds),
+    supabaseAdmin
+      .from("distributor_profiles")
+      .select("user_id, display_name")
+      .in("user_id", ownerIds),
   ]);
   if (profilesResult.error || suppliersResult.error || distributorsResult.error) {
     throw new Error("No se pudo cargar la lista de tiendas disponibles.");
   }
   const names = new Map<string, string>();
-  for (const profile of profilesResult.data ?? []) names.set(profile.id, profile.nombre_completo || "Tienda");
-  for (const supplier of suppliersResult.data ?? []) names.set(supplier.user_id, supplier.display_name);
-  for (const distributor of distributorsResult.data ?? []) names.set(distributor.user_id, distributor.display_name);
+  for (const profile of profilesResult.data ?? [])
+    names.set(profile.id, profile.nombre_completo || "Tienda");
+  for (const supplier of suppliersResult.data ?? [])
+    names.set(supplier.user_id, supplier.display_name);
+  for (const distributor of distributorsResult.data ?? [])
+    names.set(distributor.user_id, distributor.display_name);
   return ownerIds
     .map((user_id) => ({ user_id, display_name: names.get(user_id) || "Tienda" }))
     .sort((a, b) => a.display_name.localeCompare(b.display_name, "es"));
@@ -148,7 +162,9 @@ async function ensureStorefrontSettings(ownerId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: existing, error: existingError } = await supabaseAdmin
     .from("storefront_settings")
-    .select("store_owner_id, store_slug, display_name, description, logo_url, banner_url, is_public, availability_mode, is_available, opens_at, closes_at, timezone, template_key, avatar_frame_key, facebook_url, instagram_url, tiktok_url, x_url, youtube_url, last_published_at, last_published_by")
+    .select(
+      "store_owner_id, store_slug, display_name, description, logo_url, banner_url, is_public, availability_mode, is_available, opens_at, closes_at, timezone, template_key, avatar_frame_key, facebook_url, instagram_url, tiktok_url, x_url, youtube_url, last_published_at, last_published_by",
+    )
     .eq("store_owner_id", ownerId)
     .maybeSingle();
   if (existingError) throw new Error("No se pudo cargar la configuración de la tienda.");
@@ -168,7 +184,9 @@ async function ensureStorefrontSettings(ownerId: string) {
       display_name: displayName.slice(0, 100),
       is_public: true,
     })
-    .select("store_owner_id, store_slug, display_name, description, logo_url, banner_url, is_public, availability_mode, is_available, opens_at, closes_at, timezone, template_key, avatar_frame_key, facebook_url, instagram_url, tiktok_url, x_url, youtube_url, last_published_at, last_published_by")
+    .select(
+      "store_owner_id, store_slug, display_name, description, logo_url, banner_url, is_public, availability_mode, is_available, opens_at, closes_at, timezone, template_key, avatar_frame_key, facebook_url, instagram_url, tiktok_url, x_url, youtube_url, last_published_at, last_published_by",
+    )
     .single();
   if (createError) throw new Error("No se pudo crear la configuración inicial de la tienda.");
   return created;
@@ -227,15 +245,15 @@ export const getStorefrontManagement = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("store_product_overrides")
         .select(
-      "id, source_type, master_product_id, social_service_id, custom_name, custom_description, sale_price_pen, promo_price_pen, is_visible, display_order",
+          "id, source_type, master_product_id, social_service_id, custom_name, custom_description, sale_price_pen, promo_price_pen, is_visible, display_order",
         )
         .eq("store_owner_id", ownerId),
       supabaseAdmin
         .from("store_combos")
-      .select("id, name, description, sale_price_pen, promo_price_pen, is_visible, display_order")
-      .eq("store_owner_id", ownerId)
-      .order("display_order")
-      .order("created_at", { ascending: false }),
+        .select("id, name, description, sale_price_pen, promo_price_pen, is_visible, display_order")
+        .eq("store_owner_id", ownerId)
+        .order("display_order")
+        .order("created_at", { ascending: false }),
       supabaseAdmin
         .from("store_combo_items")
         .select("combo_id, store_product_override_id, quantity"),
@@ -481,14 +499,12 @@ export const createStorefrontCombo = createServerFn({ method: "POST" })
       .single();
     if (comboError) throw new Error("No se pudo crear el combo.");
 
-    const { error: linkError } = await supabaseAdmin
-      .from("store_combo_items")
-      .insert(
-        selectedIds.map((store_product_override_id) => ({
-          combo_id: combo.id,
-          store_product_override_id,
-        })),
-      );
+    const { error: linkError } = await supabaseAdmin.from("store_combo_items").insert(
+      selectedIds.map((store_product_override_id) => ({
+        combo_id: combo.id,
+        store_product_override_id,
+      })),
+    );
     if (linkError) {
       await supabaseAdmin.from("store_combos").delete().eq("id", combo.id);
       throw new Error("No se pudo asociar los productos al combo.");
@@ -591,7 +607,9 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: settings, error: settingsError } = await supabaseAdmin
       .from("storefront_settings")
-      .select("store_owner_id, store_slug, display_name, description, logo_url, banner_url, availability_mode, is_available, opens_at, closes_at, timezone, template_key, avatar_frame_key, facebook_url, instagram_url, tiktok_url, x_url, youtube_url")
+      .select(
+        "store_owner_id, store_slug, display_name, description, logo_url, banner_url, availability_mode, is_available, opens_at, closes_at, timezone, template_key, avatar_frame_key, facebook_url, instagram_url, tiktok_url, x_url, youtube_url",
+      )
       .eq("store_slug", normalizeSlug(data.slug))
       .eq("is_public", true)
       .maybeSingle();
@@ -630,7 +648,9 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
       masterIds.length > 0
         ? supabaseAdmin
             .from("products")
-            .select("id, name, description, image_url, category, duration_days, is_renewable, publisher_name")
+            .select(
+              "id, name, description, image_url, category, duration_days, is_renewable, publisher_name",
+            )
             .in("id", masterIds)
         : Promise.resolve({ data: [], error: null }),
       serviceIds.length > 0
@@ -658,7 +678,10 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
       if (inventoryError) throw new Error("No se pudo calcular el stock de esta tienda.");
       for (const item of inventory ?? []) {
         if (item.status === "available" || item.status === "disponible") {
-          inventoryByProduct.set(item.product_id, (inventoryByProduct.get(item.product_id) ?? 0) + 1);
+          inventoryByProduct.set(
+            item.product_id,
+            (inventoryByProduct.get(item.product_id) ?? 0) + 1,
+          );
         }
       }
     }
@@ -682,7 +705,7 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
           durationDays: "duration_days" in source ? source.duration_days : null,
           isRenewable: "is_renewable" in source ? source.is_renewable : false,
           publisherName: "publisher_name" in source ? source.publisher_name : settings.display_name,
-          stockCount: "image_url" in source ? inventoryByProduct.get(source.id) ?? 0 : null,
+          stockCount: "image_url" in source ? (inventoryByProduct.get(source.id) ?? 0) : null,
           salePricePen: override.sale_price_pen,
           promoPricePen: override.promo_price_pen,
           displayOrder: override.display_order,

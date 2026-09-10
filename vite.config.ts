@@ -7,8 +7,7 @@ import tailwindcss from "@tailwindcss/vite";
 // A Dev Tunnel terminates TLS on port 443. Local Vite development must use
 // its default ws:// connection to port 3001 instead of forcing wss://127.0.0.1.
 const useDevTunnelHmr = process.env.VITE_DEV_TUNNEL === "true";
-const tanstackClientStorageContextId =
-  "\0cmd:tanstack-start-storage-context-client";
+const tanstackClientStorageContextId = "\0cmd:tanstack-start-storage-context-client";
 
 /**
  * TanStack Start's development barrel currently lets Vite prebundle its
