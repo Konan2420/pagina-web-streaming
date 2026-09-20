@@ -577,6 +577,48 @@ export const catalogPriceById: Record<string, number> = Object.fromEntries(
 );
 
 export type Product = ProductDetail;
+
+export type AccountType = "completa" | "perfil";
+export type AccessScope = "global" | "regional";
+
+/**
+ * `products.account_type` y `access_scope` son `text` nulables con un CHECK que solo
+ * admite dos valores cada uno, pero el tipo generado por Supabase los expone como
+ * `string | null`. Devuelven `null` ante cualquier otra cosa, incluido el nulo: sin
+ * declaración no se afirma nada, porque "completa" o "global" es una afirmación
+ * comercial sobre el producto y no algo que la interfaz pueda inventarse. Con `null`
+ * la tarjeta no pinta el chip.
+ */
+export function toAccountType(value: string | null | undefined): AccountType | null {
+  return value === "completa" || value === "perfil" ? value : null;
+}
+
+export function toAccessScope(value: string | null | undefined): AccessScope | null {
+  return value === "global" || value === "regional" ? value : null;
+}
+
+/**
+ * Estados de venta de un producto. Son excluyentes porque cada uno recibe un
+ * mensaje distinto y solo `available` permite comprar.
+ *
+ * - `available`: se vende y hay unidades.
+ * - `out-of-stock`: se vende, pero no quedan unidades.
+ * - `out-of-service`: el vendedor lo retiró de la venta (`is_catalog_available`).
+ *   No dice nada sobre las unidades: puede haber inventario y aun así no venderse.
+ * - `unknown`: la consulta de stock todavía no respondió; no es "no hay unidades".
+ */
+export type ProductStockStatus = "available" | "out-of-stock" | "out-of-service" | "unknown";
+
+export type ProductStock = {
+  status: ProductStockStatus;
+  /**
+   * Unidades disponibles cuando el stock se pudo leer; `null` si no aplica o no hay dato.
+   * Puede ser mayor que cero con `out-of-service`: ese inventario existe, solo que no
+   * está a la venta, así que nunca debe presentarse como "agotado".
+   */
+  count: number | null;
+};
+
 export type PanelTab =
   | "tienda"
   | "mi-tienda"

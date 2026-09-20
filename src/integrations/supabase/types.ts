@@ -542,8 +542,8 @@ export type Database = {
       products: {
         Row: {
           category: string | null;
-          account_type: string;
-          access_scope: string;
+          account_type: string | null;
+          access_scope: string | null;
           credential_template: string;
           created_at: string | null;
           descripcion_larga: string | null;
@@ -557,6 +557,7 @@ export type Database = {
           is_renewable: boolean;
           name: string;
           price: number;
+          publisher_is_verified: boolean;
           publisher_name: string | null;
           service_id: string | null;
           supplier_id: string | null;
@@ -566,8 +567,8 @@ export type Database = {
         };
         Insert: {
           category?: string | null;
-          account_type?: string;
-          access_scope?: string;
+          account_type?: string | null;
+          access_scope?: string | null;
           credential_template?: string;
           created_at?: string | null;
           descripcion_larga?: string | null;
@@ -581,6 +582,7 @@ export type Database = {
           is_renewable?: boolean;
           name: string;
           price: number;
+          publisher_is_verified?: boolean;
           publisher_name?: string | null;
           service_id?: string | null;
           supplier_id?: string | null;
@@ -590,8 +592,8 @@ export type Database = {
         };
         Update: {
           category?: string | null;
-          account_type?: string;
-          access_scope?: string;
+          account_type?: string | null;
+          access_scope?: string | null;
           credential_template?: string;
           created_at?: string | null;
           descripcion_larga?: string | null;
@@ -605,6 +607,7 @@ export type Database = {
           is_renewable?: boolean;
           name?: string;
           price?: number;
+          publisher_is_verified?: boolean;
           publisher_name?: string | null;
           service_id?: string | null;
           supplier_id?: string | null;

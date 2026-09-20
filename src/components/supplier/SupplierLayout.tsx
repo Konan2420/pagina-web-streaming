@@ -2,11 +2,12 @@ import * as React from "react";
 import type { ReactNode } from "react";
 import { Outlet, useLocation } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/layout/AppTopbar";
+import { providerSections } from "@/components/layout/business-navigation";
 
 type SupplierLayoutProps = { children: ReactNode; title: string; subtitle?: string };
 
 const SupplierRouteShellContext = React.createContext(false);
-const supplierNavigation = { storeHref: "/proveedor/mi-tienda" } as const;
+const supplierNavigation = { sections: providerSections } as const;
 
 function SupplierPageFrame({ children, title, subtitle }: SupplierLayoutProps) {
   return (
@@ -27,7 +28,7 @@ function SupplierPageFrame({ children, title, subtitle }: SupplierLayoutProps) {
   );
 }
 
-/** Shell de proveedor sin área lateral: la navegación vive en AppTopbar. */
+/** Shell de proveedor sin área lateral: la navegación vive en las dos filas de AppTopbar. */
 export function SupplierRouteShell() {
   const location = useLocation();
   const isStorefrontRoute = location.pathname === "/proveedor/mi-tienda";

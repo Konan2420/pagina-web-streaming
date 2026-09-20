@@ -24,6 +24,7 @@ import {
 } from "@/lib/admin.functions";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { IconPicker } from "@/components/admin/IconPicker";
+import { ProductImage } from "@/components/ProductImage";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -147,6 +148,10 @@ function ProductsManagement() {
       is_active: formData.get("is_active") === "on",
       is_catalog_available: formData.get("is_catalog_available") === "on",
       is_renewable: formData.get("is_renewable") === "on",
+      // "" es la opción "Sin declarar" del desplegable: se guarda como nulo para
+      // que la tarjeta del catálogo no afirme lo que el vendedor no eligió.
+      account_type: (formData.get("account_type") as "completa" | "perfil" | null) || null,
+      access_scope: (formData.get("access_scope") as "global" | "regional" | null) || null,
       duration_days: Number(formData.get("duration_days")) || 30,
       credential_template: formData.get("credential_template") as
         "account" | "account_2fa" | "redeem_code" | "access_link" | "none",
@@ -366,15 +371,14 @@ function ProductsManagement() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center shrink-0">
-                          {product.image_url ? (
-                            <img
-                              src={product.image_url}
-                              alt={product.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Package className="w-5 h-5 text-white/20" />
-                          )}
+                          <ProductImage
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                            fallback={
+                              <Package className="w-5 h-5 text-white/20" aria-hidden="true" />
+                            }
+                          />
                         </div>
                         <span className="font-semibold text-white">{product.name}</span>
                       </div>
@@ -718,6 +722,46 @@ function ProductsManagement() {
                       Cuenta renovable
                     </label>
                   </div>
+                </div>
+
+                {/* Se publican en la tarjeta del catálogo: el comprador decide con
+                    ellos si compra una cuenta completa o un perfil compartido. */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="account_type"
+                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
+                  >
+                    Tipo de cuenta
+                  </label>
+                  <select
+                    id="account_type"
+                    name="account_type"
+                    defaultValue={editingProduct?.account_type ?? ""}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="">Sin declarar</option>
+                    <option value="completa">Completa</option>
+                    <option value="perfil">Perfil</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="access_scope"
+                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
+                  >
+                    Alcance
+                  </label>
+                  <select
+                    id="access_scope"
+                    name="access_scope"
+                    defaultValue={editingProduct?.access_scope ?? ""}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="">Sin declarar</option>
+                    <option value="global">Global</option>
+                    <option value="regional">Regional</option>
+                  </select>
                 </div>
               </div>
 

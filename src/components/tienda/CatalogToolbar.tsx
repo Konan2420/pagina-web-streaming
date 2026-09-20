@@ -363,7 +363,7 @@ export function CatalogToolbar({
               <FilterCheckbox
                 checked={filters.availableOnly}
                 label="Solo disponibles"
-                description="Oculta productos agotados."
+                description="Oculta agotados y fuera de servicio."
                 onChange={() =>
                   onFiltersChange((current) => ({
                     ...current,

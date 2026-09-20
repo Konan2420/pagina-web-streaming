@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { getRoleDestination, isCatalogOnlyRole, resolvePrimaryRole } from "@/lib/role-access";
 import { TiendaPage } from "@/components/tienda/TiendaPage";
 
-/** Ruta exclusiva de clientes: catálogo, filtros, compra y carrito. */
+/** Ruta exclusiva de clientes: catálogo, filtros, carrito y compra, más sus propias compras. */
 export const Route = createFileRoute("/_authenticated/catalogo")({
   ssr: false,
   beforeLoad: async () => {

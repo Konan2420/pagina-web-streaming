@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Package,
+  CircleAlert,
   Share2,
   MessageCircle,
   Mail,
@@ -25,12 +26,17 @@ import {
   platformShortcuts,
   estadoStyles,
   WA_NUMBER,
+  type AccountType,
+  type AccessScope,
   type Product,
+  type ProductStock,
   type PanelTab,
   type Profile,
   type Order,
   type PlatformShortcut,
   getAvatarUrl,
+  toAccountType,
+  toAccessScope,
 } from "@/components/tienda/data";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +53,7 @@ import { getAuthDestination } from "@/lib/auth-destination";
 import { cn } from "@/lib/utils";
 import { PlatformNavigation } from "@/components/tienda/PlatformNavigation";
 import { AppTopbar } from "@/components/layout/AppTopbar";
+import { distributorSections, providerSections } from "@/components/layout/business-navigation";
 import {
   ProductCatalogCard,
   ProductCatalogCardSkeleton,
@@ -111,10 +118,13 @@ type CatalogProduct = Product & {
   durationDays: number;
   isRenewable: boolean;
   totalSold: number;
-  accountType: "completa" | "perfil";
-  accessScope: "global" | "regional";
+  /** `null` cuando la base de datos no trae un valor reconocido: la tarjeta no lo afirma. */
+  accountType: AccountType | null;
+  accessScope: AccessScope | null;
   isCatalogAvailable: boolean;
   publisherName: string | null;
+  /** Solo `true` si el perfil comercial del vendedor está verificado en la base de datos. */
+  isPublisherVerified: boolean;
   totalViews: number;
   createdAt: string | null;
 };
@@ -206,6 +216,39 @@ const EMPTY_CATALOG_FILTERS: CatalogFilters = {
 
 const CATALOG_RENDER_PAGE_SIZE = 42;
 
+/** Identidad estable para no invalidar los `useMemo` que dependen del stock. */
+const EMPTY_STOCK_LEVELS: Record<string, number> = {};
+
+/**
+ * Columnas del catálogo sin `publisher_is_verified`, que solo existe a partir de la
+ * migración 20260915120000. Es la lista de respaldo: se usa cuando la base todavía
+ * no tiene esa columna.
+ *
+ * No se toca al añadir columnas nuevas mientras vengan de una migración ya aplicada;
+ * esta lista existe solo para poder leer un catálogo de una base un paso por detrás.
+ */
+const CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION =
+  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, created_at, service_id";
+
+/**
+ * PostgREST rechaza la consulta **completa** si una de las columnas pedidas no
+ * existe en la base (Postgres 42703), así que hay que saber distinguir ese fallo
+ * para poder repetir la consulta sin esa columna. Se comprueba el código y, por si
+ * el proveedor no lo enviara, el nombre de la columna dentro del mensaje.
+ */
+function isMissingColumn(error: { code?: string; message?: string }, column: string) {
+  return error.code === "42703" || (error.message ?? "").includes(column);
+}
+
+/**
+ * Paneles que el shell de cliente (`catalogOnly`) puede abrir. El comprador tiene que poder
+ * volver a ver las credenciales que el recibo le manda a consultar «desde Mis compras».
+ *
+ * Es una lista y no una comparación suelta para que el sidebar (`handleSidebarPanel`) y el atajo
+ * de teclado no puedan desincronizarse.
+ */
+const CATALOG_ONLY_PANELS: readonly PanelTab[] = ["tienda", "compras"];
+
 type SidebarPlaceholderPanel = Exclude<
   PanelTab,
   "tienda" | "mi-tienda" | "compras" | "pedidos" | "perfil" | "soporte" | "clientes"
@@ -273,15 +316,26 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 function getProductStock(
   product: Pick<Product, "id"> & { isCatalogAvailable?: boolean },
   stockLevels: Record<string, number>,
-): { available: boolean; count: number | null } {
+  isStockReady: boolean,
+): ProductStock {
+  // Sin respuesta de `product_stock` el estado es desconocido. Asumir cero
+  // pintaba el catálogo completo como agotado mientras cargaba y tras un error.
+  if (!isStockReady) return { status: "unknown", count: null };
+
   const id = String(product.id);
   const isCatalogAvailable = product.isCatalogAvailable ?? true;
   if (!isCatalogAvailable) {
-    return { available: false, count: UUID_RE.test(id) ? (stockLevels[id] ?? 0) : null };
+    // Retirado de la venta por el vendedor. Es un hecho distinto al de agotarse:
+    // el conteo se conserva porque ese inventario existe, pero no se usa para
+    // anunciar "agotado" ni para dejar comprar.
+    return {
+      status: "out-of-service",
+      count: UUID_RE.test(id) ? (stockLevels[id] ?? 0) : null,
+    };
   }
-  if (!UUID_RE.test(id)) return { available: true, count: null };
+  if (!UUID_RE.test(id)) return { status: "available", count: null };
   const count = stockLevels[id] ?? 0;
-  return { available: count > 0, count };
+  return { status: count > 0 ? "available" : "out-of-stock", count };
 }
 
 function getSafeExternalUrl(value: string | null): string | null {
@@ -557,8 +611,8 @@ export function TiendaPage({
 
   const handleSidebarPanel = useCallback(
     (nextPanel: PanelTab) => {
-      if (catalogOnly && nextPanel !== "tienda") {
-        toast.info("Tu cuenta tiene acceso únicamente al catálogo.");
+      if (catalogOnly && !CATALOG_ONLY_PANELS.includes(nextPanel)) {
+        toast.info("Tu cuenta solo tiene acceso al catálogo y a tus compras.");
         return;
       }
       playClick();
@@ -589,6 +643,11 @@ export function TiendaPage({
     }
     toast.error("Tu cuenta no tiene acceso a la gestión de Mi Tienda.");
   }, [isAdmin, isDistributor, isProvider, router]);
+
+  /** El catálogo marca los productos del proveedor; desde esa marca va directo a su editor. */
+  const handleManageProducts = useCallback(() => {
+    void router.navigate({ to: "/proveedor/productos" });
+  }, [router]);
 
   const handleSignOut = useCallback(async () => {
     setSidebarOpen(false);
@@ -705,6 +764,54 @@ export function TiendaPage({
     setLoadingOrders(false);
   }, [userId, fetchProfile]);
 
+  const isCommercialRole = isAdmin || isProvider || isDistributor;
+
+  /**
+   * Id del cliente CRM que representa a esta misma cuenta. Solo lo necesitan los roles
+   * comerciales, y solo para «Mis Compras»: el checkout graba `orders.user_id` con el
+   * destinatario del pedido y, cuando el cliente CRM no tiene perfil, cae al vendedor
+   * (`COALESCE(client_row.profile_id, actor_id)` en `place_catalog_order_from_wallet`). Filtrar
+   * solo por `user_id` metería por tanto las ventas a clientes externos entre las compras
+   * propias; el self-client es lo que distingue una compra para uno mismo.
+   */
+  const selfClientQuery = useQuery({
+    queryKey: ["self-business-client", userId],
+    enabled: Boolean(userId) && isCommercialRole,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("ensure_self_business_client");
+      if (error) throw error;
+      return data;
+    },
+  });
+  const selfClientId = selfClientQuery.data;
+
+  /**
+   * Ids de los productos que vende esta cuenta, para marcar los suyos en el catálogo y darles
+   * acceso directo a su editor.
+   *
+   * Va en una consulta aparte en vez de añadir `supplier_id` a la del catálogo por dos razones: la
+   * lista de columnas tiene un duplicado de respaldo (`CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION`)
+   * que habría que mantener sincronizado, y así el catálogo que recibe cualquier visitante no
+   * cambia. Esto no abre nada nuevo: `products` tiene SELECT público con `USING (true)`, así que
+   * `supplier_id` ya es legible hoy, y el filtro es el mismo que el panel de proveedor ya usa.
+   */
+  const ownProductIdsQuery = useQuery({
+    queryKey: ["own-product-ids", userId],
+    enabled: Boolean(userId) && !isRoleLoading && isProvider,
+    staleTime: 5 * 60_000,
+    queryFn: async () => {
+      if (!userId) return new Set<string>();
+      const { data, error } = await supabase
+        .from("products")
+        .select("id")
+        .eq("supplier_id", userId);
+      if (error) throw error;
+      return new Set<string>((data ?? []).map((row) => row.id));
+    },
+  });
+  const ownProductIds = ownProductIdsQuery.data;
+
   const loadOrders = useCallback(async () => {
     if (!userId) {
       ordersRequestId.current += 1;
@@ -712,14 +819,23 @@ export function TiendaPage({
       setLoadingOrders(false);
       return;
     }
+
+    // Sin el self-client resuelto no se puede acotar la lista. Se invalida cualquier carga en
+    // vuelo y se mantiene el estado de carga, en vez de pintar el resultado sin acotar — que es
+    // justo el que mezcla las ventas a clientes externos con las compras propias.
+    if (isCommercialRole && selfClientQuery.isLoading) {
+      ordersRequestId.current += 1;
+      setLoadingOrders(true);
+      return;
+    }
+
     const requestId = ++ordersRequestId.current;
     setLoadingOrders(true);
 
-    const [regularResult, manualResult] = await Promise.all([
-      supabase
-        .from("orders")
-        .select(
-          `
+    let regularQuery = supabase
+      .from("orders")
+      .select(
+        `
         id,
         producto_id,
         producto_nombre,
@@ -733,9 +849,23 @@ export function TiendaPage({
           notes
         )
       `,
-        )
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false }),
+      )
+      .eq("user_id", userId);
+
+    // Una compra propia entra por dos vías y hay que admitir las dos: el modal del catálogo, que
+    // la registra contra el self-client (`place_catalog_order_from_wallet`), y el carrito o
+    // «Comprar ahora», que van por `place_order_with_inventory` y dejan `business_client_id` en
+    // NULL. Lo que se excluye es lo vendido a otros: un pedido con cliente CRM distinto del
+    // propio. Sin esta acotación, un revendedor vería además sus ventas a clientes externos,
+    // porque el checkout las deja con `user_id` = vendedor cuando el cliente no tiene perfil.
+    if (isCommercialRole && selfClientId) {
+      regularQuery = regularQuery.or(
+        `business_client_id.is.null,business_client_id.eq.${selfClientId}`,
+      );
+    }
+
+    const [regularResult, manualResult] = await Promise.all([
+      regularQuery.order("created_at", { ascending: false }),
       supabase
         .from("manual_orders")
         .select(
@@ -784,7 +914,7 @@ export function TiendaPage({
         (a, b) => new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime(),
       ),
     );
-  }, [userId]);
+  }, [isCommercialRole, selfClientId, selfClientQuery.isLoading, userId]);
 
   useEffect(() => {
     if (panel === "compras") loadOrders();
@@ -810,14 +940,31 @@ export function TiendaPage({
           supabase
             .from("products")
             .select(
-              "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, created_at, service_id",
+              "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, publisher_is_verified, created_at, service_id",
             )
             .eq("is_active", true)
             .order("created_at", { ascending: false }),
         ),
       );
-      if (error) throw error;
-      return data;
+      if (!error) return data;
+
+      // Una columna que la base todavía no tiene no deja la landing sin el
+      // distintivo de vendedor verificado: la deja sin catálogo, porque PostgREST
+      // rechaza la consulta entera. Se repite sin esa columna y el distintivo
+      // simplemente no se pinta — que es la verdad, el dato no existe todavía.
+      if (!isMissingColumn(error, "publisher_is_verified")) throw error;
+
+      const fallback = await withRequestTimeout(
+        Promise.resolve(
+          supabase
+            .from("products")
+            .select(CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION)
+            .eq("is_active", true)
+            .order("created_at", { ascending: false }),
+        ),
+      );
+      if (fallback.error) throw fallback.error;
+      return (fallback.data ?? []).map((row) => ({ ...row, publisher_is_verified: false }));
     },
     staleTime: 60_000,
     gcTime: 10 * 60_000,
@@ -891,7 +1038,10 @@ export function TiendaPage({
       name: p.name,
       category: p.category?.toLowerCase() || "streaming",
       price: p.price,
-      image: p.image_url || "/placeholder.svg",
+      // Se conserva el hueco real del dato. Antes se sustituía por
+      // "/placeholder.svg", un archivo que no existe en el proyecto: la tarjeta lo
+      // esquivaba por su nombre y la ficha del producto intentaba cargarlo.
+      image: p.image_url || undefined,
       iconId: p.icon_id,
       description: p.description || "",
       whatsapp_contacto: WA_NUMBER,
@@ -906,9 +1056,10 @@ export function TiendaPage({
       isCatalogAvailable: p.is_catalog_available ?? true,
       totalSold: p.total_vendidos ?? 0,
       totalViews: p.total_vistas ?? 0,
-      accountType: p.account_type === "perfil" ? "perfil" : "completa",
-      accessScope: p.access_scope === "regional" ? "regional" : "global",
+      accountType: toAccountType(p.account_type),
+      accessScope: toAccessScope(p.access_scope),
       publisherName: p.publisher_name?.trim() || null,
+      isPublisherVerified: p.publisher_is_verified === true,
       createdAt: p.created_at,
     }));
   }, [dbProducts]);
@@ -991,7 +1142,7 @@ export function TiendaPage({
   );
 
   const {
-    data: stockLevels = {},
+    data: stockData,
     isLoading: isStockLoading,
     isError: isStockError,
     error: stockError,
@@ -1019,6 +1170,16 @@ export function TiendaPage({
     refetchInterval: 30000, // Refetch every 30s
   });
 
+  // El stock llega en una consulta independiente del catálogo. Mientras no haya
+  // respuesta el estado es "sin dato": ni disponible ni agotado. Se mide por la
+  // presencia de datos y no por `isError`, para que un fallo de un refetch en
+  // segundo plano no descarte el conteo que ya teníamos.
+  const stockLevels = stockData ?? EMPTY_STOCK_LEVELS;
+  const isStockReady = isClientMounted && (stockData !== undefined || stockIds.length === 0);
+  // Con el filtro de disponibilidad activo, no tener stock deja la lista vacía
+  // sin que los filtros tengan la culpa: el estado vacío debe decirlo.
+  const isStockFilterBlocked = catalogFilters.availableOnly && !isStockReady;
+
   const { data: catalogActivity = [] } = useQuery({
     queryKey: ["catalog-product-activity", stockIds],
     queryFn: async () => {
@@ -1041,9 +1202,18 @@ export function TiendaPage({
     [catalogActivity],
   );
 
+  // La tarjeta necesita saber qué hay ya en el carrito: para decirlo en el botón
+  // y para apagarlo cuando el comprador alcanzó el stock disponible.
+  const quantityInCartByProduct = useMemo(
+    () => new Map(cartItems.map((item) => [item.id, item.quantity])),
+    [cartItems],
+  );
+
   const visible = useMemo(() => {
     const list = catalogCandidates.filter(
-      (product) => !catalogFilters.availableOnly || getProductStock(product, stockLevels).available,
+      (product) =>
+        !catalogFilters.availableOnly ||
+        getProductStock(product, stockLevels, isStockReady).status === "available",
     );
 
     if (sort === "price-asc") return [...list].sort((a, b) => a.price - b.price);
@@ -1057,7 +1227,7 @@ export function TiendaPage({
     return [...list].sort(
       (a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime(),
     );
-  }, [catalogCandidates, catalogFilters.availableOnly, sort, stockLevels]);
+  }, [catalogCandidates, catalogFilters.availableOnly, sort, stockLevels, isStockReady]);
 
   const isCatalogFiltering =
     query !== debouncedQuery || (catalogFilters.availableOnly && isStockLoading);
@@ -1067,6 +1237,23 @@ export function TiendaPage({
     : catalogRequestTimedOut
       ? new RequestTimeoutError(UI_REQUEST_TIMEOUT_MS)
       : null;
+
+  // El contador de resultados es la única región viva del catálogo, y por eso
+  // tiene que decir la verdad en los tres estados: antes afirmaba "0 productos
+  // encontrados" con el punto verde mientras las tarjetas aún se estaban cargando
+  // —o cuando la carga había fallado—, que es justo lo contrario de lo que pasa.
+  const catalogStatusLabel = isCatalogLoading
+    ? "Cargando productos…"
+    : catalogLoadError
+      ? "Catálogo no disponible"
+      : `${visible.length} producto${visible.length === 1 ? "" : "s"} encontrado${
+          visible.length === 1 ? "" : "s"
+        }`;
+  const catalogStatusDot = isCatalogLoading
+    ? "bg-amber-400"
+    : catalogLoadError
+      ? "bg-red-400"
+      : "bg-green-400";
 
   // `withRequestTimeout` es la protección principal de cada consulta. Este
   // guardia independiente cubre navegadores/extensiones que pausen o cancelen
@@ -1109,17 +1296,31 @@ export function TiendaPage({
     [allProducts, playClick],
   );
 
-  function handleAdd(p: Product) {
+  /** Devuelve si el producto entró al carrito, para que la tarjeta no celebre un alta que no ocurrió. */
+  function handleAdd(p: Product): boolean {
     if (!session) {
       openAuth();
-      return;
+      return false;
     }
 
-    const stock = getProductStock(p, stockLevels);
-    const quantityInCart = cartItems.find((item) => item.id === p.id)?.quantity ?? 0;
-    if (!stock.available || (stock.count !== null && quantityInCart >= stock.count)) {
-      toast.error("Este producto se agotó o ya alcanzaste el stock disponible.");
-      return;
+    const stock = getProductStock(p, stockLevels, isStockReady);
+    if (stock.status === "unknown") {
+      toast.error("No pudimos comprobar el stock. Intenta de nuevo en un momento.");
+      return false;
+    }
+    if (stock.status === "out-of-service") {
+      toast.error("Este producto está fuera de servicio.");
+      return false;
+    }
+    if (stock.status === "out-of-stock") {
+      toast.error("Este producto se agotó.");
+      return false;
+    }
+
+    const quantityInCart = quantityInCartByProduct.get(p.id) ?? 0;
+    if (stock.count !== null && quantityInCart >= stock.count) {
+      toast.error("Ya alcanzaste el stock disponible de este producto.");
+      return false;
     }
 
     cartStore.add({
@@ -1134,6 +1335,7 @@ export function TiendaPage({
     });
     toast.success(`${p.name} agregado al carrito`);
     setCartOpen(true);
+    return true;
   }
 
   async function handleCheckout() {
@@ -1144,13 +1346,36 @@ export function TiendaPage({
     }
     if (cartItems.length === 0 || isOrderSubmitting || orderSubmissionRef.current) return;
 
-    const unavailableItem = cartItems.find((item) => {
+    // Un carrito con stock sin confirmar tampoco se puede cobrar: el servidor
+    // vuelve a validar, pero aquí hay que explicar por qué no avanza.
+    let blockedItem: { name: string; reason: "unknown" | "out-of-service" | "stock" } | null = null;
+    for (const item of cartItems) {
       const product = allProducts.find((catalogProduct) => catalogProduct.id === item.id);
-      const stock = getProductStock(product ?? { id: item.id }, stockLevels);
-      return !stock.available || (stock.count !== null && item.quantity > stock.count);
-    });
-    if (unavailableItem) {
-      toast.error(`${unavailableItem.name} ya no tiene stock suficiente.`);
+      const stock = getProductStock(product ?? { id: item.id }, stockLevels, isStockReady);
+      if (stock.status === "unknown") {
+        blockedItem = { name: item.name, reason: "unknown" };
+        break;
+      }
+      if (stock.status === "out-of-service") {
+        blockedItem = { name: item.name, reason: "out-of-service" };
+        break;
+      }
+      if (
+        stock.status === "out-of-stock" ||
+        (stock.count !== null && item.quantity > stock.count)
+      ) {
+        blockedItem = { name: item.name, reason: "stock" };
+        break;
+      }
+    }
+    if (blockedItem) {
+      toast.error(
+        blockedItem.reason === "unknown"
+          ? `No pudimos comprobar el stock de ${blockedItem.name}. Intenta de nuevo.`
+          : blockedItem.reason === "out-of-service"
+            ? `${blockedItem.name} está fuera de servicio.`
+            : `${blockedItem.name} ya no tiene stock suficiente.`,
+      );
       return;
     }
 
@@ -1181,7 +1406,7 @@ export function TiendaPage({
       cartStore.clear();
       setCartOpen(false);
       await loadOrders();
-      setPanel(catalogOnly ? "tienda" : "compras");
+      setPanel("compras");
     } catch {
       toast.error("No se pudo registrar el pedido. Intenta de nuevo.");
     } finally {
@@ -1197,8 +1422,16 @@ export function TiendaPage({
     }
     if (isOrderSubmitting || orderSubmissionRef.current) return;
 
-    const stock = getProductStock(p, stockLevels);
-    if (!stock.available || (stock.count !== null && quantity > stock.count)) {
+    const stock = getProductStock(p, stockLevels, isStockReady);
+    if (stock.status === "unknown") {
+      toast.error("No pudimos comprobar el stock. Intenta de nuevo en un momento.");
+      return;
+    }
+    if (stock.status === "out-of-service") {
+      toast.error("Este producto está fuera de servicio.");
+      return;
+    }
+    if (stock.status !== "available" || (stock.count !== null && quantity > stock.count)) {
       toast.error("Este producto ya no tiene stock disponible.");
       return;
     }
@@ -1222,7 +1455,7 @@ export function TiendaPage({
       });
       toast.success("Compra completada. Tus credenciales ya están disponibles.");
       await loadOrders();
-      setPanel(catalogOnly ? "tienda" : "compras");
+      setPanel("compras");
     } catch {
       toast.error("No se pudo registrar el pedido. Intenta de nuevo.");
     } finally {
@@ -1241,6 +1474,15 @@ export function TiendaPage({
     .join("")
     .toUpperCase();
   const safeDeliveryUrl = getSafeExternalUrl(selectedDelivery?.access_link ?? null);
+
+  // El mismo nav que ven los shells de panel, para que la landing y Mi Tienda dejen de ser islas:
+  // hoy el proveedor no tiene ningún camino de aquí a Productos o Inventario. La prioridad
+  // proveedor → distribuidor replica la de handleOpenStorefront.
+  const businessNavigation = isProvider
+    ? { sections: providerSections }
+    : isDistributor
+      ? { sections: distributorSections }
+      : undefined;
 
   return (
     <div className="relative isolate min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -1290,16 +1532,7 @@ export function TiendaPage({
               : "lg:pl-[var(--store-sidebar-width)]"),
         )}
       >
-        <AppTopbar
-          onToggleSidebar={handleSidebarToggle}
-          businessNavigation={
-            isProvider
-              ? { storeHref: "/proveedor/mi-tienda" }
-              : isDistributor
-                ? { storeHref: "/distribuidor/mi-tienda" }
-                : undefined
-          }
-        />
+        <AppTopbar onToggleSidebar={handleSidebarToggle} businessNavigation={businessNavigation} />
         {(panel === "tienda" || panel === "mi-tienda") && (
           <div className="tienda-main-content">
             <PlatformNavigation
@@ -1348,10 +1581,12 @@ export function TiendaPage({
                     {activeCat === "todo" ? "Todos los productos" : activeCat}
                   </h2>
                 </div>
-                <div className="flex items-center gap-1.5 self-start rounded-lg border border-border bg-background px-2 py-1 text-[9px] font-bold text-white/65 sm:self-auto">
-                  <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
-                  {visible.length} producto{visible.length === 1 ? "" : "s"} encontrado
-                  {visible.length === 1 ? "" : "s"}
+                <div
+                  role="status"
+                  className="flex items-center gap-1.5 self-start rounded-lg border border-border bg-background px-2 py-1 text-[9px] font-bold text-white/65 sm:self-auto"
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${catalogStatusDot}`} />
+                  {catalogStatusLabel}
                 </div>
               </div>
 
@@ -1366,7 +1601,7 @@ export function TiendaPage({
                   }}
                 />
               ) : isCatalogLoading ? (
-                <div className="grid grid-cols-1 items-start gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7 xl:gap-2">
+                <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] lg:gap-2">
                   {Array.from({ length: 12 }, (_, index) => (
                     <ProductCatalogCardSkeleton key={index} />
                   ))}
@@ -1374,30 +1609,52 @@ export function TiendaPage({
               ) : visible.length === 0 ? (
                 <div className="grid place-items-center rounded-xl border border-border bg-background p-10 text-center sm:p-16">
                   <div className="mb-5 grid h-14 w-14 place-items-center rounded-lg border border-border bg-background">
-                    <Package className="w-6 h-6 text-white/70" />
+                    {isStockFilterBlocked ? (
+                      <CircleAlert className="w-6 h-6 text-amber-300" />
+                    ) : (
+                      <Package className="w-6 h-6 text-white/70" />
+                    )}
                   </div>
                   <p className="text-sm text-white/60 mb-5">
-                    {query.trim()
-                      ? "No se encontraron productos para tu búsqueda."
-                      : "No encontramos productos con esos filtros."}
+                    {isStockFilterBlocked
+                      ? "Filtraste por disponibilidad, pero no pudimos comprobar el stock."
+                      : query.trim()
+                        ? "No se encontraron productos para tu búsqueda."
+                        : "No encontramos productos con esos filtros."}
                   </p>
-                  <button
-                    onMouseEnter={playHover}
-                    onClick={() => {
-                      playClick();
-                      setActiveCat("todo");
-                      setActiveServiceId(null);
-                      setQuery("");
-                      setDebouncedQuery("");
-                      clearCatalogFilters();
-                      document
-                        .getElementById("catalogo")
-                        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                    className="rounded-lg border border-border bg-background px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-white transition hover:border-primary hover:text-primary"
-                  >
-                    Ver todo el catálogo
-                  </button>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {isStockFilterBlocked && (
+                      <button
+                        type="button"
+                        onMouseEnter={playHover}
+                        onClick={() => {
+                          playClick();
+                          void refetchStock();
+                        }}
+                        title={stockError instanceof Error ? stockError.message : undefined}
+                        className="rounded-lg border border-amber-300/45 bg-amber-300/[0.08] px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-amber-50 transition hover:border-amber-300 hover:text-white"
+                      >
+                        Reintentar
+                      </button>
+                    )}
+                    <button
+                      onMouseEnter={playHover}
+                      onClick={() => {
+                        playClick();
+                        setActiveCat("todo");
+                        setActiveServiceId(null);
+                        setQuery("");
+                        setDebouncedQuery("");
+                        clearCatalogFilters();
+                        document
+                          .getElementById("catalogo")
+                          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }}
+                      className="rounded-lg border border-border bg-background px-5 py-2.5 text-[11px] uppercase tracking-[0.18em] text-white transition hover:border-primary hover:text-primary"
+                    >
+                      Ver todo el catálogo
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -1443,13 +1700,16 @@ export function TiendaPage({
                       </button>
                     </div>
                   )}
-                  <div className="grid grid-cols-1 items-start gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-7 xl:gap-2">
+                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] lg:gap-2">
                     {renderedVisibleProducts.map((p) => (
                       <ProductCatalogCard
                         key={p.id}
                         product={p}
-                        stock={getProductStock(p, stockLevels)}
+                        stock={getProductStock(p, stockLevels, isStockReady)}
                         lastSaleAt={lastSaleByProduct.get(p.id) ?? null}
+                        quantityInCart={quantityInCartByProduct.get(p.id) ?? 0}
+                        isMine={ownProductIds?.has(p.id) ?? false}
+                        onManage={handleManageProducts}
                         onHover={playHover}
                         onOpen={() => {
                           playClick();
@@ -1457,7 +1717,7 @@ export function TiendaPage({
                         }}
                         onAdd={() => {
                           playClick();
-                          handleAdd(p);
+                          return handleAdd(p);
                         }}
                       />
                     ))}
@@ -1654,7 +1914,7 @@ export function TiendaPage({
           onFocusSearch={focusCatalogSearch}
           onToggleCart={() => setCartOpen((v) => !v)}
           onGoPanel={(p) => {
-            if (!catalogOnly || p === "tienda") setPanel(p);
+            if (!catalogOnly || CATALOG_ONLY_PANELS.includes(p)) setPanel(p);
           }}
           onGoHome={() => router.navigate({ to: "/" })}
           onOpenTutorial={() => setTutorialOpen(true)}
@@ -1678,16 +1938,24 @@ export function TiendaPage({
               isAdmin={isAdmin}
               isProvider={isProvider}
               isDistributor={isDistributor}
-              stockAvailable={getProductStock(selected, stockLevels).available}
-              stockCount={getProductStock(selected, stockLevels).count}
+              stockStatus={getProductStock(selected, stockLevels, isStockReady).status}
+              stockCount={getProductStock(selected, stockLevels, isStockReady).count}
               totalSold={selected.totalSold}
               viewCount={selected.totalViews}
               publisherName={selected.publisherName}
+              publisherIsVerified={selected.isPublisherVerified}
               isRenewable={selected.isRenewable}
               onOrderCreated={async () => {
                 await Promise.all([loadOrders(), walletBalanceQuery.refetch()]);
+                // Este camino es el del modal del catálogo, que registra el pedido contra un
+                // cliente CRM. Un rol comercial puede estar vendiéndole a un cliente externo, y
+                // esa venta queda fuera de «Mis Compras» a propósito — es justo lo que acota el
+                // filtro por `business_client_id` de `loadOrders`. Llevarlo ahí sería mostrarle
+                // un panel donde el pedido que acaba de crear no aparece. El carrito y «Comprar
+                // ahora» sí aterrizan en «Mis Compras»: esos van por `place_order_with_inventory`
+                // y son siempre compras propias.
                 if (!isAdmin && !isProvider && !isDistributor) {
-                  setPanel(catalogOnly ? "tienda" : "compras");
+                  setPanel("compras");
                 }
               }}
             />

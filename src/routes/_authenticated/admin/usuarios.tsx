@@ -1,8 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Ban, Handshake, Search, ShieldAlert, Store, User as UserIcon } from "lucide-react";
-import { getUsersWithRoles, updateUserRole } from "@/lib/admin.functions";
+import {
+  BadgeCheck,
+  Ban,
+  Handshake,
+  Search,
+  ShieldAlert,
+  Store,
+  User as UserIcon,
+} from "lucide-react";
+import { getUsersWithRoles, setSupplierVerified, updateUserRole } from "@/lib/admin.functions";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -25,10 +33,12 @@ function UsersManagement() {
   const { isAdmin } = Route.useRouteContext();
   const [searchTerm, setSearchTerm] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [verifyingId, setVerifyingId] = useState<string | null>(null);
   const [banTarget, setBanTarget] = useState<BanTarget | null>(null);
 
   const queryClient = useQueryClient();
   const updateRoleMutation = useServerFn(updateUserRole);
+  const verifySupplierMutation = useServerFn(setSupplierVerified);
 
   const filteredUsers = users.filter(
     (u) =>
@@ -49,6 +59,26 @@ function UsersManagement() {
       );
     } finally {
       setUpdatingId(null);
+    }
+  };
+
+  const handleToggleVerified = async (userId: string, isVerified: boolean) => {
+    setVerifyingId(userId);
+    try {
+      await verifySupplierMutation({ data: { user_id: userId, is_verified: isVerified } });
+      toast.success(isVerified ? "Proveedor verificado" : "Verificación retirada", {
+        description: isVerified
+          ? "Sus productos ya muestran la insignia en el catálogo."
+          : "Sus productos dejaron de mostrar la insignia.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["admin-users-roles"] });
+    } catch (err) {
+      toast.error(
+        "Error al cambiar la verificación: " +
+          (err instanceof Error ? err.message : "Error desconocido"),
+      );
+    } finally {
+      setVerifyingId(null);
     }
   };
 
@@ -111,6 +141,7 @@ function UsersManagement() {
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">WhatsApp</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Registro</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Rol Actual</th>
+                <th className="px-6 py-4 font-medium uppercase tracking-wider">Verificación</th>
                 <th className="px-6 py-4 font-medium uppercase tracking-wider text-right">
                   {isAdmin ? "Cambiar Rol" : ""}
                 </th>
@@ -122,7 +153,7 @@ function UsersManagement() {
             <tbody className="divide-y divide-border">
               {filteredUsers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground italic">
+                  <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground italic">
                     No se encontraron usuarios.
                   </td>
                 </tr>
@@ -153,6 +184,38 @@ function UsersManagement() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">{getRoleBadge(user.role)}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {/* El perfil comercial existe para quien tuvo el rol de
+                          proveedor: es la única cuenta con algo que acreditar. */}
+                      {user.has_supplier_profile ? (
+                        <label className="inline-flex cursor-pointer items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={user.is_verified}
+                            disabled={!isAdmin || verifyingId === user.id}
+                            onChange={(e) => void handleToggleVerified(user.id, e.target.checked)}
+                            className="size-4 cursor-pointer rounded border-border bg-card accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+                            aria-label={
+                              user.is_verified
+                                ? `Retirar la verificación a ${user.nombre_completo || "esta cuenta"}`
+                                : `Verificar a ${user.nombre_completo || "esta cuenta"}`
+                            }
+                          />
+                          <span
+                            className={`inline-flex items-center gap-1 text-xs font-medium ${
+                              user.is_verified ? "text-sky-300" : "text-muted-foreground"
+                            }`}
+                          >
+                            {user.is_verified && (
+                              <BadgeCheck className="size-3.5" aria-hidden="true" />
+                            )}
+                            {user.is_verified ? "Verificado" : "Sin verificar"}
+                          </span>
+                        </label>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       {isAdmin && (
                         <select

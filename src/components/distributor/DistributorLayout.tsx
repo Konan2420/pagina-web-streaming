@@ -2,11 +2,12 @@ import * as React from "react";
 import type { ReactNode } from "react";
 import { Outlet, useLocation } from "@tanstack/react-router";
 import { AppTopbar } from "@/components/layout/AppTopbar";
+import { distributorSections } from "@/components/layout/business-navigation";
 
 type DistributorLayoutProps = { children: ReactNode; title: string; subtitle?: string };
 
 const DistributorRouteShellContext = React.createContext(false);
-const distributorNavigation = { storeHref: "/distribuidor/mi-tienda" } as const;
+const distributorNavigation = { sections: distributorSections } as const;
 
 function DistributorPageFrame({ children, title, subtitle }: DistributorLayoutProps) {
   return (
@@ -27,7 +28,7 @@ function DistributorPageFrame({ children, title, subtitle }: DistributorLayoutPr
   );
 }
 
-/** Shell de distribuidor sin área lateral: la navegación vive en AppTopbar. */
+/** Shell de distribuidor sin área lateral: la navegación vive en las dos filas de AppTopbar. */
 export function DistributorRouteShell() {
   const location = useLocation();
   const isStorefrontRoute = location.pathname === "/distribuidor/mi-tienda";

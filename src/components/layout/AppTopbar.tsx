@@ -1,24 +1,26 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Gift, PanelLeft, Radio, Search, Store } from "lucide-react";
 import { getMyStorefrontPublicLink } from "@/lib/storefront.functions";
 import { WA_NUMBER } from "@/components/tienda/data";
 import { cn } from "@/lib/utils";
 import { ColorModeIcon, useAppChrome } from "./AppChromeContext";
+import type { BusinessSection } from "./business-navigation";
 
 type BusinessNavigation = {
-  storeHref: "/proveedor/mi-tienda" | "/distribuidor/mi-tienda";
+  sections: readonly BusinessSection[];
 };
 
 type AppTopbarProps = {
   onToggleSidebar?: () => void;
-  /** Navegación interna disponible exclusivamente desde los shells protegidos de negocio. */
+  /** Secciones internas, disponibles exclusivamente desde los paneles de negocio. */
   businessNavigation?: BusinessNavigation;
   className?: string;
 };
 
 /** Barra global de la aplicación. Los estados de tema y modo Live viven en AppChromeProvider. */
 export function AppTopbar({ onToggleSidebar, businessNavigation, className }: AppTopbarProps) {
+  const { pathname } = useLocation();
   const { colorMode, liveMode, toggleColorMode, toggleLiveMode, openCommandPalette } =
     useAppChrome();
   const getMyPublicStore = useServerFn(getMyStorefrontPublicLink);
@@ -63,19 +65,9 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
             </button>
           )}
 
-          {businessNavigation ? (
-            <Link
-              to={businessNavigation.storeHref}
-              title="Mi Tienda"
-              className={cn(
-                "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9",
-                control,
-              )}
-            >
-              <Store className="h-3.5 w-3.5" />
-              <span>Mi tienda</span>
-            </Link>
-          ) : (
+          {/* Con secciones, «Mi Tienda» es una entrada del nav: el botón sería un duplicado, y
+              en /proveedor/mi-tienda apuntaba a la página en la que ya estabas. */}
+          {!businessNavigation && (
             <button
               type="button"
               onClick={() => void openMyPublicStore()}
@@ -143,6 +135,33 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
           </button>
         </div>
       </div>
+
+      {/* Segunda fila del mismo <header>: al ser sticky, las tablas largas de Inventario y Ventas
+          se desplazan sin que el nav desaparezca. */}
+      {businessNavigation && (
+        <nav aria-label="Secciones del panel" className="border-t border-border/70">
+          <div className="mx-auto flex max-w-[1600px] items-center gap-1 overflow-x-auto px-4 py-1.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:px-6">
+            {businessNavigation.sections.map((section) => {
+              const active = pathname === section.to;
+              return (
+                <Link
+                  key={section.to}
+                  to={section.to}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "inline-flex h-9 shrink-0 items-center rounded-lg px-3 text-[11px] font-bold transition-colors",
+                    active
+                      ? "cmd-active-subtle"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  {section.label}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      )}
     </header>
   );
 }

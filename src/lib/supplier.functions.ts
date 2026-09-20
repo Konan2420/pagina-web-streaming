@@ -19,6 +19,11 @@ const providerProductSchema = z.object({
   service_id: z.string().uuid().nullable().optional(),
   duration_days: z.number().int().positive().max(3_650).default(30),
   is_renewable: z.boolean().default(true),
+  // Se publican en la tarjeta del catálogo tal cual: son la única forma que tiene
+  // el comprador de distinguir una cuenta completa de un perfil compartido. `null`
+  // es el estado de partida —sin declarar— y la tarjeta no pinta nada con él.
+  account_type: z.enum(["completa", "perfil"]).nullable().default(null),
+  access_scope: z.enum(["global", "regional"]).nullable().default(null),
   credential_template: z
     .enum(["account", "account_2fa", "redeem_code", "access_link", "none"])
     .default("account"),

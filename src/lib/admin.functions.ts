@@ -215,6 +215,18 @@ export const getUsersWithRoles = createServerFn({ method: "GET" })
 
     if (rError) throw new Error(rError.message);
 
+    // La verificación vive en el perfil comercial y se copia a `products` por
+    // trigger, que es lo que leen las tarjetas del catálogo.
+    const { data: supplierProfiles, error: sError } = await supabaseAdmin
+      .from("supplier_profiles")
+      .select("user_id, is_verified");
+
+    if (sError) throw new Error(sError.message);
+
+    const verifiedByUserId = new Map(
+      (supplierProfiles ?? []).map((profile) => [profile.user_id, profile.is_verified === true]),
+    );
+
     // `profiles` se crea mediante un trigger de Auth. La fuente de verdad para
     // las cuentas registradas es auth.users: así el panel no omite una cuenta
     // aunque su perfil se esté creando o haya fallado históricamente.
@@ -258,6 +270,8 @@ export const getUsersWithRoles = createServerFn({ method: "GET" })
         whatsapp: profile?.whatsapp || null,
         created_at: profile?.created_at || user.created_at,
         role: rolePriority.find((role) => assigned.includes(role)) || "user",
+        has_supplier_profile: verifiedByUserId.has(user.id),
+        is_verified: verifiedByUserId.get(user.id) === true,
       };
     };
 
@@ -361,6 +375,40 @@ export const updateUserRole = createServerFn({ method: "POST" })
     return { success: true };
   });
 
+/**
+ * Marca la verificación del perfil comercial de un proveedor. El distintivo
+ * público de las tarjetas se sincroniza por trigger desde `supplier_profiles`,
+ * así que aquí no se toca `products` directamente.
+ */
+export const setSupplierVerified = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((d) =>
+    z
+      .object({
+        user_id: z.string(),
+        is_verified: z.boolean(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: updated, error } = await supabaseAdmin
+      .from("supplier_profiles")
+      .update({ is_verified: data.is_verified })
+      .eq("user_id", data.user_id)
+      .select("user_id");
+
+    if (error) throw new Error(error.message);
+    if (!updated || updated.length === 0) {
+      throw new Error("Esa cuenta no tiene perfil de proveedor.");
+    }
+
+    return { success: true };
+  });
+
 // New Product Management Functions
 export const getAdminProducts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -393,6 +441,11 @@ export const upsertProduct = createServerFn({ method: "POST" })
         is_active: z.boolean().default(true),
         is_catalog_available: z.boolean().default(true),
         is_renewable: z.boolean().default(true),
+        // La tarjeta del catálogo muestra estos dos valores tal cual. `null` es un
+        // estado legítimo y es el de partida: hasta que alguien los declare, la
+        // tarjeta no dice nada en vez de asumir el valor más favorable.
+        account_type: z.enum(["completa", "perfil"]).nullable().default(null),
+        access_scope: z.enum(["global", "regional"]).nullable().default(null),
         duration_days: z.number().int().positive().default(30),
         credential_template: z
           .enum(["account", "account_2fa", "redeem_code", "access_link", "none"])

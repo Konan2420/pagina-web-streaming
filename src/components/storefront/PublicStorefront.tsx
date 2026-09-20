@@ -29,6 +29,7 @@ import {
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { getPublicStorefront, placePublicStorefrontOrder } from "@/lib/storefront.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { ProductImage } from "@/components/ProductImage";
 import { FaTiktok, FaXTwitter } from "react-icons/fa6";
 import { getStorefrontTemplate } from "@/components/storefront/storefront-templates";
 
@@ -407,17 +408,16 @@ export function PublicStorefront({ slug }: { slug: string }) {
                   className="group flex min-h-[23rem] flex-col overflow-hidden rounded-xl border border-white/10 bg-card transition duration-200 hover:-translate-y-1 hover:border-primary/60 hover:shadow-xl hover:shadow-black/25"
                 >
                   <div className="relative aspect-square overflow-hidden bg-background">
-                    {product.imageUrl ? (
-                      <img
-                        src={product.imageUrl}
-                        alt={product.name}
-                        className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                      />
-                    ) : (
-                      <div className="grid h-full place-items-center text-4xl font-black text-white/15">
-                        {product.platform?.slice(0, 1) || product.name.slice(0, 1)}
-                      </div>
-                    )}
+                    <ProductImage
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      fallback={
+                        <div className="grid h-full place-items-center text-4xl font-black text-white/15">
+                          {product.platform?.slice(0, 1) || product.name.slice(0, 1)}
+                        </div>
+                      }
+                    />
                     <span className="absolute left-2 top-2 rounded bg-emerald-500 px-2 py-1 text-[9px] font-bold text-white">
                       {product.isRenewable ? "RENOVABLE" : "SERVICIO"}
                     </span>
@@ -427,8 +427,11 @@ export function PublicStorefront({ slug }: { slug: string }) {
                       </span>
                     ) : null}
                     {outOfStock && (
+                      // La condición es de unidades, no de retiro de venta: este
+                      // escaparate no consulta `is_catalog_available`, así que la
+                      // franja no puede hablar de "fuera de servicio".
                       <span className="absolute inset-x-0 bottom-0 bg-destructive px-2 py-2 text-center text-[10px] font-bold uppercase text-white">
-                        Fuera de servicio
+                        Agotado
                       </span>
                     )}
                   </div>

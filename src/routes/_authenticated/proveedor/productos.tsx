@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactNode } from "react";
-import { Boxes, Pencil, Plus, Power, Trash2, X } from "lucide-react";
+import { Boxes, Package, Pencil, Plus, Power, Trash2, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { SupplierLayout } from "@/components/supplier/SupplierLayout";
+import { ProductImage } from "@/components/ProductImage";
 import {
   deleteProviderProduct,
   getProviderProducts,
@@ -63,6 +64,10 @@ function ProviderProducts() {
           category: String(form.get("category") ?? "streaming"),
           duration_days: Number(form.get("duration_days") ?? 30),
           is_renewable: form.get("is_renewable") === "on",
+          // "" es la opción "Sin declarar": se manda como nulo en vez de dejar que
+          // la tarjeta del catálogo afirme un valor que el proveedor no eligió.
+          account_type: (form.get("account_type") as "completa" | "perfil" | null) || null,
+          access_scope: (form.get("access_scope") as "global" | "regional" | null) || null,
           credential_template: String(form.get("credential_template") ?? "account") as
             "account" | "account_2fa" | "redeem_code" | "access_link" | "none",
           description: String(form.get("description") ?? ""),
@@ -173,10 +178,13 @@ function ProviderProducts() {
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-white/7">
-                          <img
+                          <ProductImage
                             src={product.image_url || "/cmd-logo.png"}
                             alt=""
                             className="h-full w-full object-cover"
+                            fallback={
+                              <Package className="h-4 w-4 text-white/25" aria-hidden="true" />
+                            }
                           />
                         </div>
                         <span className="max-w-56 truncate font-semibold text-white">
@@ -338,6 +346,28 @@ function ProviderProducts() {
                   defaultValue={editing?.service_id || ""}
                   className={fieldClass}
                 />
+              </Field>
+              <Field label="Tipo de cuenta">
+                <select
+                  name="account_type"
+                  defaultValue={editing?.account_type ?? ""}
+                  className={fieldClass}
+                >
+                  <option value="">Sin declarar</option>
+                  <option value="completa">Completa</option>
+                  <option value="perfil">Perfil compartido</option>
+                </select>
+              </Field>
+              <Field label="Alcance">
+                <select
+                  name="access_scope"
+                  defaultValue={editing?.access_scope ?? ""}
+                  className={fieldClass}
+                >
+                  <option value="">Sin declarar</option>
+                  <option value="global">Global</option>
+                  <option value="regional">Regional</option>
+                </select>
               </Field>
               <label className="flex items-end gap-2 pb-2 text-sm text-white/70">
                 <input

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronDown,
   CircleAlert,
+  CircleX,
   Eye,
   Loader2,
   MessageCircle,
@@ -22,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { OrderCelebrationDialog } from "@/components/OrderCelebrationDialog";
+import { ProductImage } from "@/components/ProductImage";
 import { inviteCatalogOrderClient } from "@/lib/catalog-detail.functions";
 import type { OrderCredentialReceipt } from "@/lib/order-credentials";
 import { saveStorefrontOverride } from "@/lib/storefront.functions";
@@ -53,11 +55,20 @@ type ProductModalProps = {
   isAdmin?: boolean;
   isProvider?: boolean;
   isDistributor?: boolean;
-  stockAvailable?: boolean;
+  /**
+   * Estado de venta. `unknown` = la consulta no respondió: se bloquea la compra
+   * igual que sin stock, pero sin afirmar que el producto esté agotado.
+   * `out-of-service` = retirado de la venta por el vendedor; tampoco es "agotado".
+   * El literal se repite en vez de importarse desde `tienda/data` para no crear un
+   * ciclo de tipos: ese módulo importa `ProductDetail` de este archivo.
+   */
+  stockStatus?: "available" | "out-of-stock" | "out-of-service" | "unknown";
   stockCount?: number | null;
   totalSold?: number;
   viewCount?: number;
   publisherName?: string | null;
+  /** Verificación del perfil comercial que publica el producto. */
+  publisherIsVerified?: boolean;
   isRenewable?: boolean;
   onOrderCreated?: () => void | Promise<void>;
 };
@@ -113,11 +124,12 @@ export function ProductModal({
   isAdmin = false,
   isProvider = false,
   isDistributor = false,
-  stockAvailable = true,
+  stockStatus = "available",
   stockCount = null,
   totalSold = 0,
   viewCount = 0,
   publisherName,
+  publisherIsVerified = false,
   isRenewable = true,
   onOrderCreated,
 }: ProductModalProps) {
@@ -201,10 +213,16 @@ export function ProductModal({
       .catch(() => undefined);
   }, [productId, viewCount]);
 
+  // El `find` anterior comparaba `business_clients.id` con el id del usuario, así que no podía
+  // acertar nunca y siempre caía al respaldo `clients[0]` — el primero por orden alfabético, que
+  // es como los ordena la RPC. Para un cliente final daba igual, porque la RPC le devuelve una
+  // sola fila, la suya. Para un revendedor con cartera, la compra se precargaba contra un cliente
+  // que nadie había elegido, y el guard de confirmación solo mira que haya algo seleccionado, así
+  // que no lo detectaba. Con una única fila no hay ambigüedad; con varias, elige el operador.
   useEffect(() => {
-    if (!isAuthenticated || !userId || !clients.length || clientId) return;
-    const ownClient = clients.find((client) => client.id === userId);
-    setClientId(ownClient?.id ?? clients[0]?.id ?? "");
+    if (!isAuthenticated || !userId || clientId) return;
+    if (clients.length !== 1) return;
+    setClientId(clients[0].id);
   }, [clientId, clients, isAuthenticated, userId]);
 
   useEffect(() => {
@@ -241,9 +259,14 @@ export function ProductModal({
   const hasPurchaseContextError = isAuthenticated && purchaseContextQuery.isError;
   const hasClientsError = isAuthenticated && clientsQuery.isError;
   const isPurchaseLoading = isPurchaseContextLoading || (isAuthenticated && clientsQuery.isLoading);
-  const isProductAvailable = stockAvailable && purchaseContext?.isAvailable !== false;
+  const isStockUnknown = stockStatus === "unknown";
+  const isOutOfService = stockStatus === "out-of-service";
+  const isOutOfStock = stockStatus === "out-of-stock";
+  const isProductAvailable = stockStatus === "available" && purchaseContext?.isAvailable !== false;
   const effectiveSupplierName =
     purchaseContext?.supplierName || publisherName?.trim() || "CMD Streaming";
+  const isVerifiedPublisher =
+    publisherIsVerified && !purchaseContext?.supplierName && Boolean(publisherName?.trim());
   const whatsappDigits = digits(purchaseContext?.supplierWhatsapp || product.whatsapp_contacto);
   const whatsappHref = whatsappDigits
     ? `https://wa.me/${whatsappDigits}?text=${encodeURIComponent(`Hola ${effectiveSupplierName}, tengo una consulta sobre ${product.name}.`)}`
@@ -335,7 +358,19 @@ export function ProductModal({
       toast.error("Estamos preparando el detalle del pedido. Intenta en un instante.");
       return;
     }
-    if (!isProductAvailable) return toast.error("Este producto ya no está disponible.");
+    if (isStockUnknown) {
+      toast.error("No pudimos comprobar el stock. Intenta de nuevo en un momento.");
+      return;
+    }
+    if (!isProductAvailable) {
+      return toast.error(
+        isOutOfService
+          ? "Este producto está fuera de servicio."
+          : isOutOfStock
+            ? "Este producto se agotó."
+            : "Este producto ya no está disponible.",
+      );
+    }
     if (!clientId) return toast.error("Selecciona un cliente antes de confirmar.");
     if (!salePriceValid)
       return toast.error(`El precio de venta debe cubrir al menos ${money(unitCost)}.`);
@@ -438,10 +473,17 @@ export function ProductModal({
               <div className="flex min-w-0 items-center gap-1.5 text-sm font-semibold text-white">
                 <span className="text-white/72">Proveedor:</span>
                 <span className="truncate">{effectiveSupplierName}</span>
-                <BadgeCheck
-                  className="h-4 w-4 shrink-0 text-sky-400"
-                  aria-label="Proveedor verificado"
-                />
+                {/* La verificación es del perfil del publicador del producto. Si el
+                    nombre mostrado proviene del contexto de compra de un
+                    revendedor, no hay dato de verificación para ese nombre y no
+                    se acredita a nadie. */}
+                {isVerifiedPublisher && (
+                  <BadgeCheck
+                    className="h-4 w-4 shrink-0 text-sky-400"
+                    role="img"
+                    aria-label="Proveedor verificado"
+                  />
+                )}
               </div>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs font-medium text-white/75">
                 <span className="inline-flex items-center gap-1.5">
@@ -485,10 +527,26 @@ export function ProductModal({
             </div>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span
-                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold text-white ${isProductAvailable ? "bg-emerald-500" : "bg-slate-700"}`}
+                className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-bold text-white ${isStockUnknown ? "bg-amber-500" : isProductAvailable ? "bg-emerald-500" : "bg-slate-700"}`}
               >
-                <CheckCircle2 className="h-3.5 w-3.5" />{" "}
-                {stockCount == null ? "Stock disponible" : `${stockCount} Stock`}
+                {isStockUnknown ? (
+                  <CircleAlert className="h-3.5 w-3.5" />
+                ) : isProductAvailable ? (
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                ) : (
+                  <CircleX className="h-3.5 w-3.5" />
+                )}{" "}
+                {/* El conteo solo se anuncia si el producto se puede comprar: al lado
+                    de un botón bloqueado, un "N Stock" contradecía la etiqueta. */}
+                {isStockUnknown
+                  ? "Stock sin confirmar"
+                  : isOutOfService
+                    ? "Fuera de servicio"
+                    : isOutOfStock
+                      ? "Sin stock"
+                      : stockCount == null
+                        ? "Stock disponible"
+                        : `${stockCount} Stock`}
               </span>
               <span className="rounded-md bg-primary px-2.5 py-1 text-xs font-bold text-white">
                 {product.duracion}
@@ -503,17 +561,17 @@ export function ProductModal({
             <div className="mt-5 grid min-w-0 grid-cols-1 gap-7 lg:grid-cols-[minmax(0,0.95fr)_minmax(23rem,1fr)] lg:items-start">
               <div className="min-w-0">
                 <div className="overflow-hidden rounded-xl border border-white/10 bg-black">
-                  {product.image ? (
-                    <img
-                      src={product.image}
-                      alt={`Portada de ${product.name}`}
-                      className="aspect-square w-full object-cover"
-                    />
-                  ) : (
-                    <div className="grid aspect-square place-items-center bg-white/[0.03] text-sm text-white/45">
-                      Sin imagen del producto
-                    </div>
-                  )}
+                  <ProductImage
+                    src={product.image}
+                    alt={`Portada de ${product.name}`}
+                    loading="eager"
+                    className="aspect-square w-full object-cover"
+                    fallback={
+                      <div className="grid aspect-square place-items-center bg-white/[0.03] text-sm text-white/45">
+                        Sin imagen del producto
+                      </div>
+                    }
+                  />
                 </div>
                 <p className="mt-4 font-product text-2xl font-bold text-white">
                   👉 {money(actualSalePrice)}
@@ -794,7 +852,11 @@ export function ProductModal({
                 ? "Confirmando pedido…"
                 : isProductAvailable
                   ? "Confirmar Pedido"
-                  : "Producto agotado"}
+                  : isStockUnknown
+                    ? "Stock sin confirmar"
+                    : isOutOfService
+                      ? "Fuera de servicio"
+                      : "Producto agotado"}
             </button>
           </div>
         </footer>
