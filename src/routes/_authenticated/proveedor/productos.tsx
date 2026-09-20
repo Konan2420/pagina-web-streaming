@@ -6,6 +6,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { SupplierLayout } from "@/components/supplier/SupplierLayout";
 import { ProductImage } from "@/components/ProductImage";
+import { COUNTRY_OPTIONS } from "@/components/tienda/productMetadata";
 import {
   deleteProviderProduct,
   getProviderProducts,
@@ -66,8 +67,14 @@ function ProviderProducts() {
           is_renewable: form.get("is_renewable") === "on",
           // "" es la opción "Sin declarar": se manda como nulo en vez de dejar que
           // la tarjeta del catálogo afirme un valor que el proveedor no eligió.
-          account_type: (form.get("account_type") as "completa" | "perfil" | null) || null,
-          access_scope: (form.get("access_scope") as "global" | "regional" | null) || null,
+          account_type: editing?.account_type ?? null,
+          access_scope: editing?.access_scope ?? null,
+          delivery_type: (form.get("delivery_type") as "manual" | "completa" | "perfil" | null) || null,
+          scope_type: (form.get("scope_type") as "global" | "pais_especifico" | null) || null,
+          scope_country:
+            String(form.get("scope_type") ?? "") === "pais_especifico"
+              ? String(form.get("scope_country") ?? "") || null
+              : null,
           credential_template: String(form.get("credential_template") ?? "account") as
             "account" | "account_2fa" | "redeem_code" | "access_link" | "none",
           description: String(form.get("description") ?? ""),
@@ -347,26 +354,25 @@ function ProviderProducts() {
                   className={fieldClass}
                 />
               </Field>
-              <Field label="Tipo de cuenta">
-                <select
-                  name="account_type"
-                  defaultValue={editing?.account_type ?? ""}
-                  className={fieldClass}
-                >
+              <Field label="Entrega declarada">
+                <select name="delivery_type" defaultValue={editing?.delivery_type ?? ""} className={fieldClass}>
                   <option value="">Sin declarar</option>
-                  <option value="completa">Completa</option>
+                  <option value="manual">Manual</option>
+                  <option value="completa">Cuenta completa</option>
                   <option value="perfil">Perfil compartido</option>
                 </select>
               </Field>
-              <Field label="Alcance">
-                <select
-                  name="access_scope"
-                  defaultValue={editing?.access_scope ?? ""}
-                  className={fieldClass}
-                >
+              <Field label="Alcance nuevo">
+                <select name="scope_type" defaultValue={editing?.scope_type ?? ""} className={fieldClass}>
                   <option value="">Sin declarar</option>
                   <option value="global">Global</option>
-                  <option value="regional">Regional</option>
+                  <option value="pais_especifico">País específico</option>
+                </select>
+              </Field>
+              <Field label="País (si aplica)">
+                <select name="scope_country" defaultValue={editing?.scope_country ?? ""} className={fieldClass}>
+                  <option value="">Sin país</option>
+                  {COUNTRY_OPTIONS.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
                 </select>
               </Field>
               <label className="flex items-end gap-2 pb-2 text-sm text-white/70">

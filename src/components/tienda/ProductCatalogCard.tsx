@@ -2,6 +2,7 @@ import {
   BadgeCheck,
   Check,
   Globe2,
+  KeyRound,
   Layers,
   Package,
   Pencil,
@@ -10,7 +11,8 @@ import {
   UserRound,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { AccountType, AccessScope, Product, ProductStock } from "./data";
+import type { AccountType, AccessScope, DeliveryType, Product, ProductStock, ScopeType } from "./data";
+import { countryFlag, countryLabel } from "./data";
 import { PlatformIconMark } from "@/lib/platformIcons";
 import { ProductImage } from "@/components/ProductImage";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,6 +24,9 @@ type ProductCatalogCardProps = {
     /** `null`/`undefined` = sin dato reconocido; el chip no se pinta. */
     accountType?: AccountType | null;
     accessScope?: AccessScope | null;
+    deliveryType?: DeliveryType | null;
+    scopeType?: ScopeType | null;
+    scopeCountry?: string | null;
     publisherName?: string | null;
     isPublisherVerified?: boolean;
   };
@@ -98,6 +103,9 @@ export function ProductCatalogCard({
   const sellerName = product.publisherName?.trim() || "CMD Streaming";
   const accountType = product.accountType ?? null;
   const accessScope = product.accessScope ?? null;
+  const deliveryType = product.deliveryType ?? (accountType ?? null);
+  const scopeType = product.scopeType ?? (accessScope === "regional" ? "pais_especifico" : accessScope);
+  const scopeCountry = product.scopeCountry ?? null;
   const isOutOfService = stock.status === "out-of-service";
   const isOutOfStock = stock.status === "out-of-stock";
   const isStockUnknown = stock.status === "unknown";
@@ -124,8 +132,8 @@ export function ProductCatalogCard({
   };
 
   return (
-    <article className="product-card catalog-product-card group flex h-full min-h-[15rem] flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[16.5rem] sm:flex-col">
-      <div className="relative aspect-square w-[44%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[4/3] sm:w-full sm:self-auto">
+    <article className="product-card catalog-product-card group flex h-full min-h-[15rem] flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[17.5rem] sm:flex-col">
+      <div className="relative aspect-square w-[44%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[1.05] sm:w-full sm:self-auto">
         <ProductImage
           src={product.image}
           alt={`Portada de ${product.name}`}
@@ -260,20 +268,22 @@ export function ProductCatalogCard({
           {/* Cada chip describe un valor que el vendedor declara al publicar. Sin
               dato no se pinta ninguno: un icono verde junto a "Completa" validaba
               una afirmación que nadie había hecho. */}
-          {accountType && (
+          {deliveryType && (
             <span className="inline-flex items-center gap-1 rounded-md border border-white/12 bg-white/[0.055] px-1.5 py-1 leading-none sm:px-1 sm:py-0.5">
-              {accountType === "perfil" ? (
+              {deliveryType === "manual" ? (
+                <KeyRound className="h-3 w-3 text-amber-200" aria-hidden="true" />
+              ) : deliveryType === "perfil" ? (
                 <UserRound className="h-3 w-3 text-white/70" aria-hidden="true" />
               ) : (
                 <Layers className="h-3 w-3 text-white/70" aria-hidden="true" />
               )}
-              {accountType === "perfil" ? "Perfil" : "Completa"}
+              {deliveryType === "manual" ? "Manual" : deliveryType === "perfil" ? "Perfil" : "Completa"}
             </span>
           )}
-          {accessScope && (
+          {scopeType && (
             <span className="inline-flex items-center gap-1 rounded-md border border-white/12 bg-white/[0.055] px-1.5 py-1 leading-none sm:px-1 sm:py-0.5">
               <Globe2 className="h-3 w-3 text-sky-300" aria-hidden="true" />
-              {accessScope === "regional" ? "Regional" : "Global"}
+              {scopeType === "global" ? "Global" : `${countryFlag(scopeCountry)} ${countryLabel(scopeCountry)}`}
             </span>
           )}
         </div>
@@ -374,9 +384,9 @@ export function ProductCatalogCardSkeleton() {
   return (
     <article
       aria-hidden="true"
-      className="flex h-full min-h-[15rem] flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[16.5rem] sm:flex-col"
+      className="flex h-full min-h-[15rem] flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[17.5rem] sm:flex-col"
     >
-      <Skeleton className="aspect-square w-[44%] shrink-0 self-start rounded-none bg-white/[0.08] sm:aspect-[4/3] sm:w-full sm:self-auto" />
+      <Skeleton className="aspect-square w-[44%] shrink-0 self-start rounded-none bg-white/[0.08] sm:aspect-[1.05] sm:w-full sm:self-auto" />
       <div className="flex min-w-0 flex-1 flex-col p-2.5">
         <div className="flex h-6 items-center gap-1.5">
           <Skeleton className="h-5 w-5 rounded-full bg-white/[0.08]" />

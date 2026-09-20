@@ -33,6 +33,7 @@ import {
   getCatalogPricingSettings,
   saveCatalogPricingSettings,
 } from "@/lib/catalog-detail.functions";
+import { COUNTRY_OPTIONS } from "@/components/tienda/productMetadata";
 
 const productsQueryOptions = queryOptions({
   queryKey: ["admin-products"],
@@ -150,8 +151,14 @@ function ProductsManagement() {
       is_renewable: formData.get("is_renewable") === "on",
       // "" es la opción "Sin declarar" del desplegable: se guarda como nulo para
       // que la tarjeta del catálogo no afirme lo que el vendedor no eligió.
-      account_type: (formData.get("account_type") as "completa" | "perfil" | null) || null,
-      access_scope: (formData.get("access_scope") as "global" | "regional" | null) || null,
+      account_type: editingProduct?.account_type ?? null,
+      access_scope: editingProduct?.access_scope ?? null,
+      delivery_type: (formData.get("delivery_type") as "manual" | "completa" | "perfil" | null) || null,
+      scope_type: (formData.get("scope_type") as "global" | "pais_especifico" | null) || null,
+      scope_country:
+        formData.get("scope_type") === "pais_especifico"
+          ? (formData.get("scope_country") as string) || null
+          : null,
       duration_days: Number(formData.get("duration_days")) || 30,
       credential_template: formData.get("credential_template") as
         "account" | "account_2fa" | "redeem_code" | "access_link" | "none",
@@ -724,43 +731,28 @@ function ProductsManagement() {
                   </div>
                 </div>
 
-                {/* Se publican en la tarjeta del catálogo: el comprador decide con
-                    ellos si compra una cuenta completa o un perfil compartido. */}
                 <div className="space-y-1.5">
-                  <label
-                    htmlFor="account_type"
-                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
-                  >
-                    Tipo de cuenta
-                  </label>
-                  <select
-                    id="account_type"
-                    name="account_type"
-                    defaultValue={editingProduct?.account_type ?? ""}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
+                  <label htmlFor="delivery_type" className="text-xs font-bold text-white/40 uppercase tracking-widest">Entrega declarada</label>
+                  <select id="delivery_type" name="delivery_type" defaultValue={editingProduct?.delivery_type ?? ""} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
                     <option value="">Sin declarar</option>
-                    <option value="completa">Completa</option>
-                    <option value="perfil">Perfil</option>
+                    <option value="manual">Manual</option>
+                    <option value="completa">Cuenta completa</option>
+                    <option value="perfil">Perfil compartido</option>
                   </select>
                 </div>
-
                 <div className="space-y-1.5">
-                  <label
-                    htmlFor="access_scope"
-                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
-                  >
-                    Alcance
-                  </label>
-                  <select
-                    id="access_scope"
-                    name="access_scope"
-                    defaultValue={editingProduct?.access_scope ?? ""}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
+                  <label htmlFor="scope_type" className="text-xs font-bold text-white/40 uppercase tracking-widest">Alcance nuevo</label>
+                  <select id="scope_type" name="scope_type" defaultValue={editingProduct?.scope_type ?? ""} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
                     <option value="">Sin declarar</option>
                     <option value="global">Global</option>
-                    <option value="regional">Regional</option>
+                    <option value="pais_especifico">País específico</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label htmlFor="scope_country" className="text-xs font-bold text-white/40 uppercase tracking-widest">País (si aplica)</label>
+                  <select id="scope_country" name="scope_country" defaultValue={editingProduct?.scope_country ?? ""} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    <option value="">Sin país</option>
+                    {COUNTRY_OPTIONS.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
                   </select>
                 </div>
               </div>

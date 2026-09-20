@@ -24,9 +24,19 @@ const providerProductSchema = z.object({
   // es el estado de partida —sin declarar— y la tarjeta no pinta nada con él.
   account_type: z.enum(["completa", "perfil"]).nullable().default(null),
   access_scope: z.enum(["global", "regional"]).nullable().default(null),
+  delivery_type: z.enum(["manual", "completa", "perfil"]).nullable().default(null),
+  scope_type: z.enum(["global", "pais_especifico"]).nullable().default(null),
+  scope_country: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/).nullable().default(null),
   credential_template: z
     .enum(["account", "account_2fa", "redeem_code", "access_link", "none"])
     .default("account"),
+}).superRefine((value, ctx) => {
+  if (value.scope_type === "pais_especifico" && !value.scope_country) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scope_country"], message: "Selecciona un país." });
+  }
+  if (value.scope_type !== "pais_especifico" && value.scope_country) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scope_country"], message: "El país solo aplica al alcance específico." });
+  }
 });
 
 /** Summary for the provider / distributor dashboard. */

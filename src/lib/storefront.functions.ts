@@ -231,7 +231,7 @@ export const getStorefrontManagement = createServerFn({ method: "GET" })
     ] = await Promise.all([
       supabaseAdmin
         .from("products")
-        .select("id, name, description, category, image_url, price, publisher_name")
+        .select("id, name, description, category, image_url, price, publisher_name, delivery_type, scope_type, scope_country")
         .eq("is_active", true)
         .order("name"),
       supabaseAdmin.from("catalog_product_costs").select("product_id, unit_cost_pen"),
@@ -649,7 +649,7 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
         ? supabaseAdmin
             .from("products")
             .select(
-              "id, name, description, image_url, category, duration_days, is_renewable, publisher_name",
+              "id, name, description, image_url, category, duration_days, is_renewable, publisher_name, delivery_type, scope_type, scope_country",
             )
             .in("id", masterIds)
         : Promise.resolve({ data: [], error: null }),
@@ -705,6 +705,9 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
           durationDays: "duration_days" in source ? source.duration_days : null,
           isRenewable: "is_renewable" in source ? source.is_renewable : false,
           publisherName: "publisher_name" in source ? source.publisher_name : settings.display_name,
+          deliveryType: "delivery_type" in source ? source.delivery_type : null,
+          scopeType: "scope_type" in source ? source.scope_type : null,
+          scopeCountry: "scope_country" in source ? source.scope_country : null,
           stockCount: "image_url" in source ? (inventoryByProduct.get(source.id) ?? 0) : null,
           salePricePen: override.sale_price_pen,
           promoPricePen: override.promo_price_pen,

@@ -1,6 +1,14 @@
 import type { ProductDetail } from "@/components/ProductModal";
 import { platformIcons } from "@/lib/platformIcons";
 import { supabase } from "@/integrations/supabase/client";
+export {
+  COUNTRY_OPTIONS,
+  countryFlag,
+  countryLabel,
+  toDeliveryType,
+  toScopeType,
+} from "./productMetadata";
+export type { DeliveryType, ScopeType } from "./productMetadata";
 export type Category = {
   id: string;
   label: string;

@@ -101,7 +101,7 @@ export function PlatformNavigation({
                 type="button"
                 onClick={() => onPlatformSelect(platform)}
                 title={`Filtrar por ${platform.label}`}
-                className="group relative flex aspect-square w-full max-w-9 items-center justify-center rounded-full border border-border bg-card p-0.5 transition duration-200 hover:scale-[1.04] hover:border-primary/70 hover:shadow-[0_0_14px_rgba(59,130,246,0.24)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9 sm:max-w-none sm:p-1"
+                className="group relative flex aspect-square w-full max-w-9 items-center justify-center rounded-[11px] border border-border bg-card p-0.5 transition duration-200 hover:scale-[1.04] hover:border-primary/70 hover:shadow-[0_0_14px_rgba(59,130,246,0.24)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9 sm:max-w-none sm:p-0.5"
               >
                 <PlatformShortcutIcon platform={platform} />
                 <span className="sr-only">Filtrar por {platform.label}</span>

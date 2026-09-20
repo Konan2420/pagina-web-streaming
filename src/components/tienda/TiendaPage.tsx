@@ -37,6 +37,8 @@ import {
   getAvatarUrl,
   toAccountType,
   toAccessScope,
+  toDeliveryType,
+  toScopeType,
 } from "@/components/tienda/data";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -121,6 +123,9 @@ type CatalogProduct = Product & {
   /** `null` cuando la base de datos no trae un valor reconocido: la tarjeta no lo afirma. */
   accountType: AccountType | null;
   accessScope: AccessScope | null;
+  deliveryType: import("@/components/tienda/data").DeliveryType | null;
+  scopeType: import("@/components/tienda/data").ScopeType | null;
+  scopeCountry: string | null;
   isCatalogAvailable: boolean;
   publisherName: string | null;
   /** Solo `true` si el perfil comercial del vendedor está verificado en la base de datos. */
@@ -228,6 +233,8 @@ const EMPTY_STOCK_LEVELS: Record<string, number> = {};
  * esta lista existe solo para poder leer un catálogo de una base un paso por detrás.
  */
 const CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION =
+  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, created_at, service_id";
+const CATALOG_PRODUCT_COLUMNS_LEGACY =
   "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, created_at, service_id";
 
 /**
@@ -940,7 +947,7 @@ export function TiendaPage({
           supabase
             .from("products")
             .select(
-              "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, publisher_is_verified, created_at, service_id",
+              "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, created_at, service_id",
             )
             .eq("is_active", true)
             .order("created_at", { ascending: false }),
@@ -952,19 +959,24 @@ export function TiendaPage({
       // distintivo de vendedor verificado: la deja sin catálogo, porque PostgREST
       // rechaza la consulta entera. Se repite sin esa columna y el distintivo
       // simplemente no se pinta — que es la verdad, el dato no existe todavía.
-      if (!isMissingColumn(error, "publisher_is_verified")) throw error;
+      const missingNewMetadata = ["delivery_type", "scope_type", "scope_country"].some((column) =>
+        isMissingColumn(error, column),
+      );
+      if (!isMissingColumn(error, "publisher_is_verified") && !missingNewMetadata) throw error;
 
       const fallback = await withRequestTimeout(
         Promise.resolve(
           supabase
             .from("products")
-            .select(CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION)
+            .select(missingNewMetadata ? CATALOG_PRODUCT_COLUMNS_LEGACY : CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION)
             .eq("is_active", true)
             .order("created_at", { ascending: false }),
         ),
       );
       if (fallback.error) throw fallback.error;
-      return (fallback.data ?? []).map((row) => ({ ...row, publisher_is_verified: false }));
+      return (fallback.data ?? []).map((row) =>
+        Object.assign({}, row, { publisher_is_verified: false }),
+      ) as NonNullable<typeof data>;
     },
     staleTime: 60_000,
     gcTime: 10 * 60_000,
@@ -1058,6 +1070,9 @@ export function TiendaPage({
       totalViews: p.total_vistas ?? 0,
       accountType: toAccountType(p.account_type),
       accessScope: toAccessScope(p.access_scope),
+      deliveryType: toDeliveryType(p.delivery_type),
+      scopeType: toScopeType(p.scope_type),
+      scopeCountry: p.scope_country ?? null,
       publisherName: p.publisher_name?.trim() || null,
       isPublisherVerified: p.publisher_is_verified === true,
       createdAt: p.created_at,
@@ -1601,7 +1616,7 @@ export function TiendaPage({
                   }}
                 />
               ) : isCatalogLoading ? (
-                <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] lg:gap-2">
+                <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] lg:gap-2 xl:grid-cols-7">
                   {Array.from({ length: 12 }, (_, index) => (
                     <ProductCatalogCardSkeleton key={index} />
                   ))}
@@ -1700,7 +1715,7 @@ export function TiendaPage({
                       </button>
                     </div>
                   )}
-                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] lg:gap-2">
+                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] lg:gap-2 xl:grid-cols-7">
                     {renderedVisibleProducts.map((p) => (
                       <ProductCatalogCard
                         key={p.id}

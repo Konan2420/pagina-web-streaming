@@ -544,6 +544,9 @@ export type Database = {
           category: string | null;
           account_type: string | null;
           access_scope: string | null;
+          delivery_type: string | null;
+          scope_type: string | null;
+          scope_country: string | null;
           credential_template: string;
           created_at: string | null;
           descripcion_larga: string | null;
@@ -569,6 +572,9 @@ export type Database = {
           category?: string | null;
           account_type?: string | null;
           access_scope?: string | null;
+          delivery_type?: string | null;
+          scope_type?: string | null;
+          scope_country?: string | null;
           credential_template?: string;
           created_at?: string | null;
           descripcion_larga?: string | null;
@@ -594,6 +600,9 @@ export type Database = {
           category?: string | null;
           account_type?: string | null;
           access_scope?: string | null;
+          delivery_type?: string | null;
+          scope_type?: string | null;
+          scope_country?: string | null;
           credential_template?: string;
           created_at?: string | null;
           descripcion_larga?: string | null;

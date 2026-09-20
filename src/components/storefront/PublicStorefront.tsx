@@ -4,6 +4,10 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   BadgeCheck,
+  Globe2,
+  KeyRound,
+  Layers,
+  UserRound,
   ChevronDown,
   Eye,
   Facebook,
@@ -32,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProductImage } from "@/components/ProductImage";
 import { FaTiktok, FaXTwitter } from "react-icons/fa6";
 import { getStorefrontTemplate } from "@/components/storefront/storefront-templates";
+import { countryFlag, countryLabel } from "@/components/tienda/productMetadata";
 
 type PublicStoreProduct = {
   id: string;
@@ -48,6 +53,9 @@ type PublicStoreProduct = {
   stockCount: number | null;
   salePricePen: number;
   promoPricePen: number | null;
+  deliveryType: "manual" | "completa" | "perfil" | null;
+  scopeType: "global" | "pais_especifico" | null;
+  scopeCountry: string | null;
 };
 type PublicStore = {
   settings: {
@@ -442,6 +450,22 @@ export function PublicStorefront({ slug }: { slug: string }) {
                     <h2 className="mt-1 min-h-10 line-clamp-2 font-product text-sm font-bold leading-5 text-white">
                       {product.name}
                     </h2>
+                    {(product.deliveryType || product.scopeType) && (
+                      <div className="mt-1 flex min-h-5 flex-wrap items-center gap-1 text-[9px] font-semibold text-white/75">
+                        {product.deliveryType && (
+                          <span className="inline-flex items-center gap-1 rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5">
+                            {product.deliveryType === "manual" ? <KeyRound className="h-3 w-3 text-amber-200" /> : product.deliveryType === "perfil" ? <UserRound className="h-3 w-3" /> : <Layers className="h-3 w-3" />}
+                            {product.deliveryType === "manual" ? "Manual" : product.deliveryType === "perfil" ? "Perfil" : "Completa"}
+                          </span>
+                        )}
+                        {product.scopeType && (
+                          <span className="inline-flex items-center gap-1 rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5">
+                            <Globe2 className="h-3 w-3 text-sky-300" />
+                            {product.scopeType === "global" ? "Global" : `${countryFlag(product.scopeCountry)} ${countryLabel(product.scopeCountry)}`}
+                          </span>
+                        )}
+                      </div>
+                    )}
                     <p className="mt-2 min-h-8 line-clamp-2 text-[11px] leading-4 text-white/45">
                       {product.description || "Servicio digital"}
                     </p>

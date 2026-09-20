@@ -28,6 +28,7 @@ import { inviteCatalogOrderClient } from "@/lib/catalog-detail.functions";
 import type { OrderCredentialReceipt } from "@/lib/order-credentials";
 import { saveStorefrontOverride } from "@/lib/storefront.functions";
 import { supabase } from "@/integrations/supabase/client";
+import type { DeliveryType, ScopeType } from "@/components/tienda/productMetadata";
 
 export type ProductDetail = {
   id: string;
@@ -43,6 +44,9 @@ export type ProductDetail = {
   iconId?: string | null;
   shortLabel?: string;
   description?: string;
+  deliveryType?: DeliveryType | null;
+  scopeType?: ScopeType | null;
+  scopeCountry?: string | null;
 };
 
 type ProductModalProps = {

@@ -446,11 +446,28 @@ export const upsertProduct = createServerFn({ method: "POST" })
         // tarjeta no dice nada en vez de asumir el valor más favorable.
         account_type: z.enum(["completa", "perfil"]).nullable().default(null),
         access_scope: z.enum(["global", "regional"]).nullable().default(null),
+        delivery_type: z.enum(["manual", "completa", "perfil"]).nullable().default(null),
+        scope_type: z.enum(["global", "pais_especifico"]).nullable().default(null),
+        scope_country: z
+          .string()
+          .trim()
+          .toUpperCase()
+          .regex(/^[A-Z]{2}$/)
+          .nullable()
+          .default(null),
         duration_days: z.number().int().positive().default(30),
         credential_template: z
           .enum(["account", "account_2fa", "redeem_code", "access_link", "none"])
           .default("account"),
         descripcion_larga: z.string().optional(),
+      })
+      .superRefine((value, ctx) => {
+        if (value.scope_type === "pais_especifico" && !value.scope_country) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scope_country"], message: "Selecciona un país." });
+        }
+        if (value.scope_type !== "pais_especifico" && value.scope_country) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scope_country"], message: "El país solo aplica al alcance específico." });
+        }
       })
       .parse(d),
   )
