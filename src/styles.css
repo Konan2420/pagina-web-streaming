@@ -84,7 +84,7 @@
 
   /* Una sola escala para el panel lateral y el espacio que reserva el catálogo. */
   --store-sidebar-mobile-width: min(84vw, 20rem);
-  --store-sidebar-width: 11.5rem;
+  --store-sidebar-width: 13rem;
   --store-sidebar-collapsed-width: 4.5rem;
 }
 

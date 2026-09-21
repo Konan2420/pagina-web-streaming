@@ -1616,7 +1616,7 @@ export function TiendaPage({
                   }}
                 />
               ) : isCatalogLoading ? (
-                <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] lg:gap-2 xl:grid-cols-7">
+                <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] lg:gap-1.5 xl:grid-cols-7">
                   {Array.from({ length: 12 }, (_, index) => (
                     <ProductCatalogCardSkeleton key={index} />
                   ))}
@@ -1715,7 +1715,7 @@ export function TiendaPage({
                       </button>
                     </div>
                   )}
-                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] lg:gap-2 xl:grid-cols-7">
+                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] lg:gap-1.5 xl:grid-cols-7">
                     {renderedVisibleProducts.map((p) => (
                       <ProductCatalogCard
                         key={p.id}
