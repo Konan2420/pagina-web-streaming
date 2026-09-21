@@ -133,8 +133,8 @@ function UsersManagement() {
       </div>
 
       <div className="glass-card rounded-2xl border border-border overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div className="cmd-table-scroll">
+          <table className="w-full min-w-[980px] whitespace-nowrap text-sm">
             <thead>
               <tr className="text-left text-xs text-muted-foreground border-b border-border bg-muted/45">
                 <th className="px-6 py-4 font-medium uppercase tracking-wider">Usuario</th>

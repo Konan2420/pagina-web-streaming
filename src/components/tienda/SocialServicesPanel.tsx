@@ -1124,7 +1124,7 @@ function OrdersTab({
         )}
       </div>
 
-      <div className="overflow-x-auto rounded-xl border border-border bg-card">
+      <div className="cmd-table-scroll rounded-xl border border-border bg-card">
         {loading ? (
           <SectionLoadingState
             label="Cargando órdenes…"
@@ -1142,7 +1142,7 @@ function OrdersTab({
             No se encontraron resultados para los filtros aplicados.
           </div>
         ) : isInternalView ? (
-          <table className="w-full min-w-[1080px] text-left text-xs">
+          <table className="w-full min-w-[1080px] whitespace-nowrap text-left text-xs">
             <thead className="border-b border-border text-[10px] uppercase tracking-wide text-white/45">
               <tr>
                 <th className="px-3 py-3 font-medium">Acciones</th>
@@ -1210,7 +1210,7 @@ function OrdersTab({
             </tbody>
           </table>
         ) : (
-          <table className="w-full min-w-[650px] text-left text-xs">
+          <table className="w-full min-w-[650px] whitespace-nowrap text-left text-xs">
             <thead className="border-b border-border text-[10px] uppercase tracking-wide text-white/45">
               <tr>
                 <th className="px-3 py-3 font-medium">Fecha</th>

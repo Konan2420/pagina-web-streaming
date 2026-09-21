@@ -107,8 +107,8 @@ export function StorefrontSupervisorList({
         </select>
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-lg border border-border/80">
-        <table className="w-full min-w-[900px] text-left text-sm">
+      <div className="cmd-table-scroll mt-4 rounded-lg border border-border/80">
+        <table className="w-full min-w-[900px] whitespace-nowrap text-left text-sm">
           <thead className="border-b border-border bg-background/75 text-[10px] uppercase tracking-wide text-white/45">
             <tr>
               <th className="px-4 py-3">Tienda / usuario</th>

@@ -154,8 +154,8 @@ function ProviderProducts() {
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-white/8 bg-white/[0.025]">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[650px] text-left text-sm">
+        <div className="cmd-table-scroll">
+          <table className="w-full min-w-[650px] whitespace-nowrap text-left text-sm">
             <thead className="border-b border-white/8 text-[10px] font-black uppercase tracking-widest text-white/40">
               <tr>
                 <th className="px-5 py-4">Producto</th>

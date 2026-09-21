@@ -651,7 +651,7 @@ export function BusinessOrdersPanel({
         ) : (
           <>
             <div className="mt-5 hidden overflow-x-auto rounded-xl border border-border bg-card lg:block">
-              <table className="min-w-[1120px] w-full text-left xl:min-w-0">
+              <table className="min-w-[1120px] w-full whitespace-nowrap text-left">
                 <thead className="border-b border-border text-[9px] font-black uppercase tracking-wide text-muted-foreground">
                   <tr>
                     <th className="px-2 py-2">Acciones</th>

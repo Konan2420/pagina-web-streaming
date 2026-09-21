@@ -290,8 +290,8 @@ function PayoutsAdmin() {
               Aún no hay payouts registrados.
             </p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
+            <div className="cmd-table-scroll">
+              <table className="w-full min-w-[720px] whitespace-nowrap text-left text-sm">
                 <thead className="text-xs uppercase tracking-wide text-white/40">
                   <tr>
                     <th className="pb-3">Beneficiario</th>

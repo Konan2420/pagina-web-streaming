@@ -650,8 +650,8 @@ export function ClientsPanel({
       </div>
 
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-left text-sm">
+        <div className="cmd-table-scroll">
+          <table className="w-full min-w-[980px] whitespace-nowrap text-left text-sm">
             <thead className="border-b border-border bg-muted/45 text-[11px] uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="px-4 py-3">Nombre / Contacto</th>

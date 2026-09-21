@@ -152,8 +152,8 @@ function AnalyticsPage() {
           {dashboard.topProducts.length === 0 ? (
             <p className="text-sm text-white/62">Aún no hay compras registradas.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="cmd-table-scroll">
+              <table className="w-full min-w-[420px] whitespace-nowrap text-sm">
                 <thead>
                   <tr className="text-left text-xs text-white/62 border-b border-white/10">
                     <th className="pb-2 font-medium">Producto</th>
@@ -181,8 +181,8 @@ function AnalyticsPage() {
             <ShoppingCart className="w-4 h-4 text-violet-2" />
             Eventos recientes
           </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="cmd-table-scroll">
+            <table className="w-full min-w-[680px] whitespace-nowrap text-sm">
               <thead>
                 <tr className="text-left text-xs text-white/62 border-b border-white/10">
                   <th className="pb-2 font-medium">Evento</th>

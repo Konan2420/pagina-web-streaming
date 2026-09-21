@@ -227,8 +227,8 @@ function TicketsAdminPage() {
           </p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
-          <div className="hidden grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] gap-4 border-b border-white/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-white/35 md:grid">
+        <div className="cmd-table-scroll rounded-2xl border border-white/10 bg-white/[0.025]">
+          <div className="hidden md:min-w-[860px] grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] gap-4 border-b border-white/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-white/35 md:grid md:whitespace-nowrap">
             <span>Ticket</span>
             <span>Cliente</span>
             <span>Estado</span>
@@ -240,7 +240,7 @@ function TicketsAdminPage() {
                 key={ticket.id}
                 type="button"
                 onClick={() => setSelectedTicket(ticket)}
-                className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-white/[0.045] md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] md:items-center md:gap-4"
+                className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-white/[0.045] md:min-w-[860px] md:whitespace-nowrap md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_auto_auto] md:items-center md:gap-4"
               >
                 <span className="min-w-0">
                   <span className="block truncate text-sm font-semibold text-white">

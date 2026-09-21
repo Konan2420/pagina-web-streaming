@@ -67,8 +67,8 @@ function AdminDashboard() {
             </Link>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="cmd-table-scroll">
+            <table className="w-full min-w-[560px] whitespace-nowrap text-sm">
               <thead>
                 <tr className="text-left text-xs text-muted-foreground border-b border-border">
                   <th className="pb-3 font-medium">Usuario</th>

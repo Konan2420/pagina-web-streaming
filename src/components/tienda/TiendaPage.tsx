@@ -2258,8 +2258,8 @@ function PurchasesPanel({
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-xl glass-card sm:block">
-              <table className="w-full text-sm">
+            <div className="cmd-table-scroll hidden rounded-xl glass-card sm:block">
+              <table className="w-full min-w-[760px] whitespace-nowrap text-sm">
                 <thead className="bg-white/[0.03] text-white/78 text-xs uppercase tracking-wider">
                   <tr>
                     <th className="text-left px-4 py-3">Producto</th>

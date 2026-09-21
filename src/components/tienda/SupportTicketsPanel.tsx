@@ -306,8 +306,8 @@ export function SupportTicketsPanel({
             </p>
           </div>
         ) : (
-          <div className="mt-4 overflow-hidden rounded-xl border border-border bg-background">
-            <div className="hidden grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto_auto] gap-4 border-b border-border px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-white/40 md:grid">
+          <div className="cmd-table-scroll mt-4 rounded-xl border border-border bg-background">
+            <div className="hidden md:min-w-[760px] grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto_auto] gap-4 border-b border-border px-4 py-3 text-[9px] font-black uppercase tracking-[0.15em] text-white/40 md:grid md:whitespace-nowrap">
               <span>Asunto</span>
               <span>Categoría</span>
               <span>Estado</span>
@@ -319,7 +319,7 @@ export function SupportTicketsPanel({
                   key={ticket.id}
                   type="button"
                   onClick={() => setSelectedTicket(ticket)}
-                  className="grid w-full gap-2 px-4 py-4 text-left transition hover:bg-white/[0.035] md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto_auto] md:items-center md:gap-4"
+                  className="grid w-full gap-2 px-4 py-4 text-left transition hover:bg-white/[0.035] md:min-w-[760px] md:whitespace-nowrap md:grid-cols-[minmax(0,1.6fr)_minmax(0,0.8fr)_auto_auto] md:items-center md:gap-4"
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-semibold text-white">

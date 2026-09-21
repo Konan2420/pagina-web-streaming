@@ -452,8 +452,8 @@ export function StorefrontManagement() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-border bg-card">
-            <div className="min-w-[1120px]">
+          <div className="cmd-table-scroll rounded-xl border border-border bg-card">
+            <div className="min-w-[1120px] whitespace-nowrap">
               <StoreTableHeader />
               <ComboSection combos={data.combos} comboItems={data.comboItems} />
               {groupedProducts.map(([group, items]) => (

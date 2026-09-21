@@ -382,8 +382,8 @@ function RechargesAdminPage() {
             </p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025]">
-            <div className="hidden grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto_auto] gap-4 border-b border-white/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-white/35 md:grid">
+          <div className="cmd-table-scroll rounded-2xl border border-white/10 bg-white/[0.025]">
+            <div className="hidden md:min-w-[1000px] grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto_auto] gap-4 border-b border-white/10 px-5 py-3 text-[10px] font-black uppercase tracking-[0.14em] text-white/35 md:grid md:whitespace-nowrap">
               <span>Solicitante</span>
               <span>Destino y método</span>
               <span>Monto</span>
@@ -396,7 +396,7 @@ function RechargesAdminPage() {
                   key={recharge.id}
                   type="button"
                   onClick={() => setSelectedRecharge(recharge)}
-                  className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-white/[0.045] md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto_auto] md:items-center md:gap-4"
+                  className="grid w-full gap-3 px-5 py-4 text-left transition hover:bg-white/[0.045] md:min-w-[1000px] md:whitespace-nowrap md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto_auto] md:items-center md:gap-4"
                 >
                   <span className="min-w-0">
                     <span className="flex items-center gap-2 truncate text-sm font-semibold text-white">

@@ -437,8 +437,8 @@ export function WalletRechargeModal({
             </p>
 
             {movementsQuery.isLoading ? (
-              <div
-                className="mt-4 overflow-hidden rounded-xl border border-border bg-background"
+                <div
+                className="cmd-table-scroll mt-4 rounded-xl border border-border bg-background"
                 role="status"
                 aria-label="Cargando historial de movimientos"
               >
@@ -472,8 +472,8 @@ export function WalletRechargeModal({
                 Aún no tienes movimientos registrados.
               </div>
             ) : (
-              <div className="mt-4 overflow-hidden rounded-xl border border-border bg-background">
-                <div className="hidden grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] gap-4 border-b border-border px-4 py-3 text-[9px] font-black uppercase tracking-[0.14em] text-white/40 sm:grid">
+              <div className="cmd-table-scroll mt-4 rounded-xl border border-border bg-background">
+                <div className="hidden sm:min-w-[620px] grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] gap-4 border-b border-border px-4 py-3 text-[9px] font-black uppercase tracking-[0.14em] text-white/40 sm:grid sm:whitespace-nowrap">
                   <span>Fecha</span>
                   <span>Tipo</span>
                   <span>Método</span>
@@ -484,7 +484,7 @@ export function WalletRechargeModal({
                   {(movementsQuery.data ?? []).map((movement) => (
                     <div
                       key={movement.id}
-                      className="grid gap-1 px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4"
+                      className="grid gap-1 px-4 py-3 sm:min-w-[620px] sm:whitespace-nowrap sm:grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4"
                     >
                       <span className="text-[10px] text-white/40">
                         {formatRechargeDate(movement.date)}

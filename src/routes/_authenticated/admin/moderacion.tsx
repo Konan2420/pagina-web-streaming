@@ -206,8 +206,8 @@ function ModerationPage() {
             />
           </label>
         </div>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-border">
-          <table className="min-w-[980px] w-full text-left text-sm">
+        <div className="cmd-table-scroll mt-4 rounded-xl border border-border">
+          <table className="min-w-[980px] w-full whitespace-nowrap text-left text-sm">
             <thead className="border-b border-border bg-muted/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-3">Usuario</th>
