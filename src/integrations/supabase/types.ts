@@ -957,6 +957,7 @@ export type Database = {
         Row: {
           created_at: string;
           email: string | null;
+          birthday: string | null;
           id: string;
           is_blocked: boolean;
           nombre: string;
@@ -968,6 +969,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           email?: string | null;
+          birthday?: string | null;
           id?: string;
           is_blocked?: boolean;
           nombre: string;
@@ -979,6 +981,7 @@ export type Database = {
         Update: {
           created_at?: string;
           email?: string | null;
+          birthday?: string | null;
           id?: string;
           is_blocked?: boolean;
           nombre?: string;
@@ -1665,6 +1668,7 @@ export type Database = {
         Returns: {
           created_at: string;
           email: string | null;
+          birthday: string | null;
           id: string;
           is_blocked: boolean;
           last_purchase: string | null;

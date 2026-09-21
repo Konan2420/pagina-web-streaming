@@ -10,6 +10,7 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  MoreHorizontal,
   Pencil,
   Plus,
   Search,
@@ -39,6 +40,7 @@ type BusinessClient = {
   nombre: string;
   telefono: string | null;
   email: string | null;
+  birthday: string | null;
   is_blocked: boolean;
   created_at: string;
   total_purchases: number;
@@ -62,6 +64,7 @@ type ClientDraft = {
   nombre: string;
   telefono: string;
   email: string;
+  birthday: string;
   is_blocked: boolean;
   tagIds: string[];
 };
@@ -75,6 +78,7 @@ const EMPTY_DRAFT: ClientDraft = {
   nombre: "",
   telefono: "",
   email: "",
+  birthday: "",
   is_blocked: false,
   tagIds: [],
 };
@@ -109,6 +113,35 @@ function formatDate(value: string | null) {
   return new Intl.DateTimeFormat("es-PE", { dateStyle: "medium" }).format(new Date(value));
 }
 
+function formatRegistrationDate(value: string | null) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("es-PE", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  })
+    .format(new Date(value))
+    .replace(",", "");
+}
+
+function maskPhone(value: string | null) {
+  if (!value) return "—";
+  const phone = value.trim();
+  if (phone.length <= 4) return "•".repeat(Math.max(1, phone.length - 1)) + phone.slice(-1);
+  return phone.slice(0, 4) + "•".repeat(Math.max(3, phone.length - 7)) + phone.slice(-3);
+}
+
+function initials(name: string) {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
 export function ClientsPanel({
   userId,
   isAdmin,
@@ -129,13 +162,15 @@ export function ClientsPanel({
   const [statusFilter, setStatusFilter] = useState<ClientStatusFilter>("all");
   const [dateFilter, setDateFilter] = useState<ClientDateFilter>("all");
   const [page, setPage] = useState(1);
-  const [hideAmounts, setHideAmounts] = useState(false);
+  const [hideNumbers, setHideNumbers] = useState(false);
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<BusinessClient | null>(null);
   const [draft, setDraft] = useState<ClientDraft>(EMPTY_DRAFT);
   const [newTagName, setNewTagName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [openActionsId, setOpenActionsId] = useState<string | null>(null);
+  const [detailsClient, setDetailsClient] = useState<BusinessClient | null>(null);
 
   const scopeOwnerId = isAdmin ? ownerFilter : userId;
   const formOwnerId = editingClient?.owner_id ?? scopeOwnerId ?? userId;
@@ -147,7 +182,10 @@ export function ClientsPanel({
       const { data, error } = await supabase.rpc("get_business_clients", {
         p_owner_id: scopeOwnerId,
       });
-      if (error) throw error;
+      if (error) {
+        console.error("[ClientsPanel] get_business_clients failed", error);
+        throw new Error("No se pudieron cargar clientes: " + error.message);
+      }
       return (data ?? []).map((client) => ({ ...client, tags: normalizeTags(client.tags) }));
     },
   });
@@ -267,6 +305,7 @@ export function ClientsPanel({
       nombre: client.nombre,
       telefono: client.telefono ?? "",
       email: client.email ?? "",
+      birthday: client.birthday ?? "",
       is_blocked: client.is_blocked,
       tagIds: client.tags.map((tag) => tag.id),
     });
@@ -289,6 +328,7 @@ export function ClientsPanel({
         nombre: draft.nombre.trim(),
         telefono: draft.telefono.trim() || null,
         email: draft.email.trim().toLowerCase() || null,
+        birthday: draft.birthday || null,
         is_blocked: draft.is_blocked,
       };
       let clientId = editingClient?.id;
@@ -412,6 +452,7 @@ export function ClientsPanel({
         "Nombre",
         "Teléfono / WhatsApp",
         "Email",
+        "Cumpleaños",
         "Fecha de registro",
         "Estado",
         "Pedidos",
@@ -423,7 +464,8 @@ export function ClientsPanel({
         client.nombre,
         client.telefono ?? "",
         client.email ?? "",
-        formatDate(client.created_at),
+        client.birthday ?? "",
+        formatRegistrationDate(client.created_at),
         client.is_blocked ? "Bloqueado" : isActive(client.last_purchase) ? "Activo" : "Inactivo",
         client.total_purchases,
         client.total_spent_pen.toFixed(2),
@@ -531,11 +573,11 @@ export function ClientsPanel({
         </button>
         <button
           type="button"
-          onClick={() => setHideAmounts((value) => !value)}
+          onClick={() => setHideNumbers((value) => !value)}
           className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary/50"
         >
-          {hideAmounts ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-          {hideAmounts ? "Mostrar números" : "Ocultar números"}
+          {hideNumbers ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+          {hideNumbers ? "Mostrar números" : "Ocultar números"}
         </button>
         <button
           type="button"
@@ -609,35 +651,38 @@ export function ClientsPanel({
 
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card/40">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] text-left text-sm">
+          <table className="w-full min-w-[980px] text-left text-sm">
             <thead className="border-b border-border bg-muted/45 text-[11px] uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-4 py-3">Nombre</th>
-                <th className="px-4 py-3">Teléfono / WhatsApp</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Registro</th>
+                <th className="px-4 py-3">Nombre / Contacto</th>
                 <th className="px-4 py-3">Estado</th>
-                <th className="px-4 py-3">Pedidos / total</th>
-                <th className="px-4 py-3">Última actividad</th>
                 <th className="px-4 py-3">Etiquetas</th>
+                <th className="px-4 py-3">Cumpleaños</th>
+                <th className="px-4 py-3">Ventas</th>
+                <th className="px-4 py-3">Registro</th>
                 <th className="px-4 py-3 text-right">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/70">
               {clientsQuery.isLoading ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
                     <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />
                     Cargando clientes…
                   </td>
                 </tr>
               ) : clientsQuery.isError ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center text-primary">
-                    No se pudieron cargar los clientes.{" "}
+                  <td colSpan={7} className="px-4 py-12 text-center text-primary">
+                    <p>No se pudieron cargar los clientes.</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {clientsQuery.error instanceof Error
+                        ? clientsQuery.error.message
+                        : "Revisa tu conexión y vuelve a intentarlo."}
+                    </p>
                     <button
                       type="button"
-                      className="font-bold underline"
+                      className="mt-3 font-bold underline"
                       onClick={() => void clientsQuery.refetch()}
                     >
                       Reintentar
@@ -646,7 +691,7 @@ export function ClientsPanel({
                 </tr>
               ) : filteredClients.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="px-4 py-12 text-center">
+                  <td colSpan={7} className="px-4 py-12 text-center">
                     <div className="mx-auto flex max-w-sm flex-col items-center">
                       <span className="grid h-11 w-11 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary">
                         <Users className="h-5 w-5" aria-hidden="true" />
@@ -676,46 +721,37 @@ export function ClientsPanel({
               ) : (
                 visibleClients.map((client) => {
                   const status = client.is_blocked
-                    ? "Bloqueado"
+                    ? "BLOCKED"
                     : isActive(client.last_purchase)
-                      ? "Activo"
-                      : "Inactivo";
+                      ? "ACTIVE"
+                      : "INACTIVE";
                   const statusClass = client.is_blocked
                     ? "bg-red-500/10 text-red-300"
-                    : status === "Activo"
+                    : status === "ACTIVE"
                       ? "bg-emerald-500/10 text-emerald-300"
                       : "bg-amber-500/10 text-amber-200";
                   return (
                     <tr key={client.id} className="transition-colors hover:bg-muted/45">
-                      <td className="px-4 py-3.5 font-semibold text-foreground">{client.nombre}</td>
-                      <td className="px-4 py-3.5 text-muted-foreground">
-                        {client.telefono || "—"}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-black text-primary ring-1 ring-primary/25">
+                            {initials(client.nombre)}
+                          </span>
+                          <div className="min-w-0">
+                            <p className="truncate font-bold text-foreground">{client.nombre}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">
+                              {hideNumbers ? maskPhone(client.telefono) : client.telefono || "—"}
+                            </p>
+                          </div>
+                        </div>
                       </td>
-                      <td className="px-4 py-3.5 text-muted-foreground">{client.email || "—"}</td>
-                      <td className="px-4 py-3.5 text-muted-foreground">
-                        {formatDate(client.created_at)}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusClass}`}
-                        >
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold tracking-wide ${statusClass}`}>
                           {status}
                         </span>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <p className="font-semibold text-foreground">
-                          {client.total_purchases}{" "}
-                          {client.total_purchases === 1 ? "pedido" : "pedidos"}
-                        </p>
-                        <p className="mt-0.5 text-xs text-muted-foreground">
-                          {formatCurrency(client.total_spent_pen, hideAmounts)}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3.5 text-muted-foreground">
-                        {formatDate(client.last_purchase)}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex flex-wrap gap-1.5">
+                      <td className="px-4 py-3">
+                        <div className="flex max-w-48 flex-wrap gap-1.5">
                           {client.tags.length ? (
                             client.tags.map((tag) => (
                               <span
@@ -731,40 +767,87 @@ export function ClientsPanel({
                           )}
                         </div>
                       </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex justify-end gap-1.5">
+                      <td className="px-4 py-3 text-muted-foreground">
+                        {client.birthday
+                          ? new Intl.DateTimeFormat("es-PE", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            }).format(new Date(client.birthday))
+                          : "—"}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-bold text-foreground">{client.total_purchases}</p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {formatCurrency(client.total_spent_pen, hideNumbers)}
+                        </p>
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
+                        {formatRegistrationDate(client.created_at)}
+                      </td>
+                      <td className="relative px-4 py-3">
+                        <div className="flex justify-end">
                           <button
                             type="button"
-                            onClick={() => openEdit(client)}
-                            className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground sm:h-9 sm:w-9"
-                            aria-label={`Editar ${client.nombre}`}
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void toggleBlocked(client)}
-                            className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground sm:h-9 sm:w-9"
-                            aria-label={
-                              client.is_blocked
-                                ? `Desbloquear ${client.nombre}`
-                                : `Bloquear ${client.nombre}`
+                            onClick={() =>
+                              setOpenActionsId((value) => (value === client.id ? null : client.id))
                             }
+                            className="grid h-9 w-9 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/60 hover:text-foreground"
+                            aria-label={`Acciones para ${client.nombre}`}
+                            aria-expanded={openActionsId === client.id}
                           >
-                            {client.is_blocked ? (
-                              <ShieldCheck className="h-3.5 w-3.5" />
-                            ) : (
-                              <ShieldBan className="h-3.5 w-3.5" />
-                            )}
+                            <MoreHorizontal className="h-4 w-4" />
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => void deleteClient(client)}
-                            className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-destructive/60 hover:text-destructive sm:h-9 sm:w-9"
-                            aria-label={`Eliminar ${client.nombre}`}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {openActionsId === client.id && (
+                            <div className="absolute right-4 top-12 z-30 w-44 rounded-lg border border-border bg-card p-1.5 shadow-xl">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setDetailsClient(client);
+                                  setOpenActionsId(null);
+                                }}
+                                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-foreground hover:bg-muted"
+                              >
+                                <Eye className="h-3.5 w-3.5" /> Ver detalle
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  openEdit(client);
+                                  setOpenActionsId(null);
+                                }}
+                                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-foreground hover:bg-muted"
+                              >
+                                <Pencil className="h-3.5 w-3.5" /> Editar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenActionsId(null);
+                                  void toggleBlocked(client);
+                                }}
+                                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-foreground hover:bg-muted"
+                              >
+                                {client.is_blocked ? (
+                                  <ShieldCheck className="h-3.5 w-3.5" />
+                                ) : (
+                                  <ShieldBan className="h-3.5 w-3.5" />
+                                )}
+                                {client.is_blocked ? "Desbloquear" : "Bloquear"}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={client.total_purchases > 0}
+                                onClick={() => {
+                                  setOpenActionsId(null);
+                                  void deleteClient(client);
+                                }}
+                                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" /> Eliminar
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -779,17 +862,29 @@ export function ClientsPanel({
             <p className="text-xs text-muted-foreground">
               Mostrando {pageStart + 1}–
               {Math.min(pageStart + CLIENTS_PAGE_SIZE, filteredClients.length)} de{" "}
-              {filteredClients.length} clientes
+              {filteredClients.length} registros
             </p>
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="flex flex-wrap items-center gap-1.5 self-end sm:self-auto">
+              <span className="mr-1 rounded-md border border-border bg-card px-2 py-1 text-[10px] font-semibold text-muted-foreground">
+                10 / pág
+              </span>
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setPage(1)}
+                className="grid h-8 w-8 place-items-center rounded-md border border-border text-xs text-muted-foreground transition hover:border-primary/55 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Primera página"
+              >
+                «
+              </button>
               <button
                 type="button"
                 disabled={currentPage === 1}
                 onClick={() => setPage((value) => Math.max(1, value - 1))}
-                className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/55 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35 sm:h-8 sm:w-8"
+                className="grid h-8 w-8 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/55 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
                 aria-label="Página anterior"
               >
-                <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <span className="min-w-24 text-center text-xs font-semibold text-foreground">
                 Página {currentPage} de {totalPages}
@@ -798,16 +893,108 @@ export function ClientsPanel({
                 type="button"
                 disabled={currentPage === totalPages}
                 onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
-                className="grid h-11 w-11 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/55 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35 sm:h-8 sm:w-8"
+                className="grid h-8 w-8 place-items-center rounded-md border border-border text-muted-foreground transition hover:border-primary/55 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
                 aria-label="Página siguiente"
               >
-                <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                <ChevronRight className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() => setPage(totalPages)}
+                className="grid h-8 w-8 place-items-center rounded-md border border-border text-xs text-muted-foreground transition hover:border-primary/55 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-35"
+                aria-label="Última página"
+              >
+                »
               </button>
             </div>
           </div>
         )}
       </div>
-
+      <Dialog open={Boolean(detailsClient)} onOpenChange={(open) => !open && setDetailsClient(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Detalle del cliente</DialogTitle>
+            <DialogDescription>Información de contacto y actividad registrada.</DialogDescription>
+          </DialogHeader>
+          {detailsClient && (
+            <div className="space-y-4 py-2">
+              <div className="flex items-center gap-3 rounded-lg border border-border bg-card/60 p-3">
+                <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/15 text-sm font-black text-primary ring-1 ring-primary/25">
+                  {initials(detailsClient.nombre)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-base font-bold text-foreground">{detailsClient.nombre}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {hideNumbers ? maskPhone(detailsClient.telefono) : detailsClient.telefono || "Sin teléfono"}
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-3 text-sm sm:grid-cols-2">
+                <div>
+                  <p className="text-xs text-muted-foreground">Estado</p>
+                  <p className="font-semibold text-foreground">
+                    {detailsClient.is_blocked
+                      ? "BLOCKED"
+                      : isActive(detailsClient.last_purchase)
+                        ? "ACTIVE"
+                        : "INACTIVE"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="break-all font-semibold text-foreground">{detailsClient.email || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Cumpleaños</p>
+                  <p className="font-semibold text-foreground">
+                    {detailsClient.birthday
+                      ? new Intl.DateTimeFormat("es-PE", { dateStyle: "medium" }).format(
+                          new Date(detailsClient.birthday),
+                        )
+                      : "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Registro</p>
+                  <p className="font-semibold text-foreground">
+                    {formatRegistrationDate(detailsClient.created_at)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Ventas</p>
+                  <p className="font-semibold text-foreground">{detailsClient.total_purchases}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatCurrency(detailsClient.total_spent_pen, hideNumbers)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Última actividad</p>
+                  <p className="font-semibold text-foreground">
+                    {formatDate(detailsClient.last_purchase)}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Etiquetas</p>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  {detailsClient.tags.length
+                    ? detailsClient.tags.map((tag) => (
+                        <span
+                          key={tag.id}
+                          style={{ borderColor: tag.color + "80", color: tag.color }}
+                          className="rounded-full border px-2 py-0.5 text-[10px] font-bold"
+                        >
+                          {tag.name}
+                        </span>
+                      ))
+                    : "—"}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       <Dialog open={clientDialogOpen} onOpenChange={setClientDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -846,7 +1033,16 @@ export function ClientsPanel({
                 className="crm-input"
               />
             </Field>
-            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card/60 px-3.5 py-3 text-sm">
+            <Field label="Cumpleaños (opcional)">
+              <input
+                type="date"
+                value={draft.birthday}
+                onChange={(event) =>
+                  setDraft((value) => ({ ...value, birthday: event.target.value }))
+                }
+                className="crm-input"
+              />
+            </Field>            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card/60 px-3.5 py-3 text-sm">
               <span>
                 <span className="font-bold text-foreground">Bloquear cliente</span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">
