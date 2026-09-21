@@ -498,10 +498,10 @@ export function BusinessOrdersPanel({
     <section className="mt-6 pb-24">
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6">
         <header className="mb-6">
-          <h1 className="font-display text-2xl tracking-wide text-foreground sm:text-3xl">
+          <h1 className="font-display text-2xl tracking-wide text-foreground sm:text-[28px]">
             Mis Pedidos
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground sm:text-xs">
             Gestiona tus pedidos y clientes en un solo lugar.
           </p>
         </header>
@@ -516,14 +516,14 @@ export function BusinessOrdersPanel({
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar productos..."
-              className="h-11 w-full rounded-lg border border-border bg-card pl-10 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-primary/15"
+              className="h-11 w-full rounded-lg border border-border bg-card pl-10 pr-3 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-primary/60 focus:ring-2 focus:ring-primary/15 sm:h-9 sm:text-xs"
             />
           </label>
           <div className="grid grid-cols-1 gap-2 min-[540px]:grid-cols-3 xl:flex xl:items-center">
             <select
               value={brand}
               onChange={(event) => setBrand(event.target.value)}
-              className="h-11 min-w-0 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:border-primary/60"
+              className="h-11 min-w-0 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:border-primary/60 sm:h-9 sm:text-xs"
             >
               <option value="">Todas las marcas</option>
               {brands.map((item) => (
@@ -535,7 +535,7 @@ export function BusinessOrdersPanel({
             <select
               value={month}
               onChange={(event) => setMonth(event.target.value)}
-              className="h-11 min-w-0 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:border-primary/60"
+              className="h-11 min-w-0 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:border-primary/60 sm:h-9 sm:text-xs"
             >
               <option value="">Todos los meses</option>
               {Array.from({ length: 12 }, (_, index) => (
@@ -549,7 +549,7 @@ export function BusinessOrdersPanel({
             <select
               value={year}
               onChange={(event) => setYear(event.target.value)}
-              className="h-11 min-w-0 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:border-primary/60"
+              className="h-11 min-w-0 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:border-primary/60 sm:h-9 sm:text-xs"
             >
               <option value="">Todos los años</option>
               {years.map((item) => (
@@ -563,7 +563,7 @@ export function BusinessOrdersPanel({
             <select
               value={scope}
               onChange={(event) => setScope(event.target.value as "mine" | "all")}
-              className="h-11 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:border-primary/60"
+              className="h-11 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground outline-none focus:border-primary/60 sm:h-9 sm:text-xs"
             >
               <option value="mine">Mis pedidos</option>
               <option value="all">Todos los pedidos</option>
@@ -572,7 +572,7 @@ export function BusinessOrdersPanel({
           <button
             type="button"
             onClick={exportVisibleOrders}
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-primary/35 bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary hover:bg-primary/10"
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-primary/35 bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary hover:bg-primary/10 sm:h-9 sm:px-3 sm:text-xs"
           >
             <Download className="h-4 w-4 text-primary" aria-hidden="true" />
             Exportar Excel
@@ -592,7 +592,7 @@ export function BusinessOrdersPanel({
                   aria-selected={active}
                   onClick={() => setStatus(tab.value)}
                   className={cn(
-                    "relative flex min-h-11 items-center gap-2 px-3 text-sm font-semibold transition",
+                    "relative flex min-h-11 items-center gap-2 px-3 text-sm font-semibold transition sm:min-h-9 sm:px-2.5 sm:text-xs",
                     active ? "text-foreground" : "text-muted-foreground hover:text-foreground",
                     active &&
                       "after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-primary",
@@ -601,7 +601,7 @@ export function BusinessOrdersPanel({
                   <span>{tab.label}</span>
                   <span
                     className={cn(
-                      "rounded-md bg-muted px-2 py-0.5 text-xs font-black text-muted-foreground",
+                      "rounded-md bg-muted px-2 py-0.5 text-xs font-black text-muted-foreground sm:px-1.5 sm:text-[10px]",
                       tab.value === "vencido" && count > 0 && "cmd-on-accent bg-destructive",
                     )}
                   >
@@ -651,18 +651,18 @@ export function BusinessOrdersPanel({
         ) : (
           <>
             <div className="mt-5 hidden overflow-x-auto rounded-xl border border-border bg-card lg:block">
-              <table className="min-w-[1360px] w-full text-left">
-                <thead className="border-b border-border text-[10px] font-black uppercase tracking-wide text-muted-foreground">
+              <table className="min-w-[1120px] w-full text-left xl:min-w-0">
+                <thead className="border-b border-border text-[9px] font-black uppercase tracking-wide text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-3">Acciones</th>
-                    <th className="px-3 py-3">Producto</th>
-                    <th className="px-3 py-3">Cliente</th>
-                    <th className="px-3 py-3">Tiempo restante</th>
-                    <th className="px-3 py-3">Estado</th>
-                    <th className="px-3 py-3">Fecha de expiración</th>
-                    <th className="px-3 py-3 text-right">Costo</th>
-                    <th className="px-3 py-3 text-right">Venta</th>
-                    <th className="px-3 py-3 text-right">Ganancia</th>
+                    <th className="px-2 py-2">Acciones</th>
+                    <th className="px-2 py-2">Producto</th>
+                    <th className="px-2 py-2">Cliente</th>
+                    <th className="px-2 py-2">Tiempo restante</th>
+                    <th className="px-2 py-2">Estado</th>
+                    <th className="px-2 py-2">Fecha de expiración</th>
+                    <th className="px-2 py-2 text-right">Costo</th>
+                    <th className="px-2 py-2 text-right">Venta</th>
+                    <th className="px-2 py-2 text-right">Ganancia</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -858,17 +858,17 @@ function OrderTableRow(props: OrderActionsProps) {
   const remaining = timeRemaining(order);
   return (
     <tr className="transition hover:bg-muted/55">
-      <td className="px-3 py-3">
+      <td className="px-2 py-2">
         <OrderActionButtons {...props} />
       </td>
-      <td className="px-3 py-3">
-        <div className="flex min-w-[16rem] items-center gap-2">
+      <td className="px-2 py-2">
+        <div className="flex min-w-[14rem] items-center gap-2">
           <IconButton label="Ver detalle" onClick={() => onDetail(order)}>
             <Eye className="h-4 w-4" />
           </IconButton>
           <OrderThumbnail order={order} />
           <div className="min-w-0">
-            <p className="truncate text-sm font-bold uppercase text-foreground">
+            <p className="truncate text-xs font-bold uppercase text-foreground">
               {order.product_name}
             </p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -877,19 +877,19 @@ function OrderTableRow(props: OrderActionsProps) {
           </div>
         </div>
       </td>
-      <td className="px-3 py-3">
-        <div className="flex min-w-[15rem] items-center gap-2">
+      <td className="px-2 py-2">
+        <div className="flex min-w-[12rem] items-center gap-2">
           <CustomerActions {...props} />
           <ClientAvatar order={order} />
-          <span className="truncate text-sm font-semibold text-foreground">
+          <span className="truncate text-xs font-semibold text-foreground">
             {order.client_name}
           </span>
         </div>
       </td>
-      <td className="px-3 py-3">
+      <td className="px-2 py-2">
         <RemainingBadge label={remaining.label} tone={remaining.tone} />
       </td>
-      <td className="px-3 py-3">
+      <td className="px-2 py-2">
         <StatusBadge status={order.display_status} />
         <select
           aria-label={`Cambiar estado de ${order.product_name}`}
@@ -908,16 +908,16 @@ function OrderTableRow(props: OrderActionsProps) {
           <option value="cancelado">Cancelado</option>
         </select>
       </td>
-      <td className="whitespace-nowrap px-3 py-3 text-sm font-medium text-foreground">
+      <td className="whitespace-nowrap px-2 py-2 text-xs font-medium text-foreground">
         {formatDateTime(order.expires_at)}
       </td>
-      <td className="px-3 py-3 text-right text-sm font-bold text-foreground">
+      <td className="px-2 py-2 text-right text-xs font-bold text-foreground">
         {money(order.cost_price)}
       </td>
-      <td className="px-3 py-3 text-right text-sm font-bold text-foreground">
+      <td className="px-2 py-2 text-right text-xs font-bold text-foreground">
         {money(order.sale_price)}
       </td>
-      <td className="px-3 py-3 text-right text-sm font-bold text-emerald-600 dark:text-emerald-400">
+      <td className="px-2 py-2 text-right text-xs font-bold text-emerald-600 dark:text-emerald-400">
         +{money(order.profit)}
       </td>
     </tr>

@@ -176,7 +176,7 @@ export function StoreSidebar({
 
         <section
           className={cn(
-            "mb-4 max-h-48 origin-top rounded-lg border border-border bg-background p-3 transition-[max-height,margin,opacity,transform] duration-200 ease-out sm:mb-3 sm:p-2.5",
+            "mb-4 max-h-48 origin-top rounded-lg border border-border bg-background p-3 transition-[max-height,margin,opacity,transform] duration-200 ease-out sm:mb-3 sm:p-2",
             collapsed &&
               "pointer-events-none lg:mb-0 lg:max-h-0 lg:-translate-y-1 lg:overflow-hidden lg:border-transparent lg:p-0 lg:opacity-0",
           )}
@@ -185,7 +185,7 @@ export function StoreSidebar({
             <Wallet className="h-3.5 w-3.5 text-red-accent" aria-hidden="true" />
             Mi Billetera
           </div>
-          <p className="mt-2 text-lg font-black tracking-tight text-white sm:mt-1.5 sm:text-base">
+          <p className="mt-2 text-lg font-black tracking-tight text-white sm:mt-1.5 sm:text-[15px]">
             {sessionActive ? `S/ ${walletBalance.toFixed(2)}` : "S/ —"}
           </p>
           <p className="text-[9px] text-white/40 sm:text-[8px]">
@@ -231,7 +231,7 @@ export function StoreSidebar({
                       href={catalogOnly ? "/catalogo" : "/tienda"}
                       onClick={onClose}
                       className={cn(
-                        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-8 sm:gap-2 sm:px-2 sm:text-[11px]",
+                        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px]",
                         active
                           ? "cmd-active-subtle"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -249,7 +249,7 @@ export function StoreSidebar({
                     type="button"
                     onClick={() => selectCategory(category.id)}
                     className={cn(
-                      "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-8 sm:gap-2 sm:px-2 sm:text-[11px]",
+                      "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px]",
                       active
                         ? "cmd-active-subtle"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -387,7 +387,7 @@ export function StoreSidebar({
                   onClick={onClose}
                   title={collapsed ? "Políticas" : undefined}
                   className={cn(
-                    "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-muted-foreground transition-[background-color,color,gap,padding] duration-200 ease-out hover:bg-muted hover:text-foreground sm:min-h-8 sm:gap-2 sm:px-2 sm:text-[12px] sm:font-medium",
+                    "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-muted-foreground transition-[background-color,color,gap,padding] duration-200 ease-out hover:bg-muted hover:text-foreground sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] sm:font-medium",
                     collapsed && "lg:justify-center lg:gap-0 lg:px-0",
                   )}
                 >
@@ -422,7 +422,7 @@ export function StoreSidebar({
               onClick={() => onUnavailable("Vendedor PRO")}
               title={collapsed ? "Vendedor PRO" : undefined}
               className={cn(
-                "cmd-active-subtle mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border px-3 text-left text-xs font-black transition hover:border-primary/60 hover:bg-primary/15 sm:min-h-8 sm:gap-2 sm:px-2 sm:text-[11px] sm:font-semibold",
+                "cmd-active-subtle mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border px-3 text-left text-xs font-black transition hover:border-primary/60 hover:bg-primary/15 sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] sm:font-semibold",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
@@ -549,7 +549,7 @@ function SidebarSubItem({
   onClick?: () => void;
 }) {
   const className = cn(
-    "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-8 sm:gap-2 sm:px-2 sm:text-[11px]",
+    "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px]",
     disabled
       ? "cursor-not-allowed text-white/30"
       : active
@@ -606,7 +606,7 @@ function SidebarButton({
       title={collapsed ? label : undefined}
       aria-expanded={expanded}
       className={cn(
-        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out sm:min-h-8 sm:gap-2 sm:px-2 sm:text-[12px] sm:font-medium",
+        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] sm:font-medium",
         collapsed && "lg:justify-center lg:gap-0 lg:px-0",
         active ? "cmd-active-subtle" : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
