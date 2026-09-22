@@ -1,32 +1,12 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-export type AvatarFrameKey =
-  | "neon"
-  | "prisma-orbit"
-  | "aurora-halo"
-  | "fire"
-  | "frost-halo"
-  | "aqua-tide"
-  | "verdant-bloom"
-  | "gold"
-  | "petal-wreath"
-  | "moon-garden"
-  | "crystal-vine"
-  | "celebration-ribbon"
-  | "candy-spark"
-  | "winter-glow"
-  | "cat-ears"
-  | "fox-ears"
-  | "bunny-ears"
-  | "bear-hood";
-
 export type AvatarFrameCategory = "animados" | "elementales" | "naturaleza" | "festivos" | "animales";
 type AvatarFrameKind = "orbit" | "elemental" | "nature" | "festive" | "animal";
 type AvatarFrameAnimation = "rotate" | "pulse" | "particles" | "glow" | "float";
 
-export type AvatarFrameDefinition = {
-  key: AvatarFrameKey;
+type AvatarFrameDefinitionShape = {
+  key: string;
   name: string;
   category: AvatarFrameCategory;
   kind: AvatarFrameKind;
@@ -34,7 +14,7 @@ export type AvatarFrameDefinition = {
   colors: readonly [string, string];
 };
 
-export const avatarFrameCatalog: readonly AvatarFrameDefinition[] = [
+export const avatarFrameCatalog = [
   { key: "neon", name: "Neón Circuit", category: "animados", kind: "orbit", animation: "glow", colors: ["#22d3ee", "#2563eb"] },
   { key: "prisma-orbit", name: "Órbita Prisma", category: "animados", kind: "orbit", animation: "rotate", colors: ["#f0abfc", "#22d3ee"] },
   { key: "aurora-halo", name: "Halo Aurora", category: "animados", kind: "orbit", animation: "pulse", colors: ["#a7f3d0", "#c084fc"] },
@@ -53,7 +33,10 @@ export const avatarFrameCatalog: readonly AvatarFrameDefinition[] = [
   { key: "fox-ears", name: "Orejas Zorro", category: "animales", kind: "animal", animation: "glow", colors: ["#fdba74", "#f97316"] },
   { key: "bunny-ears", name: "Orejas Conejo", category: "animales", kind: "animal", animation: "float", colors: ["#fbcfe8", "#f9a8d4"] },
   { key: "bear-hood", name: "Capucha Oso", category: "animales", kind: "animal", animation: "pulse", colors: ["#d6d3d1", "#78716c"] },
-] as const;
+] as const satisfies readonly AvatarFrameDefinitionShape[];
+
+export type AvatarFrameKey = (typeof avatarFrameCatalog)[number]["key"];
+export type AvatarFrameDefinition = (typeof avatarFrameCatalog)[number];
 
 const avatarFrameByKey = new Map(avatarFrameCatalog.map((frame) => [frame.key, frame]));
 

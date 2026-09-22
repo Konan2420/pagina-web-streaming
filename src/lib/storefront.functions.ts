@@ -6,6 +6,10 @@ import type { Database } from "@/integrations/supabase/types";
 
 const ownerTargetSchema = z.object({ ownerId: z.string().uuid().optional() });
 const sourceTypeSchema = z.enum(["master_catalog", "smm_generator"]);
+const avatarFrameKeySchema = z
+  .string()
+  .trim()
+  .regex(/^[a-z0-9][a-z0-9-]{2,63}$/, "El identificador del marco no es válido.");
 
 const overrideSchema = ownerTargetSchema.extend({
   sourceType: sourceTypeSchema,
@@ -24,7 +28,7 @@ const storefrontSettingsSchema = ownerTargetSchema.extend({
   logoUrl: z.string().trim().url().max(2048).nullable().optional(),
   bannerUrl: z.string().trim().url().max(2048).nullable().optional(),
   templateKey: z.string().trim().min(3).max(63),
-  avatarFrameKey: z.enum(["neon", "fire", "gold"]).nullable().optional(),
+  avatarFrameKey: avatarFrameKeySchema.nullable().optional(),
   facebookUrl: z.string().trim().url().max(2048).nullable().optional(),
   instagramUrl: z.string().trim().url().max(2048).nullable().optional(),
   tiktokUrl: z.string().trim().url().max(2048).nullable().optional(),
@@ -423,6 +427,18 @@ export const saveStorefrontSettings = createServerFn({ method: "POST" })
     const { ownerId } = await resolveStoreOwner(context, data.ownerId);
     const slug = normalizeSlug(data.storeSlug);
     if (slug.length < 3) throw new Error("El enlace público de la tienda no es válido.");
+    const avatarFrameKey = data.avatarFrameKey?.trim() || null;
+    if (avatarFrameKey) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: frame, error: frameError } = await supabaseAdmin
+        .from("avatar_frames")
+        .select("key")
+        .eq("key", avatarFrameKey)
+        .eq("is_active", true)
+        .maybeSingle();
+      if (frameError) throw new Error("No se pudo validar el marco seleccionado.");
+      if (!frame) throw new Error("El marco seleccionado no está disponible.");
+    }
     const { error } = await context.supabase.rpc("publish_storefront_settings", {
       p_owner_id: ownerId,
       p_store_slug: slug,
@@ -437,7 +453,7 @@ export const saveStorefrontSettings = createServerFn({ method: "POST" })
       p_closes_at: data.closesAt || null,
       p_timezone: data.timezone,
       p_template_key: data.templateKey,
-      p_avatar_frame_key: data.avatarFrameKey || null,
+      p_avatar_frame_key: avatarFrameKey,
       p_facebook_url: data.facebookUrl || null,
       p_instagram_url: data.instagramUrl || null,
       p_tiktok_url: data.tiktokUrl || null,
