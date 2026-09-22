@@ -841,6 +841,7 @@ export type Database = {
         Row: {
           availability_mode: string;
           avatar_frame_key: string | null;
+          selected_frame_id: string | null;
           banner_url: string | null;
           closes_at: string | null;
           created_at: string;
@@ -866,6 +867,7 @@ export type Database = {
         Insert: {
           availability_mode?: string;
           avatar_frame_key?: string | null;
+          selected_frame_id?: string | null;
           banner_url?: string | null;
           closes_at?: string | null;
           created_at?: string;
@@ -891,6 +893,7 @@ export type Database = {
         Update: {
           availability_mode?: string;
           avatar_frame_key?: string | null;
+          selected_frame_id?: string | null;
           banner_url?: string | null;
           closes_at?: string | null;
           created_at?: string;
@@ -921,7 +924,68 @@ export type Database = {
             referencedRelation: "users";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "storefront_settings_selected_frame_id_fkey";
+            columns: ["selected_frame_id"];
+            isOneToOne: false;
+            referencedRelation: "avatar_frames";
+            referencedColumns: ["id"];
+          },
         ];
+      };
+      avatar_frames: {
+        Row: {
+          id: string;
+          key: string;
+          name: string;
+          category: string;
+          asset_url: string | null;
+          renderer: string;
+          animation_type: string;
+          animation_config: Json;
+          access_type: string;
+          required_plan: string | null;
+          required_role: string | null;
+          is_active: boolean;
+          display_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          key: string;
+          name: string;
+          category: string;
+          asset_url?: string | null;
+          renderer?: string;
+          animation_type: string;
+          animation_config?: Json;
+          access_type?: string;
+          required_plan?: string | null;
+          required_role?: string | null;
+          is_active?: boolean;
+          display_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          key?: string;
+          name?: string;
+          category?: string;
+          asset_url?: string | null;
+          renderer?: string;
+          animation_type?: string;
+          animation_config?: Json;
+          access_type?: string;
+          required_plan?: string | null;
+          required_role?: string | null;
+          is_active?: boolean;
+          display_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
       profiles: {
         Row: {

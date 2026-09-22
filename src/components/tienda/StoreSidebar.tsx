@@ -3,6 +3,7 @@ import { BadgeCheck, ChevronDown, ChevronRight, LogOut, Plus, Wallet, X } from "
 import { Link } from "@tanstack/react-router";
 import { categories, type PanelTab } from "./data";
 import { cn } from "@/lib/utils";
+import { AvatarFrame, type AvatarFrameKey } from "@/components/storefront/AvatarFrame";
 
 type StoreSidebarProps = {
   open: boolean;
@@ -17,6 +18,7 @@ type StoreSidebarProps = {
   displayName: string;
   initials: string;
   avatarUrl?: string | null;
+  avatarFrameKey?: AvatarFrameKey | null;
   activePanel: PanelTab;
   activeCategory: string;
   onClose: () => void;
@@ -96,6 +98,7 @@ export function StoreSidebar({
   displayName,
   initials,
   avatarUrl,
+  avatarFrameKey = null,
   activePanel,
   activeCategory,
   onClose,
@@ -473,13 +476,16 @@ export function StoreSidebar({
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
-              <div className="cmd-on-accent grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-red-accent text-[10px] font-black">
+              <AvatarFrame
+                frameKey={avatarFrameKey}
+                className="h-8 w-8 shrink-0 rounded-full bg-red-accent text-[10px] font-black"
+              >
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
                   initials || "IN"
                 )}
-              </div>
+              </AvatarFrame>
               <span
                 className={cn(
                   "min-w-0 overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-200 ease-out",

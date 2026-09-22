@@ -36,6 +36,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ProductImage } from "@/components/ProductImage";
 import { FaTiktok, FaXTwitter } from "react-icons/fa6";
 import { getStorefrontTemplate } from "@/components/storefront/storefront-templates";
+import { AvatarFrame, type AvatarFrameKey } from "@/components/storefront/AvatarFrame";
 import { countryFlag, countryLabel } from "@/components/tienda/productMetadata";
 
 type PublicStoreProduct = {
@@ -66,7 +67,7 @@ type PublicStore = {
     logo_url: string | null;
     banner_url: string | null;
     template_key: string;
-    avatar_frame_key: "neon" | "fire" | "gold" | null;
+    avatar_frame_key: AvatarFrameKey | null;
     facebook_url: string | null;
     instagram_url: string | null;
     tiktok_url: string | null;
@@ -208,14 +209,6 @@ export function PublicStorefront({ slug }: { slug: string }) {
     { href: store.settings.x_url, label: "X", icon: FaXTwitter },
     { href: store.settings.youtube_url, label: "YouTube", icon: Youtube },
   ].filter((link) => Boolean(link.href));
-  const avatarFrameClass =
-    store.settings.avatar_frame_key === "neon"
-      ? "ring-4 ring-cyan-300 shadow-[0_0_22px_rgba(34,211,238,.9)]"
-      : store.settings.avatar_frame_key === "fire"
-        ? "ring-4 ring-orange-400 shadow-[0_0_22px_rgba(249,115,22,.9)]"
-        : store.settings.avatar_frame_key === "gold"
-          ? "ring-4 ring-amber-300 shadow-[0_0_22px_rgba(251,191,36,.9)]"
-          : "";
   const canCustomize = Boolean(viewerId && (viewerId === store.settings.store_owner_id || isAdmin));
   const managementHref = isAdmin
     ? "/admin/mi-tienda"
@@ -299,9 +292,9 @@ export function PublicStorefront({ slug }: { slug: string }) {
             )}
           </div>
           <div className="relative flex flex-col gap-4 px-4 pb-5 pt-0 sm:flex-row sm:items-end sm:px-7">
-            <div
-              className={`-mt-10 grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-black/40 text-xl font-black text-white shadow-xl sm:-mt-12 sm:h-24 sm:w-24 ${avatarFrameClass}`}
-              style={{ backgroundColor: template.accent }}
+            <AvatarFrame
+              frameKey={store.settings.avatar_frame_key}
+              className="-mt-10 h-20 w-20 shrink-0 rounded-full border-4 border-black/40 text-xl font-black text-white shadow-xl sm:-mt-12 sm:h-24 sm:w-24"
             >
               {store.settings.logo_url ? (
                 <img
@@ -310,9 +303,11 @@ export function PublicStorefront({ slug }: { slug: string }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                initials(store.settings.display_name)
+                <span className="grid h-full w-full place-items-center" style={{ backgroundColor: template.accent }}>
+                  {initials(store.settings.display_name)}
+                </span>
               )}
-            </div>
+            </AvatarFrame>
             <div className="min-w-0 flex-1 sm:pb-1">
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="truncate font-product text-2xl font-bold sm:text-3xl">

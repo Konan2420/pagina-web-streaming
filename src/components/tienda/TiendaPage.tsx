@@ -75,6 +75,7 @@ import { WalletRechargeModal } from "@/components/tienda/WalletRechargeModal";
 import { SocialServicesPanel } from "@/components/tienda/SocialServicesPanel";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { StorefrontManagement } from "@/components/storefront/StorefrontManagement";
+import { getAvatarFrame, type AvatarFrameKey } from "@/components/storefront/AvatarFrame";
 import { useAuthState } from "@/hooks/useAuthState";
 import {
   RequestTimeoutError,
@@ -454,6 +455,7 @@ export function TiendaPage({
   const [selected, setSelected] = useState<CatalogProduct | null>(null);
   const [panel, setPanel] = useState<PanelTab>(initialPanel);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [avatarFrameKey, setAvatarFrameKey] = useState<AvatarFrameKey | null>(null);
   const [orders, setOrders] = useState<StoreOrder[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
@@ -666,6 +668,7 @@ export function TiendaPage({
     }
 
     setProfile(null);
+    setAvatarFrameKey(null);
     await router.navigate({ to: "/" });
   }, [router]);
 
@@ -770,6 +773,30 @@ export function TiendaPage({
     setSupportTicketPrefill(null);
     setLoadingOrders(false);
   }, [userId, fetchProfile]);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!userId || (!isProvider && !isDistributor)) {
+      setAvatarFrameKey(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    void supabase
+      .from("storefront_settings")
+      .select("avatar_frame_key")
+      .eq("store_owner_id", userId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setAvatarFrameKey(getAvatarFrame(data?.avatar_frame_key)?.key ?? null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, isProvider, isDistributor]);
 
   const isCommercialRole = isAdmin || isProvider || isDistributor;
 
@@ -1522,6 +1549,7 @@ export function TiendaPage({
         displayName={displayName}
         initials={initials}
         avatarUrl={profile?.avatar_url ? getAvatarUrl(profile.avatar_url) : null}
+        avatarFrameKey={avatarFrameKey}
         activePanel={panel}
         activeCategory={activeCat}
         onClose={() => setSidebarOpen(false)}

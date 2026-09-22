@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Crown, ImageUp, Loader2, Save, Store, Upload } from "lucide-react";
+import { Crown, ImageUp, Loader2, Search, Save, Store, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { avatarFrames, storefrontTemplates } from "@/components/storefront/storefront-templates";
+import { avatarFrameCatalog, AvatarFrame, type AvatarFrameCategory, type AvatarFrameKey } from "@/components/storefront/AvatarFrame";
+import { storefrontTemplates } from "@/components/storefront/storefront-templates";
 import {
   StorefrontLivePreview,
   type StorefrontPreviewSettings,
@@ -11,7 +12,8 @@ import {
 
 export type StorefrontSettingsRecord = {
   availability_mode: "manual" | "schedule";
-  avatar_frame_key: "neon" | "fire" | "gold" | null;
+  avatar_frame_key: AvatarFrameKey | null;
+  selected_frame_id?: string | null;
   banner_url: string | null;
   closes_at: string | null;
   display_name: string;
@@ -32,7 +34,7 @@ export type StorefrontSettingsRecord = {
 
 export type StorefrontSettingsPayload = {
   availabilityMode: "manual" | "schedule";
-  avatarFrameKey: "neon" | "fire" | "gold" | null;
+  avatarFrameKey: AvatarFrameKey | null;
   bannerUrl: string | null;
   closesAt: string | null;
   displayName: string;
@@ -133,6 +135,9 @@ export function StorefrontSettingsEditor({
 }) {
   const [form, setForm] = useState<Draft>(() => initialDraft(settings));
   const [uploading, setUploading] = useState<"banner" | "logo" | null>(null);
+  const [framePickerOpen, setFramePickerOpen] = useState(false);
+  const [frameQuery, setFrameQuery] = useState("");
+  const [frameCategory, setFrameCategory] = useState<AvatarFrameCategory | "todos">("todos");
   useEffect(() => setForm(initialDraft(settings)), [settings]);
 
   const update = (changes: Partial<Draft>) => setForm((current) => ({ ...current, ...changes }));
@@ -187,6 +192,19 @@ export function StorefrontSettingsEditor({
     });
   };
   const publicHref = `/tienda-publica/${form.storeSlug || "mi-tienda"}`;
+  const frameCategories: Array<{ key: AvatarFrameCategory | "todos"; label: string }> = [
+    { key: "todos", label: "Todos" },
+    { key: "animados", label: "Animados" },
+    { key: "elementales", label: "Elementales" },
+    { key: "naturaleza", label: "Naturaleza" },
+    { key: "festivos", label: "Festivos" },
+    { key: "animales", label: "Animales" },
+  ];
+  const filteredFrames = avatarFrameCatalog.filter((frame) => {
+    const matchesCategory = frameCategory === "todos" || frame.category === frameCategory;
+    const matchesQuery = frame.name.toLocaleLowerCase("es").includes(frameQuery.trim().toLocaleLowerCase("es"));
+    return matchesCategory && matchesQuery;
+  });
 
   return (
     <Dialog open={open} onOpenChange={(value) => !value && onClose()}>
@@ -273,29 +291,37 @@ export function StorefrontSettingsEditor({
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     Destaca en la tienda con un marco animado.
                   </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {avatarFrames.map((frame) => (
-                      <button
-                        key={frame.name}
-                        type="button"
-                        onClick={() => update({ avatarFrameKey: frame.key })}
-                        className={
-                          form.avatarFrameKey === frame.key
-                            ? "cmd-active-subtle h-11 rounded-md border px-2.5 text-xs font-bold sm:h-8"
-                            : "h-11 rounded-md border border-border bg-card px-2.5 text-xs font-semibold text-foreground transition hover:border-primary/60 sm:h-8"
-                        }
-                      >
-                        {frame.name}
-                      </button>
-                    ))}
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <AvatarFrame
+                      frameKey={form.avatarFrameKey}
+                      className="h-12 w-12 shrink-0 rounded-full border border-border bg-background"
+                    >
+                      {form.logoUrl ? (
+                        <img src={form.logoUrl} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <span className="grid h-full w-full place-items-center bg-muted text-xs font-black text-foreground">
+                          {form.displayName.slice(0, 2).toUpperCase()}
+                        </span>
+                      )}
+                    </AvatarFrame>
+                    <button
+                      type="button"
+                      onClick={() => setFramePickerOpen(true)}
+                      className="inline-flex h-10 items-center gap-2 rounded-md border border-border bg-card px-3 text-xs font-semibold text-foreground transition hover:border-primary/60"
+                    >
+                      <span>{form.avatarFrameKey ? "Cambiar marco" : "Elegir marco"}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {form.avatarFrameKey ? "18 disponibles" : "Animados y originales"}
+                      </span>
+                    </button>
                   </div>
                   {form.avatarFrameKey && (
                     <button
                       type="button"
                       onClick={() => update({ avatarFrameKey: null })}
-                      className="mt-3 h-11 px-2 text-xs font-semibold text-red-300 transition hover:text-red-200 sm:h-auto"
+                      className="mt-2 h-8 px-1 text-xs font-semibold text-red-300 transition hover:text-red-200"
                     >
-                      Quitar Marco
+                      Quitar marco
                     </button>
                   )}
                 </div>
@@ -498,6 +524,110 @@ export function StorefrontSettingsEditor({
             />
           </div>
         </div>
+        <Dialog open={framePickerOpen} onOpenChange={setFramePickerOpen}>
+          <DialogContent className="flex max-h-[calc(100vh-2rem)] max-w-[900px] flex-col overflow-hidden border-border bg-[#0d1017] p-0 text-white sm:max-h-[calc(100vh-4rem)]">
+            <DialogHeader className="border-b border-border px-5 py-4 sm:px-6">
+              <DialogTitle className="font-display text-base font-bold sm:text-lg">
+                Selecciona un Marco para tu Avatar
+              </DialogTitle>
+              <p className="text-xs text-white/50">
+                Diseños originales con animación ligera. Haz clic para actualizar la vista previa.
+              </p>
+            </DialogHeader>
+            <div className="grid min-h-0 flex-1 gap-5 overflow-y-auto px-5 py-5 sm:px-6 md:grid-cols-[13rem_minmax(0,1fr)]">
+              <div className="flex flex-col items-center border-b border-border pb-5 md:border-b-0 md:border-r md:pr-5">
+                <p className="mb-3 text-xs font-bold text-white/75">Vista previa</p>
+                <AvatarFrame
+                  frameKey={form.avatarFrameKey}
+                  className="h-36 w-36 shrink-0 rounded-full border-4 border-white/10 bg-card text-2xl font-black text-white"
+                >
+                  {form.logoUrl ? (
+                    <img src={form.logoUrl} alt="Avatar de tienda" className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="grid h-full w-full place-items-center bg-card">
+                      {form.displayName.slice(0, 2).toUpperCase()}
+                    </span>
+                  )}
+                </AvatarFrame>
+                <button
+                  type="button"
+                  onClick={() => update({ avatarFrameKey: null })}
+                  className="mt-6 h-10 w-full rounded-md bg-red-accent px-3 text-xs font-bold text-white transition hover:brightness-110"
+                >
+                  Quitar marco
+                </button>
+              </div>
+              <div className="flex min-h-0 flex-col">
+                <label className="relative block">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-white/40" />
+                  <input
+                    value={frameQuery}
+                    onChange={(event) => setFrameQuery(event.target.value)}
+                    placeholder="Buscar marcos..."
+                    className="h-10 w-full rounded-md border border-border bg-card pl-9 pr-3 text-xs text-white outline-none placeholder:text-white/35 focus:border-primary/70"
+                  />
+                </label>
+                <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  {frameCategories.map((category) => (
+                    <button
+                      key={category.key}
+                      type="button"
+                      onClick={() => setFrameCategory(category.key)}
+                      className={
+                        frameCategory === category.key
+                          ? "shrink-0 rounded-md bg-primary px-3 py-1.5 text-[10px] font-bold text-primary-foreground"
+                          : "shrink-0 rounded-md border border-border bg-card px-3 py-1.5 text-[10px] font-semibold text-white/65 transition hover:text-white"
+                      }
+                    >
+                      {category.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="cmd-dark-scrollbar mt-4 grid min-h-0 grid-cols-3 gap-2 overflow-y-auto pr-1 sm:grid-cols-4 lg:grid-cols-5">
+                  <button
+                    type="button"
+                    onClick={() => update({ avatarFrameKey: null })}
+                    aria-pressed={form.avatarFrameKey === null}
+                    className={
+                      form.avatarFrameKey === null
+                        ? "flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border border-primary bg-primary/10 p-2 text-primary-foreground ring-1 ring-primary"
+                        : "flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card p-2 text-white/65 transition hover:border-primary/60 hover:text-white"
+                    }
+                  >
+                    <span className="grid h-14 w-14 place-items-center rounded-full border border-dashed border-white/30 text-lg text-white/35">∅</span>
+                    <span className="text-[10px] font-semibold">Sin marco</span>
+                  </button>
+                  {filteredFrames.map((frame) => {
+                    const selected = form.avatarFrameKey === frame.key;
+                    return (
+                      <button
+                        key={frame.key}
+                        type="button"
+                        onClick={() => update({ avatarFrameKey: frame.key })}
+                        aria-pressed={selected}
+                        className={
+                          selected
+                            ? "flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border border-primary bg-primary/10 p-2 text-white ring-1 ring-primary"
+                            : "flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card p-2 text-white/65 transition hover:border-primary/60 hover:text-white"
+                        }
+                      >
+                        <AvatarFrame frameKey={frame.key} className="h-14 w-14 rounded-full bg-background">
+                          <span className="grid h-full w-full place-items-center bg-background text-[10px] font-black text-white/60">
+                            {frame.name.slice(0, 2).toUpperCase()}
+                          </span>
+                        </AvatarFrame>
+                        <span className="max-w-full truncate text-[10px] font-semibold">{frame.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                {filteredFrames.length === 0 && (
+                  <p className="py-10 text-center text-xs text-white/45">No hay marcos que coincidan con la búsqueda.</p>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );

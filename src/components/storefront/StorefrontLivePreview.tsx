@@ -1,6 +1,7 @@
 import { Eye, Facebook, Instagram, Moon, Search, Sun, Youtube } from "lucide-react";
 import { FaTiktok, FaXTwitter } from "react-icons/fa6";
 import { getStorefrontTemplate } from "@/components/storefront/storefront-templates";
+import { AvatarFrame, type AvatarFrameKey } from "@/components/storefront/AvatarFrame";
 
 export type StorefrontPreviewSettings = {
   displayName: string;
@@ -8,7 +9,7 @@ export type StorefrontPreviewSettings = {
   bannerUrl: string;
   logoUrl: string;
   templateKey: string;
-  avatarFrameKey: "neon" | "fire" | "gold" | null;
+  avatarFrameKey: AvatarFrameKey | null;
   facebookUrl: string;
   instagramUrl: string;
   tiktokUrl: string;
@@ -34,12 +35,6 @@ function initials(value: string) {
       .toUpperCase() || "CMD"
   );
 }
-
-const frameClass: Record<NonNullable<StorefrontPreviewSettings["avatarFrameKey"]>, string> = {
-  neon: "ring-4 ring-cyan-300 shadow-[0_0_22px_rgba(34,211,238,.9)]",
-  fire: "ring-4 ring-orange-400 shadow-[0_0_22px_rgba(249,115,22,.9)]",
-  gold: "ring-4 ring-amber-300 shadow-[0_0_22px_rgba(251,191,36,.9)]",
-};
 
 export function StorefrontLivePreview({
   settings,
@@ -95,16 +90,18 @@ export function StorefrontLivePreview({
           <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-transparent to-black/10" />
         </div>
         <div className="relative px-4 pb-4 pt-0">
-          <div
-            className={`cmd-media-frame -mt-9 grid h-[4.5rem] w-[4.5rem] place-items-center overflow-hidden rounded-full border-4 border-black/35 text-sm font-black text-white ${settings.avatarFrameKey ? frameClass[settings.avatarFrameKey] : ""}`}
-            style={!settings.logoUrl ? { backgroundColor: template.accent } : undefined}
+          <AvatarFrame
+            frameKey={settings.avatarFrameKey}
+            className="cmd-media-frame -mt-9 h-[4.5rem] w-[4.5rem] rounded-full border-4 border-black/35 text-sm font-black text-white"
           >
             {settings.logoUrl ? (
               <img src={settings.logoUrl} alt="Avatar" className="h-full w-full object-cover" />
             ) : (
-              initials(settings.displayName)
+              <span className="grid h-full w-full place-items-center" style={{ backgroundColor: template.accent }}>
+                {initials(settings.displayName)}
+              </span>
             )}
-          </div>
+          </AvatarFrame>
           <div className="mt-2 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate font-product text-lg font-bold">
