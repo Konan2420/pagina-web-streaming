@@ -187,7 +187,7 @@ function DiscountBannerAdminPage() {
               <span>
                 <span className="block text-sm font-semibold text-white">Mostrar banner</span>
                 <span className="mt-1 block text-xs text-white/45">
-                  Visible para proveedores y distribuidores mientras esté vigente.
+                  Visible para clientes autenticados mientras esté vigente.
                 </span>
               </span>
               <input
@@ -234,7 +234,7 @@ function DiscountBannerAdminPage() {
 
             <label className="block space-y-1.5">
               <span className="text-xs font-bold uppercase tracking-wide text-white/55">
-                Descuento (%)
+                Aumento de saldo (%)
               </span>
               <input
                 type="number"
@@ -249,6 +249,9 @@ function DiscountBannerAdminPage() {
                 }
                 className="w-full rounded-lg border border-white/10 bg-background px-3 py-3 text-sm text-white outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20"
               />
+              <span className="block text-[11px] text-white/40">
+                Se sumará automáticamente al saldo acreditado de cada recarga verificada.
+              </span>
             </label>
 
             <label className="block space-y-1.5">

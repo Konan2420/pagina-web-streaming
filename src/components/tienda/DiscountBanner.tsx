@@ -84,22 +84,6 @@ export function DiscountBanner({ userId, configOverride, userNameOverride }: Dis
     staleTime: 5 * 60 * 1000,
   });
 
-  const eligibilityQuery = useQuery({
-    queryKey: ["discount-banner-eligibility", userId],
-    queryFn: async () => {
-      if (!userId) return false;
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId)
-        .in("role", ["proveedor", "distribuidor"]);
-      if (error) throw error;
-      return (data?.length ?? 0) > 0;
-    },
-    enabled: Boolean(userId) && !configOverride && !userNameOverride,
-    staleTime: 5 * 60 * 1000,
-  });
-
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1_000);
     return () => window.clearInterval(interval);
@@ -113,7 +97,7 @@ export function DiscountBanner({ userId, configOverride, userNameOverride }: Dis
     startsAt <= now &&
     (endsAt === null || (Number.isFinite(endsAt) && endsAt > now));
   const isPreview = Boolean(configOverride || userNameOverride);
-  if (!config || !isLive || (!isPreview && !eligibilityQuery.data)) return null;
+  if (!config || !isLive || (!isPreview && !userId)) return null;
 
   const userName = userNameOverride ?? profileQuery.data?.name ?? "Cliente";
   const discountAmount = config.discount_amount ?? 0;
