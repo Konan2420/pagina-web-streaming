@@ -10,7 +10,6 @@ import {
   Eye,
   Headphones,
   Loader2,
-  MessageCircle,
   Package,
   Printer,
   RefreshCw,
@@ -18,9 +17,14 @@ import {
   Store,
   X,
 } from "lucide-react";
+import { SiWhatsapp } from "react-icons/si";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { getCredentialFields, type OrderCredentialReceipt } from "@/lib/order-credentials";
+import {
+  formatOrderExpiry,
+  getCredentialFields,
+  type OrderCredentialReceipt,
+} from "@/lib/order-credentials";
 import { downloadXlsx } from "@/lib/xlsx-export";
 import { cn } from "@/lib/utils";
 
@@ -183,6 +187,23 @@ function getWhatsAppUrl(phone: string, message: string) {
   return normalized.length >= 9
     ? `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`
     : null;
+}
+
+function buildCredentialsWhatsAppMessage(receipt: OrderCredentialReceipt) {
+  const fields = getCredentialFields(receipt).filter((field) => Boolean(field.value));
+
+  return [
+    `Hola ${receipt.client_name},`,
+    "",
+    `Te enviamos las credenciales completas de *${receipt.product_name}*.`,
+    `Vendedor: ${receipt.supplier_name}`,
+    `Vencimiento: ${formatOrderExpiry(receipt.expires_at)}`,
+    "",
+    ...fields.map((field) => `${field.label}: ${field.value}`),
+    ...(receipt.notes ? ["", `Notas: ${receipt.notes}`] : []),
+    "",
+    "No compartas estas credenciales con terceros.",
+  ].join("\n");
 }
 
 async function downloadReceipt(order: BusinessOrder) {
@@ -411,6 +432,45 @@ export function BusinessOrdersPanel({
     },
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : "No se pudo notificar."),
+  });
+
+  const credentialsWhatsAppMutation = useMutation({
+    mutationFn: async (order: BusinessOrder) => {
+      if (order.source !== "catalog") {
+        throw new Error("Este pedido no tiene credenciales de catálogo para enviar.");
+      }
+
+      const { data, error } = await supabase.rpc("get_order_celebration_receipt", {
+        p_order_id: order.order_id,
+      });
+      if (error) throw error;
+
+      const receipt = data?.[0] as OrderCredentialReceipt | undefined;
+      if (!receipt) throw new Error("No se encontraron las credenciales de este pedido.");
+      if (getCredentialFields(receipt).length === 0) {
+        throw new Error("Este producto no tiene credenciales disponibles para enviar.");
+      }
+
+      const phone = receipt.client_phone || order.client_phone;
+      if (!phone) {
+        throw new Error(
+          "Este cliente no tiene WhatsApp registrado. Agrégalo desde la sección Clientes.",
+        );
+      }
+      const url = getWhatsAppUrl(phone, buildCredentialsWhatsAppMessage(receipt));
+      if (!url) {
+        throw new Error(
+          "Este cliente no tiene WhatsApp registrado. Agrégalo desde la sección Clientes.",
+        );
+      }
+      return url;
+    },
+    onSuccess: (url) => {
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.success("Credenciales completas preparadas en WhatsApp.");
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "No se pudieron enviar las credenciales."),
   });
 
   const credentialsQuery = useQuery({
@@ -676,12 +736,14 @@ export function BusinessOrdersPanel({
                         autoRenewMutation.mutate({ order: item, enabled })
                       }
                       onNotify={(item) => notifyMutation.mutate(item)}
+                      onSendCredentials={(item) => credentialsWhatsAppMutation.mutate(item)}
                       onStatusChange={(item, nextStatus) =>
                         statusMutation.mutate({ order: item, nextStatus })
                       }
                       autoRenewing={autoRenewMutation.isPending}
                       openingSupport={supportMutation.isPending}
                       notifying={notifyMutation.isPending}
+                      sendingCredentials={credentialsWhatsAppMutation.isPending}
                       updating={statusMutation.isPending}
                     />
                   ))}
@@ -699,12 +761,14 @@ export function BusinessOrdersPanel({
                     autoRenewMutation.mutate({ order: item, enabled })
                   }
                   onNotify={(item) => notifyMutation.mutate(item)}
+                  onSendCredentials={(item) => credentialsWhatsAppMutation.mutate(item)}
                   onStatusChange={(item, nextStatus) =>
                     statusMutation.mutate({ order: item, nextStatus })
                   }
                   autoRenewing={autoRenewMutation.isPending}
                   openingSupport={supportMutation.isPending}
                   notifying={notifyMutation.isPending}
+                  sendingCredentials={credentialsWhatsAppMutation.isPending}
                   updating={statusMutation.isPending}
                 />
               ))}
@@ -759,10 +823,12 @@ type OrderActionsProps = {
   onSupport: (order: BusinessOrder) => void;
   onAutoRenew: (order: BusinessOrder, enabled: boolean) => void;
   onNotify: (order: BusinessOrder) => void;
+  onSendCredentials: (order: BusinessOrder) => void;
   onStatusChange: (order: BusinessOrder, status: string) => void;
   autoRenewing: boolean;
   openingSupport: boolean;
   notifying: boolean;
+  sendingCredentials: boolean;
   updating: boolean;
 };
 
@@ -815,33 +881,28 @@ function CustomerActions({
   order,
   onNotify,
   notifying,
-}: Pick<OrderActionsProps, "order" | "onNotify" | "notifying">) {
-  const whatsappUrl = order.client_phone
-    ? getWhatsAppUrl(
-        order.client_phone,
-        `Hola ${order.client_name}, te contactamos por tu pedido ${order.product_name}.`,
-      )
-    : null;
+  onSendCredentials,
+  sendingCredentials,
+}: Pick<
+  OrderActionsProps,
+  "order" | "onNotify" | "notifying" | "onSendCredentials" | "sendingCredentials"
+>) {
   return (
     <div className="flex items-center gap-1.5">
       <IconButton label="Descargar comprobante PDF" onClick={() => void downloadReceipt(order)}>
         <Printer className="h-4 w-4" />
       </IconButton>
-      <a
-        href={whatsappUrl ?? undefined}
-        target="_blank"
-        rel="noreferrer"
-        aria-label="Abrir WhatsApp"
-        onClick={(event) => {
-          if (!whatsappUrl) {
-            event.preventDefault();
-            toast.info("Este cliente no tiene un WhatsApp válido.");
-          }
-        }}
-        className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-background text-muted-foreground transition hover:border-primary/60 hover:text-primary"
+      <IconButton
+        label="Enviar credenciales completas por WhatsApp"
+        disabled={sendingCredentials}
+        onClick={() => onSendCredentials(order)}
       >
-        <MessageCircle className="h-4 w-4" />
-      </a>
+        {sendingCredentials ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <SiWhatsapp className="h-4 w-4 text-[#25D366]" aria-hidden="true" />
+        )}
+      </IconButton>
       <IconButton
         label="Registrar aviso interno y preparar WhatsApp"
         disabled={notifying}
