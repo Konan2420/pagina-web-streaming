@@ -113,7 +113,11 @@ export function DiscountBanner({ userId, configOverride, userNameOverride }: Dis
     endsAt && Number.isFinite(endsAt) ? formatTimeRemaining(endsAt - now) : null;
 
   return (
-    <section className={styles.alertBox} aria-label="Descuento disponible" role="status">
+    <section
+      className={styles.alertBox}
+      aria-label="Bonificación de recarga disponible"
+      role="status"
+    >
       <div className={styles.alertImg}>{icon}</div>
       <div className="min-w-0">
         <p className={styles.alertMain}>{renderMainText(mainText, discountAmount)}</p>
