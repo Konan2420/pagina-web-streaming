@@ -11,6 +11,7 @@ type AvatarFrameDefinitionShape = {
   category: AvatarFrameCategory;
   kind: AvatarFrameKind;
   animation: AvatarFrameAnimation;
+  assetUrl?: string;
   colors: readonly [string, string];
 };
 
@@ -26,6 +27,7 @@ export const avatarFrameCatalog = [
   { key: "petal-wreath", name: "Guirnalda de Pétalos", category: "naturaleza", kind: "nature", animation: "float", colors: ["#f9a8d4", "#c084fc"] },
   { key: "moon-garden", name: "Jardín Lunar", category: "naturaleza", kind: "nature", animation: "particles", colors: ["#c4b5fd", "#60a5fa"] },
   { key: "crystal-vine", name: "Enredadera Cristal", category: "naturaleza", kind: "nature", animation: "rotate", colors: ["#a7f3d0", "#2dd4bf"] },
+  { key: "butterfly-spark", name: "Mariposas Spark", category: "naturaleza", kind: "nature", animation: "float", assetUrl: "/avatar-frames/butterfly-spark.gif", colors: ["#f9a8d4", "#fef3c7"] },
   { key: "celebration-ribbon", name: "Cinta Celebración", category: "festivos", kind: "festive", animation: "float", colors: ["#fda4af", "#facc15"] },
   { key: "candy-spark", name: "Destello Candy", category: "festivos", kind: "festive", animation: "pulse", colors: ["#f0abfc", "#fb7185"] },
   { key: "winter-glow", name: "Brillo Invernal", category: "festivos", kind: "festive", animation: "glow", colors: ["#e0f2fe", "#60a5fa"] },
@@ -45,6 +47,18 @@ export function getAvatarFrame(key?: string | null) {
 }
 
 function FrameArtwork({ frame }: { frame: AvatarFrameDefinition }) {
+  if ("assetUrl" in frame && frame.assetUrl) {
+    return (
+      <img
+        src={frame.assetUrl}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className="cmd-avatar-frame-art cmd-avatar-frame-image"
+      />
+    );
+  }
+
   const [primary, secondary] = frame.colors;
   const motionClass = `cmd-avatar-frame-${frame.animation}`;
   return (

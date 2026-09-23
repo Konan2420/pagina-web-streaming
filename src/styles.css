@@ -540,6 +540,11 @@
   perspective: 420px;
 }
 
+.cmd-avatar-frame-image {
+  object-fit: contain;
+  user-select: none;
+}
+
 .cmd-avatar-frame-rotate { transform-origin: 60px 60px; animation: cmd-avatar-frame-spin 16s linear infinite; }
 .cmd-avatar-frame-pulse { transform-origin: 60px 60px; animation: cmd-avatar-frame-breathe 4.2s ease-in-out infinite; }
 .cmd-avatar-frame-particles,

@@ -311,7 +311,9 @@ export function StorefrontSettingsEditor({
                     >
                       <span>{form.avatarFrameKey ? "Cambiar marco" : "Elegir marco"}</span>
                       <span className="text-[10px] text-muted-foreground">
-                        {form.avatarFrameKey ? "18 disponibles" : "Animados y originales"}
+                        {form.avatarFrameKey
+                          ? `${avatarFrameCatalog.length} disponibles`
+                          : "Animados y originales"}
                       </span>
                     </button>
                   </div>
