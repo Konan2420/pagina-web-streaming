@@ -28,6 +28,7 @@ import { Route as PlataformasSlugRouteImport } from './routes/plataformas/$slug'
 import { Route as TiendaPublicaSlugRouteImport } from './routes/tienda-publica/$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
+import { Route as AuthenticatedAdminBannerDescuentoRouteImport } from './routes/_authenticated/admin/banner-descuento'
 import { Route as AuthenticatedAdminInventarioRouteImport } from './routes/_authenticated/admin/inventario'
 import { Route as AuthenticatedAdminMiTiendaRouteImport } from './routes/_authenticated/admin/mi-tienda'
 import { Route as AuthenticatedAdminModeracionRouteImport } from './routes/_authenticated/admin/moderacion'
@@ -147,6 +148,12 @@ const AuthenticatedAdminAnalyticsRoute =
   AuthenticatedAdminAnalyticsRouteImport.update({
     id: '/analytics',
     path: '/analytics',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminBannerDescuentoRoute =
+  AuthenticatedAdminBannerDescuentoRouteImport.update({
+    id: '/banner-descuento',
+    path: '/banner-descuento',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminInventarioRoute =
@@ -304,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/banner-descuento': typeof AuthenticatedAdminBannerDescuentoRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
@@ -344,6 +352,7 @@ export interface FileRoutesByTo {
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas': typeof PlataformasIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/admin/banner-descuento': typeof AuthenticatedAdminBannerDescuentoRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
@@ -389,6 +398,7 @@ export interface FileRoutesById {
   '/tienda-publica/$slug': typeof TiendaPublicaSlugRoute
   '/plataformas/': typeof PlataformasIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
+  '/_authenticated/admin/banner-descuento': typeof AuthenticatedAdminBannerDescuentoRoute
   '/_authenticated/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/_authenticated/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/_authenticated/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
@@ -434,6 +444,7 @@ export interface FileRouteTypes {
     | '/tienda-publica/$slug'
     | '/plataformas/'
     | '/admin/analytics'
+    | '/admin/banner-descuento'
     | '/admin/inventario'
     | '/admin/mi-tienda'
     | '/admin/moderacion'
@@ -474,6 +485,7 @@ export interface FileRouteTypes {
     | '/tienda-publica/$slug'
     | '/plataformas'
     | '/admin/analytics'
+    | '/admin/banner-descuento'
     | '/admin/inventario'
     | '/admin/mi-tienda'
     | '/admin/moderacion'
@@ -518,6 +530,7 @@ export interface FileRouteTypes {
     | '/tienda-publica/$slug'
     | '/plataformas/'
     | '/_authenticated/admin/analytics'
+    | '/_authenticated/admin/banner-descuento'
     | '/_authenticated/admin/inventario'
     | '/_authenticated/admin/mi-tienda'
     | '/_authenticated/admin/moderacion'
@@ -696,6 +709,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAnalyticsRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/banner-descuento': {
+      id: '/_authenticated/admin/banner-descuento'
+      path: '/banner-descuento'
+      fullPath: '/admin/banner-descuento'
+      preLoaderRoute: typeof AuthenticatedAdminBannerDescuentoRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/inventario': {
       id: '/_authenticated/admin/inventario'
       path: '/inventario'
@@ -862,6 +882,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
+  AuthenticatedAdminBannerDescuentoRoute: typeof AuthenticatedAdminBannerDescuentoRoute
   AuthenticatedAdminInventarioRoute: typeof AuthenticatedAdminInventarioRoute
   AuthenticatedAdminMiTiendaRoute: typeof AuthenticatedAdminMiTiendaRoute
   AuthenticatedAdminModeracionRoute: typeof AuthenticatedAdminModeracionRoute
@@ -882,6 +903,8 @@ interface AuthenticatedAdminRouteRouteChildren {
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
   {
     AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
+    AuthenticatedAdminBannerDescuentoRoute:
+      AuthenticatedAdminBannerDescuentoRoute,
     AuthenticatedAdminInventarioRoute: AuthenticatedAdminInventarioRoute,
     AuthenticatedAdminMiTiendaRoute: AuthenticatedAdminMiTiendaRoute,
     AuthenticatedAdminModeracionRoute: AuthenticatedAdminModeracionRoute,

@@ -29,6 +29,7 @@ import {
 } from "@/lib/recargas";
 import { cn } from "@/lib/utils";
 import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
+import { DiscountBanner } from "@/components/tienda/DiscountBanner";
 
 type PaymentSettings = Tables<"payment_settings">;
 
@@ -244,6 +245,7 @@ export function WalletRechargeModal({
         </header>
 
         <div className="cmd-dark-scrollbar min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
+          <DiscountBanner userId={userId} />
           <div className="relative">
             <div
               ref={methodsScroll.scrollRef}

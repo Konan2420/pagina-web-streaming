@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   ArrowLeft,
   BarChart3,
+  BadgePercent,
   Banknote,
   Ban,
   CalendarClock,
@@ -101,6 +102,13 @@ const menuItems = [
     icon: WalletCards,
     role: "any",
     accent: "text-emerald-300",
+  },
+  {
+    label: "Banner de Descuento",
+    href: "/admin/banner-descuento",
+    icon: BadgePercent,
+    role: "any",
+    accent: "text-yellow-300",
   },
   {
     label: "Redes Sociales",

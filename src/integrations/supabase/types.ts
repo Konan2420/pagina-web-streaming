@@ -244,6 +244,56 @@ export type Database = {
           },
         ];
       };
+      discount_banner_config: {
+        Row: {
+          discount_amount: number;
+          ends_at: string | null;
+          icon_type: string;
+          icon_value: string;
+          id: string;
+          is_active: boolean;
+          main_text: string;
+          starts_at: string;
+          sub_text: string;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: {
+          discount_amount?: number;
+          ends_at?: string | null;
+          icon_type?: string;
+          icon_value?: string;
+          id?: string;
+          is_active?: boolean;
+          main_text?: string;
+          starts_at?: string;
+          sub_text?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Update: {
+          discount_amount?: number;
+          ends_at?: string | null;
+          icon_type?: string;
+          icon_value?: string;
+          id?: string;
+          is_active?: boolean;
+          main_text?: string;
+          starts_at?: string;
+          sub_text?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "discount_banner_config_updated_by_fkey";
+            columns: ["updated_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       manual_orders: {
         Row: {
           created_at: string | null;
@@ -1210,7 +1260,9 @@ export type Database = {
         Row: {
           beneficiario_email: string | null;
           beneficiario_id: string | null;
+          bono_credito_pen: number;
           created_at: string;
+          descuento_aplicado_porcentaje: number;
           estado: Database["public"]["Enums"]["recarga_status"];
           id: string;
           metodo: Database["public"]["Enums"]["recarga_method"];
@@ -1228,7 +1280,9 @@ export type Database = {
         Insert: {
           beneficiario_email?: string | null;
           beneficiario_id?: string | null;
+          bono_credito_pen?: number;
           created_at?: string;
+          descuento_aplicado_porcentaje?: number;
           estado?: Database["public"]["Enums"]["recarga_status"];
           id?: string;
           metodo: Database["public"]["Enums"]["recarga_method"];
@@ -1246,7 +1300,9 @@ export type Database = {
         Update: {
           beneficiario_email?: string | null;
           beneficiario_id?: string | null;
+          bono_credito_pen?: number;
           created_at?: string;
+          descuento_aplicado_porcentaje?: number;
           estado?: Database["public"]["Enums"]["recarga_status"];
           id?: string;
           metodo?: Database["public"]["Enums"]["recarga_method"];
