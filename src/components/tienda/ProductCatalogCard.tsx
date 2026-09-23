@@ -133,7 +133,7 @@ export function ProductCatalogCard({
   };
 
   return (
-    <article className="product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[17.5rem] sm:flex-col">
+    <article className="product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[17.5rem] sm:flex-col lg:min-h-[15rem]">
       <div className="relative aspect-square w-[48%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[1.05] sm:w-full sm:self-auto">
         <ProductImage
           src={product.image}
@@ -212,13 +212,13 @@ export function ProductCatalogCard({
         </button>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-2.5">
+      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-2.5 lg:p-2">
         <div className="flex min-h-6 items-center gap-1.5 sm:min-h-6 sm:gap-1.5">
           <div className="flex min-w-0 items-center gap-1">
             <span
               aria-hidden="true"
               data-cmd-fixed-contrast
-              className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-brand to-blue-950 text-[9px] font-black text-white sm:h-5 sm:w-5 sm:text-[7px]"
+              className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-brand to-blue-950 text-[9px] font-black text-white sm:h-5 sm:w-5 sm:text-[7px] lg:h-4 lg:w-4 lg:text-[6px]"
             >
               {initials(sellerName)}
             </span>
@@ -228,7 +228,7 @@ export function ProductCatalogCard({
                 enseña completo. */}
             <span
               title={sellerName}
-              className="truncate font-sans text-[11px] font-semibold tracking-[0.01em] text-white/85 sm:text-[9px]"
+              className="truncate font-sans text-[11px] font-semibold tracking-[0.01em] text-white/85 sm:text-[9px] lg:text-[8px]"
             >
               {sellerName}
             </span>
@@ -236,7 +236,7 @@ export function ProductCatalogCard({
                 de datos; no se asume por publicar en el catálogo. */}
             {product.isPublisherVerified === true && (
               <BadgeCheck
-                className="h-3.5 w-3.5 shrink-0 text-destructive sm:h-3 sm:w-3 sm:text-sky-400"
+                className="h-3.5 w-3.5 shrink-0 text-destructive sm:h-3 sm:w-3 sm:text-sky-400 lg:h-2.5 lg:w-2.5"
                 role="img"
                 aria-label="Vendedor verificado"
               />
@@ -245,21 +245,21 @@ export function ProductCatalogCard({
           {product.iconId ? (
             <PlatformIconMark
               iconId={product.iconId}
-              className="ml-auto h-10 w-10 shrink-0 rounded-lg border border-white/20 shadow-md sm:h-6 sm:w-6"
-              iconClassName="h-5 w-5 sm:h-3 sm:w-3"
+              className="ml-auto h-10 w-10 shrink-0 rounded-lg border border-white/20 shadow-md sm:h-6 sm:w-6 lg:h-5 lg:w-5"
+              iconClassName="h-5 w-5 sm:h-3 sm:w-3 lg:h-2.5 lg:w-2.5"
             />
           ) : (
-            <span className="ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/15 bg-white/[0.06] text-white/55 sm:h-6 sm:w-6">
-              <Package className="h-5 w-5 sm:h-3 sm:w-3" aria-hidden="true" />
+            <span className="ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/15 bg-white/[0.06] text-white/55 sm:h-6 sm:w-6 lg:h-5 lg:w-5">
+              <Package className="h-5 w-5 sm:h-3 sm:w-3 lg:h-2.5 lg:w-2.5" aria-hidden="true" />
             </span>
           )}
         </div>
 
-        <h3 className="catalog-product-title mt-2 line-clamp-2 min-h-[2.7rem] font-product text-[14px] font-bold leading-[1.3] tracking-[-0.015em] text-white transition-colors duration-200 sm:mt-1 sm:min-h-[2.4em] sm:text-[13px] sm:leading-[1.2]">
+        <h3 className="catalog-product-title mt-2 line-clamp-2 min-h-[2.7rem] font-product text-[14px] font-bold leading-[1.3] tracking-[-0.015em] text-white transition-colors duration-200 sm:mt-1 sm:min-h-[2.4em] sm:text-[13px] sm:leading-[1.2] lg:text-[12px]">
           {product.name}
         </h3>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-sans text-[10px] font-medium text-white/80 sm:mt-1 sm:gap-1 sm:text-[8px]">
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-sans text-[10px] font-medium text-white/80 sm:mt-1 sm:gap-1 sm:text-[8px] lg:text-[7px]">
           {/* Este chip no es como los dos de abajo: no describe un dato que el vendedor
               declare al publicar, sino que el producto es de quien está mirando. Por eso es
               un botón que lleva a su editor y no una etiqueta. */}
@@ -302,7 +302,7 @@ export function ProductCatalogCard({
               parte —una cifra cortada es lo peor que puede pasar aquí— y la
               etiqueta baja a la línea siguiente conservando la derecha. */}
           <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-            <span className="shrink-0 whitespace-nowrap font-product text-[17px] font-bold leading-tight tracking-[-0.02em] text-white sm:text-[15px]">
+            <span className="shrink-0 whitespace-nowrap font-product text-[17px] font-bold leading-tight tracking-[-0.02em] text-white sm:text-[15px] lg:text-[14px]">
               S/ {product.price.toFixed(2)}
             </span>
             {isOutOfService ? (
@@ -370,7 +370,7 @@ export function ProductCatalogCard({
 
           <p
             title={footer}
-            className="mt-1 truncate font-sans text-[10px] font-medium leading-3 text-white/45 sm:text-[9px] sm:leading-3"
+            className="mt-1 truncate font-sans text-[10px] font-medium leading-3 text-white/45 sm:text-[9px] sm:leading-3 lg:text-[8px]"
           >
             {footer}
           </p>
@@ -392,10 +392,10 @@ export function ProductCatalogCardSkeleton() {
   return (
     <article
       aria-hidden="true"
-      className="flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[17.5rem] sm:flex-col"
+      className="flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[17.5rem] sm:flex-col lg:min-h-[15rem]"
     >
       <Skeleton className="aspect-square w-[48%] shrink-0 self-start rounded-none bg-white/[0.08] sm:aspect-[1.05] sm:w-full sm:self-auto" />
-      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-2.5">
+      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-2.5 lg:p-2">
         <div className="flex h-6 items-center gap-1.5">
           <Skeleton className="h-7 w-7 rounded-full bg-white/[0.08] sm:h-5 sm:w-5" />
           <Skeleton className="h-2.5 w-20 bg-white/[0.08]" />

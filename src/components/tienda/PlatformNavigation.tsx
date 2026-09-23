@@ -18,7 +18,7 @@ function PlatformShortcutIcon({ platform }: { platform: PlatformShortcut }) {
       iconId={iconId}
       assetUrl={platform.iconUrl}
       fallback={platform.fallback}
-      className="h-7 w-7 transition-transform duration-200 sm:h-8 sm:w-8"
+      className="h-7 w-7 transition-transform duration-200 sm:h-8 sm:w-8 lg:h-[1.6875rem] lg:w-[1.6875rem]"
     />
   );
 }
@@ -42,8 +42,8 @@ export function PlatformNavigation({
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6">
         <div className="pt-5 sm:pt-6">
           <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">Plataformas</h2>
-            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-[26px]">Plataformas</h2>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm lg:text-[13px]">
               Explora nuestro catálogo de productos y encuentra lo que necesitas
             </p>
           </div>
@@ -72,7 +72,7 @@ export function PlatformNavigation({
                     aria-selected={active}
                     onClick={() => onCategorySelect(category.id)}
                     className={cn(
-                      "min-h-11 shrink-0 rounded-md border px-3 text-[10px] font-bold transition-[background-color,border-color,color,opacity,transform] duration-150 active:scale-[0.98] active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-8 sm:min-h-8 sm:text-[11px]",
+                      "min-h-11 shrink-0 rounded-md border px-3 text-[10px] font-bold transition-[background-color,border-color,color,opacity,transform] duration-150 active:scale-[0.98] active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-8 sm:min-h-8 sm:text-[11px] lg:h-7 lg:min-h-7 lg:px-2 lg:text-[10px]",
                       active ? "cmd-on-accent border-primary bg-primary" : control,
                     )}
                   >
@@ -101,7 +101,7 @@ export function PlatformNavigation({
                 type="button"
                 onClick={() => onPlatformSelect(platform)}
                 title={`Filtrar por ${platform.label}`}
-                className="group relative flex aspect-square w-full max-w-9 items-center justify-center rounded-[11px] border border-border bg-card p-0.5 transition duration-200 hover:scale-[1.04] hover:border-primary/70 hover:shadow-[0_0_14px_rgba(59,130,246,0.24)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9 sm:max-w-none sm:p-0.5"
+                className="group relative flex aspect-square w-full max-w-9 items-center justify-center rounded-[11px] border border-border bg-card p-0.5 transition duration-200 hover:scale-[1.04] hover:border-primary/70 hover:shadow-[0_0_14px_rgba(59,130,246,0.24)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9 sm:max-w-none sm:p-0.5 lg:h-[1.875rem] lg:w-[1.875rem]"
               >
                 <PlatformShortcutIcon platform={platform} />
                 <span className="sr-only">Filtrar por {platform.label}</span>

@@ -49,14 +49,14 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
         className,
       )}
     >
-      <div className="mx-auto flex min-h-14 max-w-[1600px] items-center gap-2 px-4 py-2 sm:px-6">
+      <div className="mx-auto flex min-h-14 max-w-[1600px] items-center gap-2 px-4 py-2 sm:px-6 lg:min-h-11 lg:py-1.5">
         <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto py-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {onToggleSidebar && (
             <button
               type="button"
               onClick={onToggleSidebar}
               className={cn(
-                "grid h-11 w-11 shrink-0 place-items-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9",
+                "grid h-11 w-11 shrink-0 place-items-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9 lg:h-8 lg:w-8",
                 control,
               )}
               aria-label="Mostrar u ocultar barra lateral"
@@ -72,7 +72,7 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
               type="button"
               onClick={() => void openMyPublicStore()}
               className={cn(
-                "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9",
+                "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 lg:h-8 lg:px-2.5 lg:text-[10px]",
                 control,
               )}
             >
@@ -85,7 +85,7 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
             type="button"
             onClick={openAffiliate}
             className={cn(
-              "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9",
+              "inline-flex h-11 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 lg:h-8 lg:px-2.5 lg:text-[10px]",
               control,
             )}
           >
@@ -99,7 +99,7 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
             type="button"
             onClick={openCommandPalette}
             className={cn(
-              "inline-flex h-11 items-center gap-2 rounded-lg border px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9",
+              "inline-flex h-11 items-center gap-2 rounded-lg border px-3 text-[11px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 lg:h-8 lg:px-2.5 lg:text-[10px]",
               control,
             )}
             aria-label="Abrir buscador global"
@@ -114,7 +114,7 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
             type="button"
             onClick={toggleColorMode}
             className={cn(
-              "grid h-11 w-11 place-items-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9",
+              "grid h-11 w-11 place-items-center rounded-lg border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9 lg:h-8 lg:w-8",
               control,
             )}
             aria-label={colorMode === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
@@ -126,7 +126,7 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
             onClick={toggleLiveMode}
             aria-pressed={liveMode}
             className={cn(
-              "inline-flex h-11 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9",
+              "inline-flex h-11 items-center gap-1.5 rounded-lg border px-3 text-[10px] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 lg:h-8 lg:px-2.5 lg:text-[9px]",
               liveMode ? "cmd-on-accent border-primary bg-primary" : control,
             )}
           >
@@ -149,7 +149,7 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
                   to={section.to}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "inline-flex h-9 shrink-0 items-center rounded-lg px-3 text-[11px] font-bold transition-colors",
+                    "inline-flex h-9 shrink-0 items-center rounded-lg px-3 text-[11px] font-bold transition-colors lg:h-8 lg:px-2.5 lg:text-[10px]",
                     active
                       ? "cmd-active-subtle"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
