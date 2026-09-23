@@ -104,7 +104,7 @@ const menuItems = [
     accent: "text-emerald-300",
   },
   {
-    label: "Banner de Descuento",
+    label: "Banner de Aumento",
     href: "/admin/banner-descuento",
     icon: BadgePercent,
     role: "any",

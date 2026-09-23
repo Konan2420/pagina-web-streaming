@@ -39,7 +39,7 @@ function currentDateTimeLocalValue() {
 const DEFAULT_FORM: DiscountForm = {
   is_active: false,
   discount_amount: 10,
-  main_text: "{user} descuento del {amount}%!",
+  main_text: "{user} recibe un aumento del {amount}%!",
   sub_text: "En tu próxima recarga",
   icon_type: "emoji",
   icon_value: "🎁",
@@ -116,7 +116,7 @@ function DiscountBannerAdminPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Banner de descuento actualizado.");
+      toast.success("Banner de aumento actualizado.");
       void queryClient.invalidateQueries({ queryKey: ["discount-banner-config"] });
     },
     onError: (error) => {
@@ -159,15 +159,15 @@ function DiscountBannerAdminPage() {
 
   return (
     <AdminLayout
-      title="Banner de descuento"
-      subtitle="Configura el aviso que aparece sobre los métodos de recarga"
+      title="Banner de aumento"
+      subtitle="Configura el aviso de aumento de saldo que aparece sobre los métodos de recarga"
     >
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.8fr)]">
         <section className="rounded-2xl border border-white/10 bg-white/[0.025] p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <BadgePercent className="mt-0.5 h-5 w-5 text-yellow-300" aria-hidden="true" />
             <div>
-              <h2 className="text-base font-bold text-white">Contenido del banner</h2>
+              <h2 className="text-base font-bold text-white">Contenido del banner de aumento</h2>
               <p className="mt-1 text-xs leading-relaxed text-white/50">
                 Usa <code className="text-white/80">&#123;user&#125;</code> y{" "}
                 <code className="text-white/80">&#123;amount&#125;</code> para personalizar el
@@ -365,7 +365,7 @@ function DiscountBannerAdminPage() {
         <section className="rounded-2xl border border-white/10 bg-white/[0.025] p-5 sm:p-6">
           <div className="mb-5 flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-primary" aria-hidden="true" />
-            <h2 className="text-base font-bold text-white">Vista previa en recargas</h2>
+            <h2 className="text-base font-bold text-white">Vista previa del banner de aumento</h2>
           </div>
           <div className="rounded-xl border border-white/10 bg-background p-4">
             <DiscountBanner configOverride={form} userNameOverride="Mariana" />
