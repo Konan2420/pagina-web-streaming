@@ -4,17 +4,14 @@ import {
   CheckCircle2,
   Copy,
   ExternalLink,
-  KeyRound,
-  Loader2,
   MessageCircle,
   PartyPopper,
   ShieldCheck,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import {
-  buildSecureCredentialsMessage,
+  buildCredentialDeliveryWhatsAppMessage,
   buildSupplierSupportMessage,
   credentialTemplateLabel,
   formatOrderExpiry,
@@ -94,7 +91,6 @@ export function OrderCelebrationDialog({
   canShareWithClient,
   onClose,
 }: OrderCelebrationDialogProps) {
-  const [sharing, setSharing] = useState(false);
   const fields = getCredentialFields(receipt);
   const supplierUrl = createWhatsAppUrl(
     receipt.supplier_whatsapp,
@@ -135,47 +131,35 @@ export function OrderCelebrationDialog({
     };
   }, []);
 
-  const shareSecureLink = async () => {
+  const shareCredentials = () => {
     if (!clientHasWhatsApp) {
-      toast.info("Este cliente no tiene un WhatsApp válido registrado.");
+      toast.error("Este cliente no tiene WhatsApp registrado. Agrégalo desde la sección Clientes.");
       return;
     }
 
-    // Se abre durante el gesto del usuario para evitar que navegadores móviles
-    // bloqueen WhatsApp tras la llamada asíncrona que crea el token.
     const whatsappWindow = window.open("about:blank", "_blank");
     if (!whatsappWindow) {
-      toast.info("Permite las ventanas emergentes para enviar el enlace por WhatsApp.");
+      toast.info("Permite las ventanas emergentes para enviar las credenciales por WhatsApp.");
       return;
     }
     whatsappWindow.opener = null;
 
-    setSharing(true);
     try {
-      const { data, error } = await supabase.rpc("create_order_credential_share_link", {
-        p_order_id: receipt.order_id,
-      });
-      if (error) throw error;
-      const link = data?.[0];
-      if (!link?.share_token) throw new Error("No se pudo crear el enlace seguro.");
-
-      const secureLink = `${window.location.origin}/credenciales/${link.share_token}`;
       const url = createWhatsAppUrl(
         receipt.client_phone,
-        buildSecureCredentialsMessage(receipt, secureLink),
+        buildCredentialDeliveryWhatsAppMessage(receipt),
       );
-      if (!url) throw new Error("No se pudo preparar el enlace de WhatsApp.");
+      if (!url)
+        throw new Error(
+          "Este cliente no tiene WhatsApp registrado. Agrégalo desde la sección Clientes.",
+        );
       whatsappWindow.location.replace(url);
-      toast.success("WhatsApp preparado con un enlace seguro de un solo uso.");
+      toast.success("WhatsApp preparado con las credenciales completas.");
     } catch (error) {
       if (!whatsappWindow.closed) whatsappWindow.close();
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo preparar el enlace seguro para el cliente.",
+        error instanceof Error ? error.message : "No se pudieron preparar las credenciales.",
       );
-    } finally {
-      setSharing(false);
     }
   };
 
@@ -275,22 +259,22 @@ export function OrderCelebrationDialog({
             {canShareWithClient && (
               <button
                 type="button"
-                disabled={sharing || !clientHasWhatsApp}
-                onClick={() => void shareSecureLink()}
+                disabled={!clientHasWhatsApp || fields.length === 0}
+                onClick={shareCredentials}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
               >
-                {sharing ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <KeyRound className="h-4 w-4" />
-                )}
-                {clientHasWhatsApp ? "Enviar enlace seguro" : "Cliente sin WhatsApp"}
+                <MessageCircle className="h-4 w-4" />
+                {fields.length === 0
+                  ? "Sin credenciales disponibles"
+                  : clientHasWhatsApp
+                    ? "Enviar credenciales por WhatsApp"
+                    : "Cliente sin WhatsApp"}
               </button>
             )}
           </div>
           <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-            Los enlaces enviados por WhatsApp no contienen contraseñas y vencen tras 15 minutos o
-            después de su primer uso.
+            WhatsApp se abrirá con el mensaje preparado para que revises las credenciales y pulses
+            “Enviar” manualmente.
           </p>
         </div>
         <footer className="border-t border-border bg-card p-4 sm:px-7">

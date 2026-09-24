@@ -21,14 +21,27 @@ import type { Tables } from "@/integrations/supabase/types";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { DeliveryCelebrationModal } from "@/components/admin/DeliveryCelebrationModal";
 import { approvePaymentAndDeliver } from "@/lib/admin.functions";
-import { buildCredentialsWhatsAppMessage } from "@/lib/whatsapp-messages";
+import {
+  buildCredentialDeliveryWhatsAppMessage,
+  type CredentialTemplate,
+  type OrderCredentialReceipt,
+} from "@/lib/order-credentials";
 import { createWhatsAppUrl, openWhatsAppUrl } from "@/lib/whatsapp";
 import { toast } from "sonner";
 
 type OrderProfile = Pick<Tables<"profiles">, "id" | "nombre_completo" | "whatsapp">;
 type OrderDelivery = Pick<
   Tables<"delivered_accounts">,
-  "order_id" | "user_id" | "email" | "password" | "access_link" | "notes"
+  | "order_id"
+  | "user_id"
+  | "email"
+  | "password"
+  | "profile"
+  | "two_factor_secret"
+  | "backup_codes"
+  | "redeem_code"
+  | "access_link"
+  | "notes"
 >;
 type OrderWithDetails = Tables<"orders"> & {
   profile: OrderProfile | null;
@@ -79,7 +92,9 @@ const pedidosQueryOptions = queryOptions({
     // Fetch delivered accounts to check status
     const { data: delivered } = await supabase
       .from("delivered_accounts")
-      .select("order_id, user_id, email, password, access_link, notes");
+      .select(
+        "order_id, user_id, email, password, profile, two_factor_secret, backup_codes, redeem_code, access_link, notes",
+      );
 
     const deliveredMap = Object.fromEntries(
       (delivered || []).map((delivery) => [delivery.order_id, delivery]),
@@ -135,17 +150,35 @@ function PedidosManagement() {
 
   function getCredentialsWhatsAppUrl(pedido: OrderWithDetails) {
     if (!pedido.delivery) return;
+    const credentialTemplate: CredentialTemplate =
+      pedido.delivery.two_factor_secret || pedido.delivery.backup_codes
+        ? "account_2fa"
+        : pedido.delivery.redeem_code && !pedido.delivery.email && !pedido.delivery.password
+          ? "redeem_code"
+          : pedido.delivery.access_link && !pedido.delivery.email && !pedido.delivery.password
+            ? "access_link"
+            : "account";
+    const receipt: OrderCredentialReceipt = {
+      order_id: pedido.id,
+      product_name: pedido.producto_nombre,
+      client_name: pedido.profile?.nombre_completo || "Cliente",
+      client_phone: pedido.profile?.whatsapp ?? null,
+      expires_at: pedido.fecha_vencimiento,
+      credential_template: credentialTemplate,
+      supplier_name: "CMD Streaming",
+      supplier_whatsapp: null,
+      email: pedido.delivery.email,
+      password: pedido.delivery.password,
+      profile: pedido.delivery.profile,
+      two_factor_secret: pedido.delivery.two_factor_secret,
+      backup_codes: pedido.delivery.backup_codes,
+      redeem_code: pedido.delivery.redeem_code,
+      access_link: pedido.delivery.access_link,
+      notes: pedido.delivery.notes,
+    };
     return createWhatsAppUrl(
       pedido.profile?.whatsapp,
-      buildCredentialsWhatsAppMessage({
-        customerName: pedido.profile?.nombre_completo,
-        productName: pedido.producto_nombre,
-        username: pedido.delivery.email,
-        password: pedido.delivery.password,
-        accessLink: pedido.delivery.access_link,
-        notes: pedido.delivery.notes,
-        expirationDate: pedido.fecha_vencimiento,
-      }),
+      buildCredentialDeliveryWhatsAppMessage(receipt),
     );
   }
 

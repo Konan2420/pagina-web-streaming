@@ -21,10 +21,12 @@ import { SiWhatsapp } from "react-icons/si";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
+  buildCredentialDeliveryWhatsAppMessage,
   formatOrderExpiry,
   getCredentialFields,
   type OrderCredentialReceipt,
 } from "@/lib/order-credentials";
+import { createWhatsAppUrl, openWhatsAppUrl } from "@/lib/whatsapp";
 import { downloadXlsx } from "@/lib/xlsx-export";
 import { cn } from "@/lib/utils";
 
@@ -179,31 +181,6 @@ function initials(name: string) {
       .join("")
       .toUpperCase() || "CL"
   );
-}
-
-function getWhatsAppUrl(phone: string, message: string) {
-  const digits = phone.replace(/\D/g, "");
-  const normalized = digits.length === 9 ? `51${digits}` : digits;
-  return normalized.length >= 9
-    ? `https://wa.me/${normalized}?text=${encodeURIComponent(message)}`
-    : null;
-}
-
-function buildCredentialsWhatsAppMessage(receipt: OrderCredentialReceipt) {
-  const fields = getCredentialFields(receipt).filter((field) => Boolean(field.value));
-
-  return [
-    `Hola ${receipt.client_name},`,
-    "",
-    `Te enviamos las credenciales completas de *${receipt.product_name}*.`,
-    `Vendedor: ${receipt.supplier_name}`,
-    `Vencimiento: ${formatOrderExpiry(receipt.expires_at)}`,
-    "",
-    ...fields.map((field) => `${field.label}: ${field.value}`),
-    ...(receipt.notes ? ["", `Notas: ${receipt.notes}`] : []),
-    "",
-    "No compartas estas credenciales con terceros.",
-  ].join("\n");
 }
 
 async function downloadReceipt(order: BusinessOrder) {
@@ -421,8 +398,8 @@ export function BusinessOrdersPanel({
     },
     onSuccess: (result) => {
       if (result?.whatsapp) {
-        const url = getWhatsAppUrl(result.whatsapp, result.message);
-        if (url) window.open(url, "_blank", "noopener,noreferrer");
+        const url = createWhatsAppUrl(result.whatsapp, result.message);
+        if (url) openWhatsAppUrl(url);
       }
       toast.success(
         result?.recorded_internal
@@ -457,7 +434,7 @@ export function BusinessOrdersPanel({
           "Este cliente no tiene WhatsApp registrado. Agrégalo desde la sección Clientes.",
         );
       }
-      const url = getWhatsAppUrl(phone, buildCredentialsWhatsAppMessage(receipt));
+      const url = createWhatsAppUrl(phone, buildCredentialDeliveryWhatsAppMessage(receipt));
       if (!url) {
         throw new Error(
           "Este cliente no tiene WhatsApp registrado. Agrégalo desde la sección Clientes.",
@@ -466,11 +443,16 @@ export function BusinessOrdersPanel({
       return url;
     },
     onSuccess: (url) => {
-      window.open(url, "_blank", "noopener,noreferrer");
+      if (!openWhatsAppUrl(url)) {
+        toast.info("Permite las ventanas emergentes para enviar las credenciales por WhatsApp.");
+        return;
+      }
       toast.success("Credenciales completas preparadas en WhatsApp.");
     },
     onError: (error) =>
-      toast.error(error instanceof Error ? error.message : "No se pudieron enviar las credenciales."),
+      toast.error(
+        error instanceof Error ? error.message : "No se pudieron enviar las credenciales.",
+      ),
   });
 
   const credentialsQuery = useQuery({

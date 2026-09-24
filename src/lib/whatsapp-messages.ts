@@ -1,13 +1,3 @@
-type CredentialsMessageInput = {
-  customerName: string | null | undefined;
-  productName: string;
-  username: string | null | undefined;
-  password: string | null | undefined;
-  accessLink?: string | null;
-  notes?: string | null;
-  expirationDate?: string | null;
-};
-
 type ExpiryReminderInput = {
   customerName: string | null | undefined;
   productName: string;
@@ -27,30 +17,6 @@ export function formatWhatsAppDate(value: string | null | undefined) {
     month: "long",
     year: "numeric",
   }).format(new Date(year, month - 1, day, 12));
-}
-
-/** Centralized template for the human-assisted credential delivery. */
-export function buildCredentialsWhatsAppMessage(input: CredentialsMessageInput) {
-  const optionalDetails = [
-    input.accessLink ? `🔗 Enlace: ${input.accessLink}` : null,
-    input.notes ? `📝 Nota: ${input.notes}` : null,
-  ].filter(Boolean);
-
-  return [
-    `Hola ${valueOrDash(input.customerName)},`,
-    "",
-    `✅ Tu compra de *${input.productName}* ya fue entregada.`,
-    "",
-    "🔐 *Credenciales de acceso*",
-    `Usuario: ${valueOrDash(input.username)}`,
-    `Contraseña: ${valueOrDash(input.password)}`,
-    ...optionalDetails,
-    "",
-    `📅 Vencimiento: ${formatWhatsAppDate(input.expirationDate)}`,
-    "",
-    "Por seguridad, no compartas estas credenciales con terceros.",
-    "CMD Streaming",
-  ].join("\n");
 }
 
 /** Centralized template for upcoming-expiration reminders. */

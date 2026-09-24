@@ -96,6 +96,25 @@ export function formatOrderExpiry(value: string | null | undefined) {
     .replace(",", "");
 }
 
+/** Mensaje único para la entrega manual de credenciales por WhatsApp. */
+export function buildCredentialDeliveryWhatsAppMessage(receipt: OrderCredentialReceipt) {
+  const fields = getCredentialFields(receipt).filter((field) => Boolean(field.value));
+
+  return [
+    `Hola ${receipt.client_name || "Cliente"},`,
+    "",
+    `✅ Tus credenciales de *${receipt.product_name}* están listas.`,
+    `🏪 Vendedor/tienda: ${receipt.supplier_name || "CMD Streaming"}`,
+    `📅 Vencimiento: ${formatOrderExpiry(receipt.expires_at)}`,
+    "",
+    "🔐 *Credenciales de acceso*",
+    ...fields.map((field) => `${field.label}: ${field.value}`),
+    ...(receipt.notes ? ["", `📝 Notas: ${receipt.notes}`] : []),
+    "",
+    "Por seguridad, no compartas estas credenciales con terceros.",
+  ].join("\\n");
+}
+
 export function getSafeExternalUrl(value: string | null | undefined) {
   if (!value) return null;
   try {
