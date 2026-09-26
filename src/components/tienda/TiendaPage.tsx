@@ -66,15 +66,9 @@ import {
   type CatalogSortKey,
 } from "@/components/tienda/CatalogToolbar";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  SupportTicketsPanel,
-  type SupportTicketPrefill,
-} from "@/components/tienda/SupportTicketsPanel";
+import type { SupportTicketPrefill } from "@/components/tienda/SupportTicketsPanel";
 import { StoreSidebar } from "@/components/tienda/StoreSidebar";
-import { WalletRechargeModal } from "@/components/tienda/WalletRechargeModal";
-import { SocialServicesPanel } from "@/components/tienda/SocialServicesPanel";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
-import { StorefrontManagement } from "@/components/storefront/StorefrontManagement";
 import { getAvatarFrame, type AvatarFrameKey } from "@/components/storefront/AvatarFrame";
 import { useAuthState } from "@/hooks/useAuthState";
 import {
@@ -112,6 +106,26 @@ const ClientsPanel = React.lazy(() =>
 );
 const BusinessOrdersPanel = React.lazy(() =>
   import("@/components/tienda/BusinessOrdersPanel").then(({ BusinessOrdersPanel: Component }) => ({
+    default: Component,
+  })),
+);
+const SocialServicesPanel = React.lazy(() =>
+  import("@/components/tienda/SocialServicesPanel").then(({ SocialServicesPanel: Component }) => ({
+    default: Component,
+  })),
+);
+const StorefrontManagement = React.lazy(() =>
+  import("@/components/storefront/StorefrontManagement").then(({ StorefrontManagement: Component }) => ({
+    default: Component,
+  })),
+);
+const SupportTicketsPanel = React.lazy(() =>
+  import("@/components/tienda/SupportTicketsPanel").then(({ SupportTicketsPanel: Component }) => ({
+    default: Component,
+  })),
+);
+const WalletRechargeModal = React.lazy(() =>
+  import("@/components/tienda/WalletRechargeModal").then(({ WalletRechargeModal: Component }) => ({
     default: Component,
   })),
 );
@@ -220,7 +234,10 @@ const EMPTY_CATALOG_FILTERS: CatalogFilters = {
   renewalTypes: [],
 };
 
-const CATALOG_RENDER_PAGE_SIZE = 42;
+// Montar un lote pequeño mantiene la primera pintura ligera; el resto se
+// incorpora de forma explícita con «Ver más» sin cambiar el resultado del
+// catálogo ni sus filtros.
+const CATALOG_RENDER_PAGE_SIZE = 12;
 
 /** Identidad estable para no invalidar los `useMemo` que dependen del stock. */
 const EMPTY_STOCK_LEVELS: Record<string, number> = {};
@@ -1586,12 +1603,14 @@ export function TiendaPage({
               showCatalogNavigation={panel === "tienda" && activeCat !== "redes"}
             />
             {panel === "tienda" && activeCat === "redes" ? (
-              <SocialServicesPanel
-                userId={userId}
-                displayName={displayName}
-                walletBalance={walletBalance}
-                onLoginRequired={() => openAuth()}
-              />
+              <React.Suspense fallback={<div className="min-h-48" aria-hidden="true" />}>
+                <SocialServicesPanel
+                  userId={userId}
+                  displayName={displayName}
+                  walletBalance={walletBalance}
+                  onLoginRequired={() => openAuth()}
+                />
+              </React.Suspense>
             ) : panel === "tienda" ? (
               <CatalogToolbar
                 query={query}
@@ -1822,7 +1841,15 @@ export function TiendaPage({
                   <Loader2 className="h-4 w-4 animate-spin" /> Cargando Mi Tienda…
                 </div>
               ) : (
-                <StorefrontManagement />
+                <React.Suspense
+                  fallback={
+                    <div className="flex min-h-72 items-center justify-center text-sm text-white/55">
+                      Cargando Mi Tienda…
+                    </div>
+                  }
+                >
+                  <StorefrontManagement />
+                </React.Suspense>
               )}
             </div>
           </section>
@@ -1842,21 +1869,29 @@ export function TiendaPage({
         )}
 
         {panel === "soporte" && (
-          <SupportTicketsPanel
-            userId={userId}
-            onOpenAuth={openAuth}
-            onGoShop={() => setPanel("tienda")}
-            createTicketPrefill={supportTicketPrefill}
-            onCreateTicketPrefillConsumed={() => setSupportTicketPrefill(null)}
-            focusTicketId={supportTicketFocusId}
-            onFocusTicketConsumed={() => setSupportTicketFocusId(null)}
-            onContactSupport={() => {
-              const message = encodeURIComponent(
-                "Hola, necesito ayuda con mi cuenta de CMD Streaming.",
-              );
-              openWhatsApp(`https://wa.me/${WA_NUMBER}?text=${message}`);
-            }}
-          />
+          <React.Suspense
+            fallback={
+              <div className="mx-auto mt-6 max-w-[1600px] px-4 pb-24 text-sm text-white/55 sm:px-6">
+                Cargando soporte…
+              </div>
+            }
+          >
+            <SupportTicketsPanel
+              userId={userId}
+              onOpenAuth={openAuth}
+              onGoShop={() => setPanel("tienda")}
+              createTicketPrefill={supportTicketPrefill}
+              onCreateTicketPrefillConsumed={() => setSupportTicketPrefill(null)}
+              focusTicketId={supportTicketFocusId}
+              onFocusTicketConsumed={() => setSupportTicketFocusId(null)}
+              onContactSupport={() => {
+                const message = encodeURIComponent(
+                  "Hola, necesito ayuda con mi cuenta de CMD Streaming.",
+                );
+                openWhatsApp(`https://wa.me/${WA_NUMBER}?text=${message}`);
+              }}
+            />
+          </React.Suspense>
         )}
 
         {panel === "clientes" && userId && (
@@ -1926,20 +1961,22 @@ export function TiendaPage({
           </React.Suspense>
         )}
         {walletOpen && userId && (
-          <WalletRechargeModal
-            userId={userId}
-            onClose={() => setWalletOpen(false)}
-            onReportSupport={() => {
-              setWalletOpen(false);
-              setSupportTicketPrefill({
-                asunto: "Problema con la verificación de mi recarga",
-                categoria: "pago",
-                descripcion:
-                  "Indica el método, monto, fecha aproximada y cualquier dato de tu pago para que podamos revisarlo.",
-              });
-              setPanel("soporte");
-            }}
-          />
+          <React.Suspense fallback={null}>
+            <WalletRechargeModal
+              userId={userId}
+              onClose={() => setWalletOpen(false)}
+              onReportSupport={() => {
+                setWalletOpen(false);
+                setSupportTicketPrefill({
+                  asunto: "Problema con la verificación de mi recarga",
+                  categoria: "pago",
+                  descripcion:
+                    "Indica el método, monto, fecha aproximada y cualquier dato de tu pago para que podamos revisarlo.",
+                });
+                setPanel("soporte");
+              }}
+            />
+          </React.Suspense>
         )}
         {cartOpen && (
           <React.Suspense fallback={null}>
