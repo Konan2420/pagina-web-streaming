@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { Banknote, RefreshCw, Send, ShieldAlert, Loader2 } from "lucide-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { FLOID_ENTITIES, floidLimitsFor } from "@/lib/floid-entities";
@@ -284,7 +285,10 @@ function PayoutsAdmin() {
           </div>
 
           {payouts.isLoading ? (
-            <p className="py-10 text-center text-sm text-white/40">Cargando payouts…</p>
+            <div className="py-10 text-center text-sm text-white/40">
+              Cargando payouts…
+              <GravitLoader label="Cargando payouts" />
+            </div>
           ) : (payouts.data?.length ?? 0) === 0 ? (
             <p className="py-10 text-center text-sm text-white/40">
               Aún no hay payouts registrados.

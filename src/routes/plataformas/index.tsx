@@ -21,7 +21,7 @@ export const Route = createFileRoute("/plataformas/")({
       { property: "og:url", content: "https://cmdstreaming.pe/plataformas" },
       {
         property: "og:image",
-        content: "https://cmdstreaming.pe/cmd-logo.png",
+        content: "https://cmd-streaming.vercel.app/cmd-logo.png",
       },
       { property: "og:image:alt", content: "Plataformas disponibles en CMD Streaming" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/plataformas/")({
       },
       {
         name: "twitter:image",
-        content: "https://cmdstreaming.pe/cmd-logo.png",
+        content: "https://cmd-streaming.vercel.app/cmd-logo.png",
       },
     ],
     links: [{ rel: "canonical", href: "https://cmdstreaming.pe/plataformas" }],

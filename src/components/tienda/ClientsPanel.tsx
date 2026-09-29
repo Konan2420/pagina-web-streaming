@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadXlsx } from "@/lib/xlsx-export";
 import {
@@ -667,8 +668,7 @@ export function ClientsPanel({
               {clientsQuery.isLoading ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
-                    <Loader2 className="mx-auto mb-2 h-5 w-5 animate-spin" />
-                    Cargando clientes…
+                    <GravitLoader label="Cargando clientes" />
                   </td>
                 </tr>
               ) : clientsQuery.isError ? (
@@ -746,7 +746,9 @@ export function ClientsPanel({
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold tracking-wide ${statusClass}`}>
+                        <span
+                          className={`inline-flex rounded-md px-2.5 py-1 text-[10px] font-bold tracking-wide ${statusClass}`}
+                        >
                           {status}
                         </span>
                       </td>
@@ -911,7 +913,10 @@ export function ClientsPanel({
           </div>
         )}
       </div>
-      <Dialog open={Boolean(detailsClient)} onOpenChange={(open) => !open && setDetailsClient(null)}>
+      <Dialog
+        open={Boolean(detailsClient)}
+        onOpenChange={(open) => !open && setDetailsClient(null)}
+      >
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Detalle del cliente</DialogTitle>
@@ -924,9 +929,13 @@ export function ClientsPanel({
                   {initials(detailsClient.nombre)}
                 </span>
                 <div className="min-w-0">
-                  <p className="truncate text-base font-bold text-foreground">{detailsClient.nombre}</p>
+                  <p className="truncate text-base font-bold text-foreground">
+                    {detailsClient.nombre}
+                  </p>
                   <p className="text-xs text-muted-foreground">
-                    {hideNumbers ? maskPhone(detailsClient.telefono) : detailsClient.telefono || "Sin teléfono"}
+                    {hideNumbers
+                      ? maskPhone(detailsClient.telefono)
+                      : detailsClient.telefono || "Sin teléfono"}
                   </p>
                 </div>
               </div>
@@ -943,7 +952,9 @@ export function ClientsPanel({
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="break-all font-semibold text-foreground">{detailsClient.email || "—"}</p>
+                  <p className="break-all font-semibold text-foreground">
+                    {detailsClient.email || "—"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Cumpleaños</p>
@@ -1042,7 +1053,8 @@ export function ClientsPanel({
                 }
                 className="crm-input"
               />
-            </Field>            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card/60 px-3.5 py-3 text-sm">
+            </Field>{" "}
+            <label className="flex cursor-pointer items-center justify-between rounded-lg border border-border bg-card/60 px-3.5 py-3 text-sm">
               <span>
                 <span className="font-bold text-foreground">Bloquear cliente</span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">

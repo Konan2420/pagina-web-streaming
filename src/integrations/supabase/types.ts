@@ -294,6 +294,226 @@ export type Database = {
           },
         ];
       };
+      festive_event_box_openings: {
+        Row: {
+          event_id: string;
+          id: string;
+          opened_at: string;
+          order_id: string | null;
+          product_id_won: string;
+          user_id: string;
+        };
+        Insert: {
+          event_id: string;
+          id?: string;
+          opened_at?: string;
+          order_id?: string | null;
+          product_id_won: string;
+          user_id: string;
+        };
+        Update: {
+          event_id?: string;
+          id?: string;
+          opened_at?: string;
+          order_id?: string | null;
+          product_id_won?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "festive_event_box_openings_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "festive_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "festive_event_box_openings_order_id_fkey";
+            columns: ["order_id"];
+            isOneToOne: false;
+            referencedRelation: "orders";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "festive_event_box_openings_product_id_won_fkey";
+            columns: ["product_id_won"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "festive_event_box_openings_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      festive_event_products: {
+        Row: {
+          created_at: string;
+          event_id: string;
+          id: string;
+          product_id: string;
+          weight: number;
+        };
+        Insert: {
+          created_at?: string;
+          event_id: string;
+          id?: string;
+          product_id: string;
+          weight?: number;
+        };
+        Update: {
+          created_at?: string;
+          event_id?: string;
+          id?: string;
+          product_id?: string;
+          weight?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "festive_event_products_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "festive_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "festive_event_products_product_id_fkey";
+            columns: ["product_id"];
+            isOneToOne: false;
+            referencedRelation: "products";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      festive_event_box_purchases: {
+        Row: {
+          event_id: string;
+          id: string;
+          purchased_at: string;
+          quantity: number;
+          total_price_pen: number;
+          total_price_usd: number;
+          unit_price_pen: number;
+          unit_price_usd: number;
+          user_id: string;
+        };
+        Insert: {
+          event_id: string;
+          id?: string;
+          purchased_at?: string;
+          quantity: number;
+          total_price_pen: number;
+          total_price_usd: number;
+          unit_price_pen: number;
+          unit_price_usd: number;
+          user_id: string;
+        };
+        Update: {
+          event_id?: string;
+          id?: string;
+          purchased_at?: string;
+          quantity?: number;
+          total_price_pen?: number;
+          total_price_usd?: number;
+          unit_price_pen?: number;
+          unit_price_usd?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "festive_event_box_purchases_event_id_fkey";
+            columns: ["event_id"];
+            isOneToOne: false;
+            referencedRelation: "festive_events";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "festive_event_box_purchases_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      festive_events: {
+        Row: {
+          accent_color: string | null;
+          accent_color_2: string | null;
+          banner_subtitle: string | null;
+          banner_title: string;
+          box_limit: number | null;
+          box_price_pen: number;
+          box_price_usd: number;
+          created_at: string;
+          created_by: string | null;
+          ends_at: string;
+          id: string;
+          icon_key: string;
+          is_active: boolean;
+          name: string;
+          slug: string;
+          starts_at: string;
+          theme_key: string;
+          updated_at: string;
+          draw_limit: number;
+        };
+        Insert: {
+          accent_color?: string | null;
+          accent_color_2?: string | null;
+          banner_subtitle?: string | null;
+          banner_title: string;
+          box_limit?: number | null;
+          box_price_pen?: number;
+          box_price_usd?: number;
+          created_at?: string;
+          created_by?: string | null;
+          ends_at: string;
+          id?: string;
+          icon_key?: string;
+          is_active?: boolean;
+          name: string;
+          slug: string;
+          starts_at: string;
+          theme_key?: string;
+          updated_at?: string;
+          draw_limit?: number;
+        };
+        Update: {
+          accent_color?: string | null;
+          accent_color_2?: string | null;
+          banner_subtitle?: string | null;
+          banner_title?: string;
+          box_limit?: number | null;
+          box_price_pen?: number;
+          box_price_usd?: number;
+          created_at?: string;
+          created_by?: string | null;
+          ends_at?: string;
+          id?: string;
+          icon_key?: string;
+          is_active?: boolean;
+          name?: string;
+          slug?: string;
+          starts_at?: string;
+          theme_key?: string;
+          updated_at?: string;
+          draw_limit?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "festive_events_created_by_fkey";
+            columns: ["created_by"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       manual_orders: {
         Row: {
           created_at: string | null;
@@ -1936,12 +2156,49 @@ export type Database = {
         Args: { p_product_id: string };
         Returns: Json;
       };
+      get_festive_box_winners: {
+        Args: { _event_id?: string | null };
+        Returns: {
+          client_name: string;
+          opened_at: string;
+          product_name: string;
+        }[];
+      };
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"];
           _user_id: string;
         };
         Returns: boolean;
+      };
+      open_festive_box: {
+        Args: { p_event_id: string };
+        Returns: {
+          event_id: string;
+          opened_at: string;
+          opening_id: string;
+          order_id: string;
+          product_id_won: string;
+          product_name: string;
+        }[];
+      };
+      delete_festive_event: {
+        Args: { p_event_id: string };
+        Returns: boolean;
+      };
+      purchase_festive_boxes: {
+        Args: { p_event_id: string; p_quantity?: number };
+        Returns: {
+          balance_after_pen: number;
+          purchase_id: string;
+          quantity: number;
+          total_pen: number;
+          total_usd: number;
+        }[];
+      };
+      save_festive_event: {
+        Args: { p_event: Json; p_products?: Json };
+        Returns: Database["public"]["Tables"]["festive_events"]["Row"];
       };
       place_order_with_inventory: {
         Args: { _product_id: string };

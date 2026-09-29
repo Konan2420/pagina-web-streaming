@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Check, Copy, ExternalLink, KeyRound, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildSupplierSupportMessage,
@@ -39,8 +40,8 @@ function TemporaryCredentialsPage() {
   if (receiptQuery.isLoading) {
     return (
       <main className="grid min-h-screen place-items-center bg-background p-5 text-foreground">
-        <div className="flex items-center gap-3 rounded-xl border border-border bg-card px-5 py-4 text-sm font-semibold">
-          <Loader2 className="h-5 w-5 animate-spin text-primary" /> Verificando enlace seguro…
+        <div className="w-full max-w-md rounded-xl border border-border bg-card px-5 py-4 text-center text-sm font-semibold">
+          <GravitLoader label="Cargando credenciales" />
         </div>
       </main>
     );

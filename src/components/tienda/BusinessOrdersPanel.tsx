@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { SiWhatsapp } from "react-icons/si";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildCredentialDeliveryWhatsAppMessage,
@@ -54,9 +55,9 @@ type BusinessOrder = {
   created_at: string;
   expires_at: string | null;
   display_status: Exclude<BusinessOrderStatus, "all">;
-  cost_price: number;
-  sale_price: number;
-  profit: number;
+  cost_price: number | null;
+  sale_price: number | null;
+  profit: number | null;
   is_renewable: boolean;
   total_count: number;
 };
@@ -113,12 +114,15 @@ function describeBusinessOrdersError(error: unknown) {
   return "La consulta fue rechazada por la base de datos. Reintenta en unos instantes.";
 }
 
-function money(value: number) {
-  return `S/ ${Number(value ?? 0).toFixed(2)}`;
+function money(value: number | null | undefined) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? `S/ ${amount.toFixed(2)}` : "—";
 }
 
 function formatDateTime(value: string | null) {
   if (!value) return "Sin vencimiento";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "—";
   return new Intl.DateTimeFormat("en-GB", {
     timeZone: "America/Lima",
     day: "2-digit",
@@ -128,8 +132,97 @@ function formatDateTime(value: string | null) {
     minute: "2-digit",
     hourCycle: "h23",
   })
-    .format(new Date(value))
+    .format(date)
     .replace(",", "");
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" ? (value as Record<string, unknown>) : {};
+}
+
+function firstText(row: Record<string, unknown>, ...keys: string[]) {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
+}
+
+function firstNumber(row: Record<string, unknown>, ...keys: string[]) {
+  for (const key of keys) {
+    const value = row[key];
+    if (value !== null && value !== undefined && value !== "") {
+      const number = Number(value);
+      if (Number.isFinite(number)) return number;
+    }
+  }
+  return null;
+}
+
+/** Normaliza el contrato actual y contratos antiguos del RPC antes de generar el comprobante. */
+function normalizeBusinessOrder(value: unknown): BusinessOrder {
+  const row = asRecord(value);
+  const orderId = firstText(row, "order_id", "id") ?? "";
+  const rawStatus = (
+    firstText(row, "display_status", "estado", "status") ?? "en_curso"
+  ).toLowerCase();
+  const statusMap: Record<string, Exclude<BusinessOrderStatus, "all">> = {
+    pending: "en_curso",
+    pendiente: "en_curso",
+    processing: "en_curso",
+    en_proceso: "en_curso",
+    paid: "completado",
+    pagado: "completado",
+    completed: "completado",
+    completado: "completado",
+    cancelled: "cancelado",
+    canceled: "cancelado",
+    cancelado: "cancelado",
+    interested: "interesado",
+    interesado: "interesado",
+    expired: "vencido",
+    vencido: "vencido",
+  };
+
+  return {
+    order_id: orderId,
+    source: firstText(row, "source", "origen") === "social" ? "social" : "catalog",
+    seller_id: firstText(row, "seller_id", "vendedor_id") ?? "",
+    business_client_id: firstText(row, "business_client_id", "cliente_negocio_id"),
+    client_profile_id: firstText(row, "client_profile_id", "perfil_cliente_id"),
+    product_id: firstText(row, "product_id", "producto_id", "service_id") ?? "",
+    product_name: firstText(row, "product_name", "producto_nombre", "service_name") ?? "",
+    product_image_url: firstText(row, "product_image_url", "imagen_producto_url"),
+    account_reference: firstText(
+      row,
+      "account_reference",
+      "referencia",
+      "payment_reference",
+      "reference",
+    ),
+    auto_renew: Boolean(row.auto_renew),
+    auto_renew_at: firstText(row, "auto_renew_at"),
+    client_name:
+      firstText(
+        row,
+        "client_name",
+        "nombre_cliente",
+        "cliente_nombre",
+        "customer_name",
+        "email_cliente",
+      ) ?? "Cliente",
+    client_phone: firstText(row, "client_phone", "whatsapp_cliente", "telefono_cliente"),
+    client_avatar_url: firstText(row, "client_avatar_url", "avatar_url"),
+    brand: firstText(row, "brand", "marca") ?? "Catálogo",
+    created_at: firstText(row, "created_at", "fecha_creacion", "createdAt") ?? "",
+    expires_at: firstText(row, "expires_at", "fecha_vencimiento", "expiration_date"),
+    display_status: statusMap[rawStatus] ?? "en_curso",
+    cost_price: firstNumber(row, "cost_price", "costo", "unit_cost_pen", "cost"),
+    sale_price: firstNumber(row, "sale_price", "precio", "sale_price_pen", "paid_amount"),
+    profit: firstNumber(row, "profit", "ganancia", "profit_pen"),
+    is_renewable: Boolean(row.is_renewable),
+    total_count: firstNumber(row, "total_count") ?? 0,
+  };
 }
 
 function timeRemaining(order: BusinessOrder) {
@@ -216,11 +309,11 @@ async function downloadReceipt(order: BusinessOrder) {
     addLine("Fecha", formatDateTime(order.created_at));
     addLine("Vencimiento", formatDateTime(order.expires_at));
     addLine("Estado", statusLabel(order.display_status));
-    addLine("Referencia", order.account_reference ?? "—");
+    addLine("Referencia", order.account_reference ?? `#${order.order_id.slice(0, 8)}`);
     pdf.setDrawColor(203, 213, 225);
     pdf.line(margin, y + 2, 192, y + 2);
     y += 13;
-    addLine("Costo", money(order.cost_price));
+    addLine("Costo", money(order.sale_price));
     addLine("Venta", money(order.sale_price));
     addLine("Ganancia", `+${money(order.profit)}`);
     pdf.setTextColor(100, 116, 139);
@@ -292,7 +385,7 @@ export function BusinessOrdersPanel({
         reportBusinessOrdersError("cargar la lista", error);
         throw error;
       }
-      return (data ?? []) as BusinessOrder[];
+      return (data ?? []).map(normalizeBusinessOrder);
     },
     staleTime: 15_000,
   });
@@ -1210,9 +1303,8 @@ function OrderDetailDialog({
                 Credenciales del servicio
               </p>
               {credentialsLoading ? (
-                <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Cargando credenciales protegidas…
+                <div className="mt-3 flex flex-col gap-2 text-xs text-muted-foreground">
+                  <GravitLoader label="Cargando credenciales protegidas" />
                 </div>
               ) : credentialsError ? (
                 <p className="mt-3 text-xs text-destructive">

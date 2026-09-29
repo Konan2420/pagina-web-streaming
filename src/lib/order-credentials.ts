@@ -112,7 +112,7 @@ export function buildCredentialDeliveryWhatsAppMessage(receipt: OrderCredentialR
     ...(receipt.notes ? ["", `📝 Notas: ${receipt.notes}`] : []),
     "",
     "Por seguridad, no compartas estas credenciales con terceros.",
-  ].join("\\n");
+  ].join("\n");
 }
 
 export function getSafeExternalUrl(value: string | null | undefined) {

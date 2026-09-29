@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -367,8 +368,10 @@ function RechargesAdminPage() {
         </div>
 
         {rechargesQuery.isLoading ? (
-          <div className="grid min-h-64 place-items-center rounded-2xl border border-white/10 bg-white/[0.025]">
-            <Loader2 className="h-6 w-6 animate-spin text-primary" aria-label="Cargando recargas" />
+          <div className="grid min-h-64 place-items-center rounded-2xl border border-white/10 bg-white/[0.025] p-6">
+            <div className="w-full max-w-md text-center text-sm text-white/55">
+              <GravitLoader label="Cargando recargas" />
+            </div>
           </div>
         ) : rechargesQuery.isError ? (
           <div className="rounded-2xl border border-red-400/25 bg-red-400/10 p-5 text-sm text-red-100">

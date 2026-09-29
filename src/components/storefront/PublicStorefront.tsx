@@ -23,6 +23,7 @@ import {
   Youtube,
 } from "lucide-react";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import {
   Dialog,
   DialogContent,
@@ -191,8 +192,11 @@ export function PublicStorefront({ slug }: { slug: string }) {
   }, []);
   if (storefrontQuery.isLoading)
     return (
-      <div className="grid min-h-screen place-items-center bg-background text-sm text-white/55">
-        Cargando tienda…
+      <div className="grid min-h-screen place-items-center bg-background px-6 text-sm text-white/55">
+        <div className="w-full max-w-md text-center">
+          Cargando tienda…
+          <GravitLoader label="Cargando tienda" />
+        </div>
       </div>
     );
   if (!store)
@@ -303,7 +307,10 @@ export function PublicStorefront({ slug }: { slug: string }) {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <span className="grid h-full w-full place-items-center" style={{ backgroundColor: template.accent }}>
+                <span
+                  className="grid h-full w-full place-items-center"
+                  style={{ backgroundColor: template.accent }}
+                >
                   {initials(store.settings.display_name)}
                 </span>
               )}
@@ -449,14 +456,26 @@ export function PublicStorefront({ slug }: { slug: string }) {
                       <div className="mt-1 flex min-h-5 flex-wrap items-center gap-1 text-[9px] font-semibold text-white/75">
                         {product.deliveryType && (
                           <span className="inline-flex items-center gap-1 rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5">
-                            {product.deliveryType === "manual" ? <KeyRound className="h-3 w-3 text-amber-200" /> : product.deliveryType === "perfil" ? <UserRound className="h-3 w-3" /> : <Layers className="h-3 w-3" />}
-                            {product.deliveryType === "manual" ? "Manual" : product.deliveryType === "perfil" ? "Perfil" : "Completa"}
+                            {product.deliveryType === "manual" ? (
+                              <KeyRound className="h-3 w-3 text-amber-200" />
+                            ) : product.deliveryType === "perfil" ? (
+                              <UserRound className="h-3 w-3" />
+                            ) : (
+                              <Layers className="h-3 w-3" />
+                            )}
+                            {product.deliveryType === "manual"
+                              ? "Manual"
+                              : product.deliveryType === "perfil"
+                                ? "Perfil"
+                                : "Completa"}
                           </span>
                         )}
                         {product.scopeType && (
                           <span className="inline-flex items-center gap-1 rounded border border-white/10 bg-white/[0.05] px-1.5 py-0.5">
                             <Globe2 className="h-3 w-3 text-sky-300" />
-                            {product.scopeType === "global" ? "Global" : `${countryFlag(product.scopeCountry)} ${countryLabel(product.scopeCountry)}`}
+                            {product.scopeType === "global"
+                              ? "Global"
+                              : `${countryFlag(product.scopeCountry)} ${countryLabel(product.scopeCountry)}`}
                           </span>
                         )}
                       </div>

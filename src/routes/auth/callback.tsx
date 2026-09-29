@@ -1,6 +1,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { CheckCircle2, Loader2, TriangleAlert } from "lucide-react";
+import { CheckCircle2, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
+import { GravitLoader } from "@/components/GravitLoader";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthDestination } from "@/lib/auth-destination";
@@ -139,7 +140,7 @@ function AuthCallbackPage() {
       <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-2xl sm:p-8">
         <div className="mx-auto grid size-12 place-items-center rounded-full border border-primary/25 bg-primary/10 text-primary">
           {status === "processing" ? (
-            <Loader2 className="size-6 animate-spin" aria-hidden="true" />
+            <GravitLoader label="Cargando sesion" />
           ) : (
             <TriangleAlert className="size-6 text-destructive" aria-hidden="true" />
           )}

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle2, KeyRound, Loader2, TriangleAlert } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { GravitLoader } from "@/components/GravitLoader";
 
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -122,7 +123,10 @@ function ResetPasswordPage() {
       <section className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-2xl sm:p-8">
         <div className="mx-auto flex size-12 items-center justify-center rounded-full bg-primary/15 text-primary">
           {status === "checking" ? (
-            <Loader2 className="size-6 animate-spin" />
+            <div className="flex flex-col items-center">
+              <Loader2 className="size-6 animate-spin" />
+              <GravitLoader label="Cargando recuperacion" />
+            </div>
           ) : status === "invalid" ? (
             <TriangleAlert className="size-6" />
           ) : status === "completed" ? (

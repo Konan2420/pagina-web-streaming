@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, CalendarDays, Handshake, ShieldCheck } from "lucide-react";
 import { DistributorLayout } from "@/components/distributor/DistributorLayout";
+import { GravitLoader } from "@/components/GravitLoader";
 import { getDistributorDashboardStats } from "@/lib/distributor.functions";
 
 export const Route = createFileRoute("/_authenticated/distribuidor/")({
@@ -52,6 +53,7 @@ function DistributorDashboard() {
           </p>
         </section>
       </div>
+      {isLoading && <GravitLoader label="Cargando panel de distribuidor" />}
 
       <section className="mt-6 rounded-2xl border border-sky-400/20 bg-sky-400/[0.06] p-5 sm:p-6">
         <div className="flex gap-4">

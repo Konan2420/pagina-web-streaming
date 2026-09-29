@@ -15,8 +15,20 @@ Configura en **Supabase Dashboard → Edge Functions → Secrets**:
 Después de configurar los tres secretos, despliega la función:
 
 ```bash
-supabase functions deploy send-telegram-notification --no-verify-jwt
+npx.cmd supabase functions deploy send-telegram-notification --no-verify-jwt
 ```
+
+La función registra trazas seguras en los logs de Edge Functions con los eventos
+`request_received`, `event_received`, `configuration_checked`,
+`telegram_response` y `delivery_failed`. Nunca registra el token, el chat ID ni
+el cuerpo completo del mensaje.
+
+Si Telegram devuelve `400 Bad Request: chat not found`, el flujo de Supabase sí
+está funcionando y `TELEGRAM_CHAT_ID` no apunta a un chat accesible para el bot.
+En un chat privado, abre el bot y pulsa **Start**. En un grupo, agrega el bot,
+otórgale permiso para enviar mensajes y configura el ID numérico del grupo
+(normalmente empieza por `-100`). Después actualiza el secret remoto y repite
+una recarga de prueba.
 
 El token del bot, el identificador del chat y el secreto compartido nunca se
 incluyen en `.env`, en el frontend ni en las migraciones.

@@ -29,6 +29,7 @@ import { Route as TiendaPublicaSlugRouteImport } from './routes/tienda-publica/$
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as AuthenticatedAdminAnalyticsRouteImport } from './routes/_authenticated/admin/analytics'
 import { Route as AuthenticatedAdminBannerDescuentoRouteImport } from './routes/_authenticated/admin/banner-descuento'
+import { Route as AuthenticatedAdminEventosFestivosRouteImport } from './routes/_authenticated/admin/eventos-festivos'
 import { Route as AuthenticatedAdminInventarioRouteImport } from './routes/_authenticated/admin/inventario'
 import { Route as AuthenticatedAdminMiTiendaRouteImport } from './routes/_authenticated/admin/mi-tienda'
 import { Route as AuthenticatedAdminModeracionRouteImport } from './routes/_authenticated/admin/moderacion'
@@ -154,6 +155,12 @@ const AuthenticatedAdminBannerDescuentoRoute =
   AuthenticatedAdminBannerDescuentoRouteImport.update({
     id: '/banner-descuento',
     path: '/banner-descuento',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
+const AuthenticatedAdminEventosFestivosRoute =
+  AuthenticatedAdminEventosFestivosRouteImport.update({
+    id: '/eventos-festivos',
+    path: '/eventos-festivos',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 const AuthenticatedAdminInventarioRoute =
@@ -312,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/plataformas/': typeof PlataformasIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/banner-descuento': typeof AuthenticatedAdminBannerDescuentoRoute
+  '/admin/eventos-festivos': typeof AuthenticatedAdminEventosFestivosRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
@@ -353,6 +361,7 @@ export interface FileRoutesByTo {
   '/plataformas': typeof PlataformasIndexRoute
   '/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/admin/banner-descuento': typeof AuthenticatedAdminBannerDescuentoRoute
+  '/admin/eventos-festivos': typeof AuthenticatedAdminEventosFestivosRoute
   '/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
@@ -399,6 +408,7 @@ export interface FileRoutesById {
   '/plataformas/': typeof PlataformasIndexRoute
   '/_authenticated/admin/analytics': typeof AuthenticatedAdminAnalyticsRoute
   '/_authenticated/admin/banner-descuento': typeof AuthenticatedAdminBannerDescuentoRoute
+  '/_authenticated/admin/eventos-festivos': typeof AuthenticatedAdminEventosFestivosRoute
   '/_authenticated/admin/inventario': typeof AuthenticatedAdminInventarioRoute
   '/_authenticated/admin/mi-tienda': typeof AuthenticatedAdminMiTiendaRoute
   '/_authenticated/admin/moderacion': typeof AuthenticatedAdminModeracionRoute
@@ -445,6 +455,7 @@ export interface FileRouteTypes {
     | '/plataformas/'
     | '/admin/analytics'
     | '/admin/banner-descuento'
+    | '/admin/eventos-festivos'
     | '/admin/inventario'
     | '/admin/mi-tienda'
     | '/admin/moderacion'
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
     | '/plataformas'
     | '/admin/analytics'
     | '/admin/banner-descuento'
+    | '/admin/eventos-festivos'
     | '/admin/inventario'
     | '/admin/mi-tienda'
     | '/admin/moderacion'
@@ -531,6 +543,7 @@ export interface FileRouteTypes {
     | '/plataformas/'
     | '/_authenticated/admin/analytics'
     | '/_authenticated/admin/banner-descuento'
+    | '/_authenticated/admin/eventos-festivos'
     | '/_authenticated/admin/inventario'
     | '/_authenticated/admin/mi-tienda'
     | '/_authenticated/admin/moderacion'
@@ -716,6 +729,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminBannerDescuentoRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/admin/eventos-festivos': {
+      id: '/_authenticated/admin/eventos-festivos'
+      path: '/eventos-festivos'
+      fullPath: '/admin/eventos-festivos'
+      preLoaderRoute: typeof AuthenticatedAdminEventosFestivosRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
     '/_authenticated/admin/inventario': {
       id: '/_authenticated/admin/inventario'
       path: '/inventario'
@@ -883,6 +903,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAnalyticsRoute: typeof AuthenticatedAdminAnalyticsRoute
   AuthenticatedAdminBannerDescuentoRoute: typeof AuthenticatedAdminBannerDescuentoRoute
+  AuthenticatedAdminEventosFestivosRoute: typeof AuthenticatedAdminEventosFestivosRoute
   AuthenticatedAdminInventarioRoute: typeof AuthenticatedAdminInventarioRoute
   AuthenticatedAdminMiTiendaRoute: typeof AuthenticatedAdminMiTiendaRoute
   AuthenticatedAdminModeracionRoute: typeof AuthenticatedAdminModeracionRoute
@@ -905,6 +926,8 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminAnalyticsRoute: AuthenticatedAdminAnalyticsRoute,
     AuthenticatedAdminBannerDescuentoRoute:
       AuthenticatedAdminBannerDescuentoRoute,
+    AuthenticatedAdminEventosFestivosRoute:
+      AuthenticatedAdminEventosFestivosRoute,
     AuthenticatedAdminInventarioRoute: AuthenticatedAdminInventarioRoute,
     AuthenticatedAdminMiTiendaRoute: AuthenticatedAdminMiTiendaRoute,
     AuthenticatedAdminModeracionRoute: AuthenticatedAdminModeracionRoute,

@@ -77,6 +77,9 @@ import {
   withRequestTimeout,
 } from "@/lib/request-timeout";
 import { QueryErrorState } from "@/components/ui/loading-states";
+import { GravitLoader } from "@/components/GravitLoader";
+import { FestiveEventBanner } from "@/components/tienda/FestiveEventBanner";
+import { FestiveSurpriseBox } from "@/components/tienda/FestiveSurpriseBox";
 
 const AuthModal = React.lazy(() =>
   import("@/components/AuthModal").then(({ AuthModal: Component }) => ({ default: Component })),
@@ -115,9 +118,11 @@ const SocialServicesPanel = React.lazy(() =>
   })),
 );
 const StorefrontManagement = React.lazy(() =>
-  import("@/components/storefront/StorefrontManagement").then(({ StorefrontManagement: Component }) => ({
-    default: Component,
-  })),
+  import("@/components/storefront/StorefrontManagement").then(
+    ({ StorefrontManagement: Component }) => ({
+      default: Component,
+    }),
+  ),
 );
 const SupportTicketsPanel = React.lazy(() =>
   import("@/components/tienda/SupportTicketsPanel").then(({ SupportTicketsPanel: Component }) => ({
@@ -1012,7 +1017,11 @@ export function TiendaPage({
         Promise.resolve(
           supabase
             .from("products")
-            .select(missingNewMetadata ? CATALOG_PRODUCT_COLUMNS_LEGACY : CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION)
+            .select(
+              missingNewMetadata
+                ? CATALOG_PRODUCT_COLUMNS_LEGACY
+                : CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION,
+            )
             .eq("is_active", true)
             .order("created_at", { ascending: false }),
         ),
@@ -1603,7 +1612,13 @@ export function TiendaPage({
               showCatalogNavigation={panel === "tienda" && activeCat !== "redes"}
             />
             {panel === "tienda" && activeCat === "redes" ? (
-              <React.Suspense fallback={<div className="min-h-48" aria-hidden="true" />}>
+              <React.Suspense
+                fallback={
+                  <div className="flex min-h-48 items-center justify-center px-6">
+                    <GravitLoader label="Cargando servicios" />
+                  </div>
+                }
+              >
                 <SocialServicesPanel
                   userId={userId}
                   displayName={displayName}
@@ -1637,6 +1652,8 @@ export function TiendaPage({
         {panel === "tienda" && activeCat !== "redes" && (
           <section id="catalogo" className="relative z-10 mt-4 pb-24">
             <div className="max-w-[1600px] mx-auto px-4">
+              <FestiveEventBanner />
+              <FestiveSurpriseBox />
               <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <h2 className="text-[11px] font-black uppercase tracking-wider text-white">
@@ -1663,10 +1680,15 @@ export function TiendaPage({
                   }}
                 />
               ) : isCatalogLoading ? (
-                <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] lg:gap-1 xl:grid-cols-7">
-                  {Array.from({ length: 12 }, (_, index) => (
-                    <ProductCatalogCardSkeleton key={index} />
-                  ))}
+                <div className="relative min-h-[24rem]">
+                  <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+                    <GravitLoader label="Cargando productos" />
+                  </div>
+                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-4 opacity-45 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] lg:gap-4 xl:grid-cols-7">
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <ProductCatalogCardSkeleton key={index} />
+                    ))}
+                  </div>
                 </div>
               ) : visible.length === 0 ? (
                 <div className="grid place-items-center rounded-xl border border-border bg-background p-10 text-center sm:p-16">
@@ -1762,7 +1784,7 @@ export function TiendaPage({
                       </button>
                     </div>
                   )}
-                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-3 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] lg:gap-1 xl:grid-cols-7">
+                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-4 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] lg:gap-4 xl:grid-cols-7">
                     {renderedVisibleProducts.map((p) => (
                       <ProductCatalogCard
                         key={p.id}
@@ -1815,7 +1837,10 @@ export function TiendaPage({
           <React.Suspense
             fallback={
               <div className="mx-auto mt-6 max-w-[1600px] px-4 pb-24 sm:px-6">
-                <div className="h-80 animate-pulse rounded-xl border border-border bg-card/40" />
+                <div className="rounded-xl border border-border bg-card/40 p-6">
+                  <GravitLoader label="Cargando pedidos" />
+                  <div className="mt-3 h-72 animate-pulse" />
+                </div>
               </div>
             }
           >
@@ -1837,17 +1862,9 @@ export function TiendaPage({
           <section className="relative z-10 mt-6 pb-24">
             <div className="mx-auto max-w-[1600px] px-4">
               {isRoleLoading && !session ? (
-                <div className="flex min-h-72 items-center justify-center gap-2 text-sm text-white/55">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Cargando Mi Tienda…
-                </div>
+                <GravitLoader label="Cargando Mi Tienda" />
               ) : (
-                <React.Suspense
-                  fallback={
-                    <div className="flex min-h-72 items-center justify-center text-sm text-white/55">
-                      Cargando Mi Tienda…
-                    </div>
-                  }
-                >
+                <React.Suspense fallback={<GravitLoader label="Cargando Mi Tienda" />}>
                   <StorefrontManagement />
                 </React.Suspense>
               )}
@@ -1871,8 +1888,8 @@ export function TiendaPage({
         {panel === "soporte" && (
           <React.Suspense
             fallback={
-              <div className="mx-auto mt-6 max-w-[1600px] px-4 pb-24 text-sm text-white/55 sm:px-6">
-                Cargando soporte…
+              <div className="mx-auto mt-6 max-w-[1600px] px-4 pb-24 sm:px-6">
+                <GravitLoader label="Cargando soporte" />
               </div>
             }
           >
@@ -1898,7 +1915,10 @@ export function TiendaPage({
           <React.Suspense
             fallback={
               <div className="mx-auto mt-6 max-w-[1600px] px-4 pb-24 sm:px-6">
-                <div className="h-80 animate-pulse rounded-xl border border-border bg-card/40" />
+                <div className="rounded-xl border border-border bg-card/40 p-6">
+                  <GravitLoader label="Cargando clientes" />
+                  <div className="mt-3 h-72 animate-pulse" />
+                </div>
               </div>
             }
           >

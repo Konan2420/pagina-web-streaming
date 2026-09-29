@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import {
   Check,
   CheckCircle2,
@@ -26,6 +26,12 @@ type OrderCelebrationDialogProps = {
   receipt: OrderCredentialReceipt;
   canShareWithClient: boolean;
   onClose: () => void;
+  festiveCelebration?: {
+    eventName: string;
+    message: string;
+    accentColor?: string | null;
+    accentColor2?: string | null;
+  };
 };
 
 async function copyCredential(value: string, label: string) {
@@ -90,8 +96,10 @@ export function OrderCelebrationDialog({
   receipt,
   canShareWithClient,
   onClose,
+  festiveCelebration,
 }: OrderCelebrationDialogProps) {
   const fields = getCredentialFields(receipt);
+  const isFestiveWinner = Boolean(festiveCelebration);
   const supplierUrl = createWhatsAppUrl(
     receipt.supplier_whatsapp,
     buildSupplierSupportMessage(receipt),
@@ -107,29 +115,38 @@ export function OrderCelebrationDialog({
         if (cancelled) return;
         const burst = () =>
           confetti({
-            particleCount: 42,
-            spread: 64,
-            startVelocity: 28,
-            origin: { y: 0.14 },
-            colors: ["#3B82F6", "#60A5FA", "#F8FAFC", "#22C55E"],
+            particleCount: isFestiveWinner ? 68 : 42,
+            spread: isFestiveWinner ? 82 : 64,
+            startVelocity: isFestiveWinner ? 34 : 28,
+            origin: { y: isFestiveWinner ? 0.22 : 0.14 },
+            colors: isFestiveWinner
+              ? [
+                  festiveCelebration?.accentColor ?? "#ec4899",
+                  festiveCelebration?.accentColor2 ?? "#fbbf24",
+                  "#ffffff",
+                ]
+              : ["#3B82F6", "#60A5FA", "#F8FAFC", "#22C55E"],
             disableForReducedMotion: true,
             zIndex: 130,
           });
         burst();
-        intervalId = window.setInterval(burst, 520);
+        intervalId = window.setInterval(burst, isFestiveWinner ? 430 : 520);
       })
       .catch(() => undefined);
 
-    const timeoutId = window.setTimeout(() => {
-      if (intervalId) window.clearInterval(intervalId);
-    }, 1700);
+    const timeoutId = window.setTimeout(
+      () => {
+        if (intervalId) window.clearInterval(intervalId);
+      },
+      isFestiveWinner ? 6500 : 1700,
+    );
 
     return () => {
       cancelled = true;
       if (intervalId) window.clearInterval(intervalId);
       window.clearTimeout(timeoutId);
     };
-  }, []);
+  }, [festiveCelebration, isFestiveWinner]);
 
   const shareCredentials = () => {
     if (!clientHasWhatsApp) {
@@ -176,9 +193,23 @@ export function OrderCelebrationDialog({
         onClick={onClose}
         className="absolute inset-0 bg-slate-950/75 backdrop-blur-sm"
       />
-      <section className="relative max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-2xl border border-primary/25 bg-card shadow-2xl sm:max-h-[calc(100dvh-2.5rem)]">
-        <header className="relative overflow-hidden border-b border-border bg-primary/[0.08] px-5 pb-5 pt-6 sm:px-7">
-          <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary/15 blur-2xl" />
+      <section
+        style={
+          festiveCelebration
+            ? ({
+                "--festive-accent": festiveCelebration.accentColor ?? "#ec4899",
+                "--festive-accent-2": festiveCelebration.accentColor2 ?? "#fbbf24",
+              } as CSSProperties)
+            : undefined
+        }
+        className={`relative max-h-[calc(100dvh-1.5rem)] w-full max-w-xl overflow-y-auto rounded-2xl border bg-card shadow-2xl sm:max-h-[calc(100dvh-2.5rem)] ${isFestiveWinner ? "border-[color-mix(in_srgb,var(--festive-accent)_55%,transparent)]" : "border-primary/25"}`}
+      >
+        <header
+          className={`relative overflow-hidden border-b border-border px-5 pb-5 pt-6 sm:px-7 ${isFestiveWinner ? "bg-[color-mix(in_srgb,var(--festive-accent)_15%,transparent)]" : "bg-primary/[0.08]"}`}
+        >
+          <div
+            className={`absolute -right-8 -top-8 h-36 w-36 rounded-full blur-2xl ${isFestiveWinner ? "bg-[color-mix(in_srgb,var(--festive-accent-2)_35%,transparent)]" : "bg-primary/15"}`}
+          />
           <button
             type="button"
             onClick={onClose}
@@ -188,25 +219,41 @@ export function OrderCelebrationDialog({
             <X className="h-4 w-4" />
           </button>
           <div className="relative flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/25">
+            <span
+              className={`grid h-12 w-12 place-items-center rounded-2xl text-primary-foreground shadow-lg ${isFestiveWinner ? "bg-[var(--festive-accent)] shadow-[var(--festive-accent)]/30" : "bg-primary shadow-primary/25"}`}
+            >
               <PartyPopper className="h-6 w-6" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-xs font-bold text-primary">Compra procesada correctamente</p>
+              <p
+                className={`text-xs font-bold ${isFestiveWinner ? "text-[var(--festive-accent-2)]" : "text-primary"}`}
+              >
+                {isFestiveWinner
+                  ? `Evento festivo · ${festiveCelebration?.eventName}`
+                  : "Compra procesada correctamente"}
+              </p>
               <h2
                 id="order-celebration-title"
                 className="mt-0.5 text-xl font-black text-foreground sm:text-2xl"
               >
-                ¡Pedido confirmado!
+                {isFestiveWinner ? "Felicidades, eres ganador!" : "Pedido confirmado!"}
               </h2>
             </div>
           </div>
+          {festiveCelebration && (
+            <p className="relative mt-4 rounded-xl border border-white/15 bg-black/15 px-4 py-3 text-sm font-semibold leading-relaxed text-white">
+              {festiveCelebration.message}
+            </p>
+          )}
         </header>
 
         <div className="space-y-5 p-5 sm:p-7">
           <div className="grid gap-3 rounded-xl border border-border bg-muted/45 p-4 text-sm sm:grid-cols-2">
             <InfoItem label="Cliente" value={receipt.client_name} />
-            <InfoItem label="Producto" value={receipt.product_name} />
+            <InfoItem
+              label={isFestiveWinner ? "Producto ganado" : "Producto"}
+              value={receipt.product_name}
+            />
             <InfoItem label="Vencimiento" value={formatOrderExpiry(receipt.expires_at)} />
             <InfoItem label="Pedido" value={`#${receipt.order_id.slice(0, 8)}`} />
           </div>

@@ -85,7 +85,7 @@
   /* Una sola escala para el panel lateral y el espacio que reserva el catálogo. */
   --store-sidebar-mobile-width: min(84vw, 20rem);
   /* Densidad compacta de escritorio: conserva la escala táctil del drawer móvil. */
-  --store-sidebar-width: 10.5rem;
+  --store-sidebar-width: 15rem;
   --store-sidebar-collapsed-width: 4.5rem;
 }
 
@@ -545,33 +545,77 @@
   user-select: none;
 }
 
-.cmd-avatar-frame-rotate { transform-origin: 60px 60px; animation: cmd-avatar-frame-spin 16s linear infinite; }
-.cmd-avatar-frame-pulse { transform-origin: 60px 60px; animation: cmd-avatar-frame-breathe 4.2s ease-in-out infinite; }
+.cmd-avatar-frame-rotate {
+  transform-origin: 60px 60px;
+  animation: cmd-avatar-frame-spin 16s linear infinite;
+}
+.cmd-avatar-frame-pulse {
+  transform-origin: 60px 60px;
+  animation: cmd-avatar-frame-breathe 4.2s ease-in-out infinite;
+}
 .cmd-avatar-frame-particles,
-.cmd-avatar-frame-float { transform-origin: 60px 60px; animation: cmd-avatar-frame-float 5.4s ease-in-out infinite; }
-.cmd-avatar-frame-glow { transform-origin: 60px 60px; animation: cmd-avatar-frame-glow 3.8s ease-in-out infinite; }
-.cmd-avatar-frame-spark { animation: cmd-avatar-frame-twinkle 2.2s ease-in-out infinite; }
-.cmd-avatar-frame-spark-delay { animation-delay: -1.1s; }
+.cmd-avatar-frame-float {
+  transform-origin: 60px 60px;
+  animation: cmd-avatar-frame-float 5.4s ease-in-out infinite;
+}
+.cmd-avatar-frame-glow {
+  transform-origin: 60px 60px;
+  animation: cmd-avatar-frame-glow 3.8s ease-in-out infinite;
+}
+.cmd-avatar-frame-spark {
+  animation: cmd-avatar-frame-twinkle 2.2s ease-in-out infinite;
+}
+.cmd-avatar-frame-spark-delay {
+  animation-delay: -1.1s;
+}
 
 @keyframes cmd-avatar-frame-spin {
-  from { transform: rotateZ(0deg) rotateX(2deg); }
-  to { transform: rotateZ(360deg) rotateX(2deg); }
+  from {
+    transform: rotateZ(0deg) rotateX(2deg);
+  }
+  to {
+    transform: rotateZ(360deg) rotateX(2deg);
+  }
 }
 @keyframes cmd-avatar-frame-breathe {
-  0%, 100% { transform: scale(.98) rotateX(1deg); }
-  50% { transform: scale(1.02) rotateX(-1deg); }
+  0%,
+  100% {
+    transform: scale(0.98) rotateX(1deg);
+  }
+  50% {
+    transform: scale(1.02) rotateX(-1deg);
+  }
 }
 @keyframes cmd-avatar-frame-float {
-  0%, 100% { transform: translate3d(0, 1px, 0) rotateX(1deg); }
-  50% { transform: translate3d(0, -2px, 6px) rotateX(-2deg); }
+  0%,
+  100% {
+    transform: translate3d(0, 1px, 0) rotateX(1deg);
+  }
+  50% {
+    transform: translate3d(0, -2px, 6px) rotateX(-2deg);
+  }
 }
 @keyframes cmd-avatar-frame-glow {
-  0%, 100% { filter: drop-shadow(0 0 2px currentColor); opacity: .86; }
-  50% { filter: drop-shadow(0 0 8px currentColor); opacity: 1; }
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px currentColor);
+    opacity: 0.86;
+  }
+  50% {
+    filter: drop-shadow(0 0 8px currentColor);
+    opacity: 1;
+  }
 }
 @keyframes cmd-avatar-frame-twinkle {
-  0%, 100% { opacity: .25; transform: scale(.75); }
-  50% { opacity: 1; transform: scale(1.35); }
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.75);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -580,7 +624,9 @@
   .cmd-avatar-frame-particles,
   .cmd-avatar-frame-float,
   .cmd-avatar-frame-glow,
-  .cmd-avatar-frame-spark { animation: none; }
+  .cmd-avatar-frame-spark {
+    animation: none;
+  }
 }
 @utility overflow-touch {
   -webkit-overflow-scrolling: touch;
@@ -970,7 +1016,11 @@
 @media (prefers-reduced-motion: reduce) {
   .cmd-loading-bar-indicator,
   .cmd-brand-shimmer::after,
-  .cmd-red-shimmer::after {
+  .cmd-red-shimmer::after,
+  .cmd-progress-segment,
+  .cmd-festive-banner,
+  .cmd-surprise-box-art,
+  .cmd-festive-result {
     animation: none;
   }
 }
@@ -1461,5 +1511,357 @@
   .avfx > .avfx-l1::after,
   .avfx > .avfx-l2::before {
     animation: none !important;
+  }
+}
+
+.cmd-progress-track {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background-color: color-mix(in srgb, var(--brand) 14%, var(--muted));
+}
+
+.cmd-progress-segment {
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--brand) 25%,
+    var(--brand-hover) 55%,
+    var(--brand) 78%,
+    transparent
+  );
+  animation: cmd-progress-sweep 1.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes cmd-progress-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(320%);
+  }
+}
+
+/* Generic festive event themes. Components only consume these variables. */
+[data-cmd-event="fiestas_patrias"] {
+  --event-accent: #dc2626;
+  --event-accent-2: #ffffff;
+}
+
+[data-cmd-event="halloween"] {
+  --event-accent: #f97316;
+  --event-accent-2: #7c3aed;
+}
+
+[data-cmd-event="navidad"] {
+  --event-accent: #dc2626;
+  --event-accent-2: #16a34a;
+}
+
+[data-cmd-event="inocentes"] {
+  --event-accent: #ec4899;
+  --event-accent-2: #fbbf24;
+}
+
+[data-cmd-event="ano_nuevo"] {
+  --event-accent: #fbbf24;
+  --event-accent-2: #0a0e1a;
+}
+
+:where(.cmd-festive-banner) {
+  --event-accent: var(--brand);
+  --event-accent-2: var(--brand-hover);
+}
+
+.cmd-festive-banner {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(
+      circle at 90% 0%,
+      color-mix(in srgb, var(--event-accent-2) 22%, transparent),
+      transparent 42%
+    ),
+    linear-gradient(
+      120deg,
+      color-mix(in srgb, var(--event-accent) 28%, var(--background)),
+      var(--background)
+    );
+  animation: festive-banner-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cmd-festive-banner-glow {
+  position: absolute;
+  inset: auto -10% -75% 25%;
+  z-index: -1;
+  height: 170%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--event-accent) 30%, transparent);
+  filter: blur(42px);
+  opacity: 0.7;
+}
+
+.cmd-festive-icon {
+  color: var(--event-accent-2);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--event-accent) 35%, transparent);
+}
+
+.cmd-festive-cta,
+.cmd-festive-open-button {
+  background: linear-gradient(
+    135deg,
+    var(--event-accent),
+    color-mix(in srgb, var(--event-accent-2) 36%, var(--event-accent))
+  );
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--event-accent) 30%, transparent);
+}
+
+:where(.cmd-festive-box) {
+  --event-accent: var(--brand);
+  --event-accent-2: var(--brand-hover);
+}
+
+.cmd-festive-box {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--event-accent) 15%, var(--background)),
+    var(--background)
+  );
+}
+
+.cmd-festive-box::before,
+.cmd-festive-box::after {
+  position: absolute;
+  width: 14rem;
+  height: 14rem;
+  border-radius: 50%;
+  content: "";
+  pointer-events: none;
+  filter: blur(32px);
+  opacity: 0.22;
+}
+
+.cmd-festive-box::before {
+  top: -8rem;
+  left: -6rem;
+  background: var(--event-accent);
+}
+
+.cmd-festive-box::after {
+  right: -6rem;
+  bottom: -9rem;
+  background: var(--event-accent-2);
+}
+
+.cmd-surprise-box-art {
+  display: grid;
+  width: 5rem;
+  height: 5rem;
+  place-items: center;
+  color: var(--event-accent-2);
+  border: 1px solid color-mix(in srgb, var(--event-accent-2) 45%, transparent);
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, var(--event-accent) 22%, transparent);
+  box-shadow: 0 0 36px color-mix(in srgb, var(--event-accent) 38%, transparent);
+  animation: festive-box-vibrate 1.8s ease-in-out infinite;
+}
+
+.cmd-surprise-box-art.is-open {
+  color: var(--event-accent);
+  background: color-mix(in srgb, var(--event-accent-2) 75%, transparent);
+  animation: festive-box-open 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.cmd-festive-result {
+  background: color-mix(in srgb, var(--event-accent) 13%, var(--background));
+  animation: scale-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes festive-banner-in {
+  from {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes festive-box-vibrate {
+  0%,
+  100% {
+    transform: rotate(0deg) translateY(0);
+  }
+  12% {
+    transform: rotate(-3deg) translateY(-1px);
+  }
+  24% {
+    transform: rotate(3deg) translateY(-2px);
+  }
+  36% {
+    transform: rotate(-2deg) translateY(0);
+  }
+  48% {
+    transform: rotate(2deg) translateY(-1px);
+  }
+}
+
+@keyframes festive-box-open {
+  0% {
+    transform: scale(0.82) rotate(-8deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08) rotate(3deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+/* Loader Gravit: bolita que rebota con sombra, en el color de marca del proyecto */
+.ld-ball {
+  --loader-ink: var(--brand);
+  position: relative;
+  width: 48px;
+  height: 56px;
+}
+.ld-ball::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 50%;
+  background: var(--loader-ink);
+  animation: balldrop 0.9s cubic-bezier(0.3, 0, 0.7, 1) infinite alternate;
+}
+.ld-ball::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 24px;
+  height: 4px;
+  margin-left: -12px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--loader-ink) 30%, transparent);
+  animation: ballshadow 0.9s cubic-bezier(0.3, 0, 0.7, 1) infinite alternate;
+}
+@keyframes balldrop {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(34px) scaleY(0.85);
+  }
+}
+@keyframes ballshadow {
+  0% {
+    transform: scaleX(0.5);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ld-ball::before,
+  .ld-ball::after {
+    animation: none;
+  }
+}
+
+/* Jelly hover treatment for the catalog category tabs. Color values inherit the active theme. */
+.btn {
+  --primary: var(--brand);
+  --surface: var(--background);
+  --bink: var(--foreground);
+  --bsurf: var(--surface);
+  position: relative;
+  isolation: isolate;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: var(--secondary);
+  transition:
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.4s ease;
+}
+
+.btn-label {
+  position: relative;
+  z-index: 2;
+  display: inline-block;
+  transition: inherit;
+}
+
+.btn[aria-selected="true"] {
+  border-color: var(--primary);
+  background-color: var(--primary);
+}
+
+.btn[aria-selected="false"] {
+  border-color: var(--border);
+  background-color: var(--bsurf);
+  color: var(--bink);
+}
+
+.fx-43 {
+  overflow: visible;
+}
+
+.fx-43::before {
+  display: none;
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .fx-43:hover {
+    animation: btn-jelly 0.6s ease;
+  }
+}
+
+@keyframes btn-jelly {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  30% {
+    transform: scale(1.15, 0.85);
+  }
+  50% {
+    transform: scale(0.9, 1.1);
+  }
+  70% {
+    transform: scale(1.05, 0.95);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fx-43,
+  .fx-43:hover {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
   }
 }

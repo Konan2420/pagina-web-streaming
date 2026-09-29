@@ -1,8 +1,9 @@
-import { Loader2, RotateCcw, WifiOff } from "lucide-react";
+import { RotateCcw, WifiOff } from "lucide-react";
 import { useIsFetching, useIsMutating } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { isRequestTimeoutError } from "@/lib/request-timeout";
+import { GravitLoader } from "@/components/GravitLoader";
 
 /** Indicador global, no bloqueante, para navegación y datos remotos. */
 export function GlobalLoadingBar() {
@@ -37,12 +38,11 @@ export function SectionLoadingState({
       role="status"
       aria-live="polite"
       className={cn(
-        "flex min-h-40 items-center justify-center gap-2 rounded-xl border border-primary/15 bg-primary/[0.035] px-5 text-sm text-white/65",
+        "flex min-h-40 flex-col items-center justify-center gap-3 rounded-xl border border-primary/15 bg-primary/[0.035] px-5 text-sm text-white/65",
         className,
       )}
     >
-      <Loader2 className="h-4 w-4 animate-spin text-primary" aria-hidden="true" />
-      {label}
+      <GravitLoader label={label} />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock3, Inbox, Loader2, Search, Send, Ticket, User, X } from "lucide-react";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -212,8 +213,10 @@ function TicketsAdminPage() {
       </div>
 
       {ticketsQuery.isLoading ? (
-        <div className="grid min-h-64 place-items-center rounded-2xl border border-white/10 bg-white/[0.025]">
-          <Loader2 className="h-6 w-6 animate-spin text-primary" aria-label="Cargando tickets" />
+        <div className="grid min-h-64 place-items-center rounded-2xl border border-white/10 bg-white/[0.025] p-6">
+          <div className="w-full max-w-md text-center text-sm text-white/55">
+            <GravitLoader label="Cargando tickets" />
+          </div>
         </div>
       ) : ticketsQuery.isError ? (
         <div className="rounded-2xl border border-red-400/25 bg-red-400/10 p-5 text-sm text-red-100">
@@ -411,10 +414,9 @@ function AdminTicketModal({
           />
           {repliesLoading ? (
             <div className="grid min-h-24 place-items-center">
-              <Loader2
-                className="h-4 w-4 animate-spin text-primary"
-                aria-label="Cargando respuestas"
-              />
+              <div className="w-full max-w-sm text-center text-xs text-white/55">
+                <GravitLoader label="Cargando respuestas" />
+              </div>
             </div>
           ) : (
             replies.map((reply) => (

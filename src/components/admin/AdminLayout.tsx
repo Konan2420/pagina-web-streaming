@@ -8,6 +8,7 @@ import {
   Ban,
   CalendarClock,
   Database,
+  Gift,
   History,
   LayoutDashboard,
   Phone,
@@ -109,6 +110,13 @@ const menuItems = [
     icon: BadgePercent,
     role: "any",
     accent: "text-yellow-300",
+  },
+  {
+    label: "Eventos Festivos",
+    href: "/admin/eventos-festivos",
+    icon: Gift,
+    role: "any",
+    accent: "text-fuchsia-300",
   },
   {
     label: "Redes Sociales",

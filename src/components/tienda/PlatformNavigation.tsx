@@ -72,11 +72,11 @@ export function PlatformNavigation({
                     aria-selected={active}
                     onClick={() => onCategorySelect(category.id)}
                     className={cn(
-                      "min-h-11 shrink-0 rounded-md border px-3 text-[10px] font-bold transition-[background-color,border-color,color,opacity,transform] duration-150 active:scale-[0.98] active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-8 sm:min-h-8 sm:text-[11px] lg:h-7 lg:min-h-7 lg:px-2 lg:text-[10px]",
+                      "btn fx-43 min-h-11 shrink-0 rounded-md border px-3 text-[10px] font-bold transition-[background-color,border-color,color,opacity,transform] duration-150 active:scale-[0.98] active:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-8 sm:min-h-8 sm:text-[11px] lg:h-7 lg:min-h-7 lg:px-2 lg:text-[10px]",
                       active ? "cmd-on-accent border-primary bg-primary" : control,
                     )}
                   >
-                    {category.label}
+                    <span className="btn-label">{category.label}</span>
                   </button>
                 );
               })}

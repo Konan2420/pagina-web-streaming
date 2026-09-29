@@ -9,6 +9,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { SupplierLayout } from "@/components/supplier/SupplierLayout";
+import { GravitLoader } from "@/components/GravitLoader";
 import { getProviderDashboardStats, getProviderStockAlerts } from "@/lib/supplier.functions";
 
 export const Route = createFileRoute("/_authenticated/proveedor/")({
@@ -85,6 +86,7 @@ function ProviderDashboard() {
           );
         })}
       </div>
+      {isLoading && <GravitLoader label="Cargando panel de proveedor" />}
 
       <section className="mt-6 rounded-2xl border border-primary/20 bg-primary/[0.06] p-5 sm:p-6">
         <div className="flex gap-4">

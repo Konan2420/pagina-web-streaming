@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { OrderCelebrationDialog } from "@/components/OrderCelebrationDialog";
 import { ProductImage } from "@/components/ProductImage";
 import { inviteCatalogOrderClient } from "@/lib/catalog-detail.functions";
@@ -627,8 +628,8 @@ export function ProductModal({
                     </p>
                   </div>
                 ) : isPurchaseContextLoading ? (
-                  <div className="flex min-h-56 items-center justify-center gap-2 text-sm text-white/60">
-                    <Loader2 className="h-4 w-4 animate-spin" /> Cargando opciones de compra…
+                  <div className="flex min-h-56 flex-col items-center justify-center gap-3 text-sm text-white/60">
+                    <GravitLoader label="Cargando opciones de compra" />
                   </div>
                 ) : hasPurchaseContextError || !purchaseContext ? (
                   <div

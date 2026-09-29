@@ -26,14 +26,20 @@ export function ProfileHeader({
     <div className="max-w-6xl mx-auto px-4 sm:px-6 -mt-10 sm:-mt-12 relative z-10">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div className="flex items-end gap-3 sm:gap-4 min-w-0">
-          <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-full overflow-hidden border-4 border-background bg-white/5 text-white font-bold text-lg sm:text-2xl shrink-0">
+          <div
+            className={
+              authed
+                ? "grid h-16 w-16 shrink-0 place-items-center rounded-full border-4 border-background bg-white/5 text-lg font-bold text-white sm:h-24 sm:w-24 sm:text-2xl"
+                : "aspect-[2/1] w-36 shrink-0 sm:w-48"
+            }
+          >
             {authed ? (
               initials || <UserIcon className="w-7 h-7 sm:w-9 sm:h-9 m-auto" />
             ) : (
               <img
                 src="/cmd-logo.png"
                 alt="Avatar de CMD Streaming"
-                className="w-full h-full object-cover"
+                className="h-full w-full object-contain"
               />
             )}
           </div>

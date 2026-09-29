@@ -47,6 +47,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -536,7 +537,7 @@ function InventoryPage() {
             {isLoading ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-white/40">
-                  Cargando inventario...
+                  <GravitLoader label="Cargando inventario" />
                 </TableCell>
               </TableRow>
             ) : filteredInventory?.length === 0 ? (

@@ -22,7 +22,7 @@ export const Route = createFileRoute("/tienda")({
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://cmdstreaming.pe/tienda" },
-      { property: "og:image", content: "https://cmdstreaming.pe/cmd-logo.png" },
+      { property: "og:image", content: "https://cmd-streaming.vercel.app/cmd-logo.png" },
       { property: "og:image:alt", content: "Tienda CMD Streaming" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Tienda CMD Streaming — Cuentas Premium" },
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/tienda")({
         name: "twitter:description",
         content: "Netflix, Disney+, ChatGPT Plus y más con entrega inmediata.",
       },
-      { name: "twitter:image", content: "https://cmdstreaming.pe/cmd-logo.png" },
+      { name: "twitter:image", content: "https://cmd-streaming.vercel.app/cmd-logo.png" },
     ],
     links: [{ rel: "canonical", href: "https://cmdstreaming.pe/tienda" }],
     scripts: [

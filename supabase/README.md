@@ -55,19 +55,31 @@ No coloques el Client secret de Google en `.env.local` del navegador ni en el c�
 
 ## 3. Aplicar y verificar la base de datos
 
+La CLI está instalada como dependencia de desarrollo del proyecto
+(`supabase@2.117.0`). En Windows/PowerShell, si la política de ejecución bloquea
+`npx.ps1`, usa el wrapper de Windows `npx.cmd`:
+
+```powershell
+npx.cmd supabase --version
+npx.cmd supabase migration list
+npx.cmd supabase functions list
+```
+
+No se requiere una instalación global de npm.
+
 Desde la raíz del repositorio ejecuta:
 
 ```powershell
-npx supabase login
-npx supabase link --project-ref TU_PROJECT_REF
-npx supabase db push --dry-run
-npx supabase db push
+npx.cmd supabase login
+npx.cmd supabase link --project-ref TU_PROJECT_REF
+npx.cmd supabase db push --dry-run
+npx.cmd supabase db push
 ```
 
 El comando `--dry-run` debe indicar que las migraciones son válidas antes de aplicar cambios. Después de cada migración, regenera los tipos que consume la aplicación:
 
 ```powershell
-npx supabase gen types typescript --project-id TU_PROJECT_REF --schema public > src/integrations/supabase/types.ts
+npx.cmd supabase gen types typescript --project-id TU_PROJECT_REF --schema public > src/integrations/supabase/types.ts
 ```
 
 ## 4. Primer administrador
@@ -105,12 +117,12 @@ Cierra sesión y vuelve a iniciarla. Las cuentas nuevas reciben `user` y se diri
 ## 5. Diagnóstico remoto
 
 ```powershell
-npx supabase projects list
-npx supabase migration list
-npx supabase db push --dry-run
+npx.cmd supabase projects list
+npx.cmd supabase migration list
+npx.cmd supabase db push --dry-run
 ```
 
-`npx supabase status` solo revisa contenedores Supabase locales; no sirve para confirmar el estado de este proyecto remoto. Si el CLI indica falta de privilegios, ejecuta `npx supabase logout`, vuelve a iniciar sesión con la cuenta propietaria del proyecto y comprueba que `TU_PROJECT_REF` corresponde al proyecto correcto.
+`npx.cmd supabase status` solo revisa contenedores Supabase locales; no sirve para confirmar el estado de este proyecto remoto. Si el CLI indica falta de privilegios, ejecuta `npx.cmd supabase logout`, vuelve a iniciar sesión con la cuenta propietaria del proyecto y comprueba que `TU_PROJECT_REF` corresponde al proyecto correcto.
 
 No subas `.env.local` ni claves privadas al repositorio.
 

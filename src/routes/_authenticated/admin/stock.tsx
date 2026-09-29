@@ -21,6 +21,7 @@ import {
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { GravitLoader } from "@/components/GravitLoader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -376,7 +377,7 @@ function StockManagement() {
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-white/40 italic">
-                    Cargando datos de stock...
+                    <GravitLoader label="Cargando stock" />
                   </td>
                 </tr>
               ) : productStock.length === 0 ? (

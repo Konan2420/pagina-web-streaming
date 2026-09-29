@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Eye, Search, Store, UserRound } from "lucide-react";
 import { getStorefrontTemplate } from "@/components/storefront/storefront-templates";
+import { GravitLoader } from "@/components/GravitLoader";
 
 export type StorefrontSupervisorRow = {
   owner_id: string;
@@ -126,6 +127,7 @@ export function StorefrontSupervisorList({
               <tr>
                 <td colSpan={8} className="px-4 py-12 text-center text-sm text-white/45">
                   Cargando tiendas…
+                  <GravitLoader label="Cargando tiendas" />
                 </td>
               </tr>
             ) : results.length === 0 ? (

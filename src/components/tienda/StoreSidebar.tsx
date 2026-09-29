@@ -77,7 +77,7 @@ function SidebarEmojiIcon({ icon }: { icon: SidebarEmoji }) {
   return (
     <span
       aria-hidden="true"
-      className="inline-flex h-5 w-5 shrink-0 select-none items-center justify-center text-[16px] leading-none sm:h-4 sm:w-4 sm:text-[13px] lg:h-3.5 lg:w-3.5 lg:text-[12px]"
+      className="inline-flex h-5 w-5 shrink-0 select-none items-center justify-center text-[16px] leading-nonesm:h-5 sm:w-5 sm:text-[16px]        "
     >
       {sidebarEmojis[icon]}
     </span>
@@ -153,18 +153,18 @@ export function StoreSidebar({
         )}
         data-collapsed={collapsed ? "true" : "false"}
       >
-        <div className="relative mb-5 flex justify-center px-2 pt-1 sm:mb-3">
+        <div className="relative mb-5 flex justify-center px-1 pt-1 sm:mb-3">
           <Link
             to="/"
             onClick={onClose}
             title="Volver al inicio"
             aria-label="Volver al inicio de CMD Streaming"
-            className="rounded-2xl transition-transform duration-200 hover:scale-[1.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="block aspect-[2/1] w-full max-w-52 transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <img
               src="/cmd-logo.png"
               alt="CMD Streaming"
-              className="h-14 w-14 rounded-2xl object-contain drop-shadow-[0_6px_12px_rgba(59,130,246,0.2)] sm:h-14 sm:w-14 lg:h-11 lg:w-11"
+              className="h-full w-full object-contain drop-shadow-[0_6px_12px_rgba(59,130,246,0.2)]"
             />
           </Link>
           <button
@@ -179,16 +179,16 @@ export function StoreSidebar({
 
         <section
           className={cn(
-            "mb-4 max-h-48 origin-top rounded-lg border border-border bg-background p-3 transition-[max-height,margin,opacity,transform] duration-200 ease-out sm:mb-3 sm:p-2 lg:mb-2 lg:p-1.5",
+            "mb-4 max-h-48 origin-top rounded-lg border border-border bg-background p-3 transition-[max-height,margin,opacity,transform] duration-200 ease-out sm:mb-3 sm:p-2",
             collapsed &&
               "pointer-events-none lg:mb-0 lg:max-h-0 lg:-translate-y-1 lg:overflow-hidden lg:border-transparent lg:p-0 lg:opacity-0",
           )}
         >
-          <div className="flex items-center gap-2 text-[10px] font-semibold text-white/70 sm:gap-1.5 sm:text-[9px] sm:font-medium">
+          <div className="flex items-center gap-2 text-[10px] font-semibold text-white/70 sm:gap-2 sm:text-[12px] sm:font-medium">
             <Wallet className="h-3.5 w-3.5 text-red-accent" aria-hidden="true" />
             Mi Billetera
           </div>
-          <p className="mt-2 text-lg font-black tracking-tight text-white sm:mt-1.5 sm:text-[15px]">
+          <p className="mt-2 text-lg font-black tracking-tight text-white sm:mt-2 sm:text-[22px]">
             {sessionActive ? `S/ ${walletBalance.toFixed(2)}` : "S/ —"}
           </p>
           <p className="text-[9px] text-white/40 sm:text-[8px]">
@@ -197,7 +197,7 @@ export function StoreSidebar({
           <button
             type="button"
             onClick={onOpenWallet}
-            className="cmd-on-accent mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-red-accent text-[10px] font-black transition hover:brightness-110 sm:mt-2 sm:h-7 sm:text-[9px] sm:font-semibold lg:mt-1.5 lg:h-6 lg:text-[8px]"
+            className="cmd-on-accent mt-3 flex h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-red-accent text-[10px] font-black transition hover:brightness-110 sm:mt-2 sm:h-7 sm:text-[9px] sm:font-semibold"
           >
             <Plus className="h-3.5 w-3.5" aria-hidden="true" />
             Recargar saldo
@@ -234,7 +234,7 @@ export function StoreSidebar({
                       href={catalogOnly ? "/catalogo" : "/tienda"}
                       onClick={onClose}
                       className={cn(
-                        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] lg:min-h-6 lg:gap-1.5 lg:px-1.5 lg:text-[10px]",
+                        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colorssm:min-h-10 sm:gap-3 sm:px-3 sm:text-[14px]        ",
                         active
                           ? "cmd-active-subtle"
                           : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -252,7 +252,7 @@ export function StoreSidebar({
                     type="button"
                     onClick={() => selectCategory(category.id)}
                     className={cn(
-                      "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] lg:min-h-6 lg:gap-1.5 lg:px-1.5 lg:text-[10px]",
+                      "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colorssm:min-h-10 sm:gap-3 sm:px-3 sm:text-[14px]        ",
                       active
                         ? "cmd-active-subtle"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -390,7 +390,7 @@ export function StoreSidebar({
                   onClick={onClose}
                   title={collapsed ? "Políticas" : undefined}
                   className={cn(
-                    "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-muted-foreground transition-[background-color,color,gap,padding] duration-200 ease-out hover:bg-muted hover:text-foreground sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] sm:font-medium lg:min-h-6 lg:gap-1.5 lg:px-1.5 lg:text-[10px]",
+                    "flex min-h-10 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-muted-foreground transition-[background-color,color,gap,padding] duration-200 ease-out hover:bg-muted hover:text-foregroundsm:min-h-10 sm:gap-3 sm:px-3 sm:text-[14px]         sm:font-medium",
                     collapsed && "lg:justify-center lg:gap-0 lg:px-0",
                   )}
                 >
@@ -425,7 +425,7 @@ export function StoreSidebar({
               onClick={() => onUnavailable("Vendedor PRO")}
               title={collapsed ? "Vendedor PRO" : undefined}
               className={cn(
-                "cmd-active-subtle mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border px-3 text-left text-xs font-black transition hover:border-primary/60 hover:bg-primary/15 sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] sm:font-semibold lg:min-h-6 lg:gap-1.5 lg:px-1.5 lg:text-[10px]",
+                "cmd-active-subtle mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border px-3 text-left text-xs font-black transition hover:border-primary/60 hover:bg-primary/15sm:min-h-10 sm:gap-3 sm:px-3 sm:text-[14px]         sm:font-semibold",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
@@ -447,7 +447,7 @@ export function StoreSidebar({
               onClick={onSignOut}
               title={collapsed ? "Cerrar sesión" : undefined}
               className={cn(
-                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-destructive/30 px-3 text-left text-xs font-bold text-destructive transition hover:border-destructive hover:bg-destructive/10 sm:min-h-10 lg:min-h-7 lg:gap-1.5 lg:px-1.5 lg:text-[10px]",
+                "mb-2 flex min-h-11 w-full items-center gap-2.5 rounded-lg border border-destructive/30 px-3 text-left text-xs font-bold text-destructive transition hover:border-destructive hover:bg-destructive/10 sm:min-h-10",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
@@ -472,7 +472,7 @@ export function StoreSidebar({
                 else selectPanel("perfil");
               }}
               className={cn(
-                "flex min-h-11 w-full items-center gap-2 rounded-lg border border-transparent p-1.5 text-left transition hover:border-border hover:bg-muted/60 lg:min-h-8 lg:gap-1.5 lg:p-1",
+                "flex min-h-11 w-full items-center gap-2 rounded-lg border border-transparent p-1.5 text-left transition hover:border-border hover:bg-muted/60",
                 collapsed && "lg:justify-center lg:gap-0 lg:px-0",
               )}
             >
@@ -495,7 +495,7 @@ export function StoreSidebar({
                 <span className="block truncate text-[10px] font-bold text-foreground">
                   {profileName}
                 </span>
-                <span className="block text-[9px] text-muted-foreground">
+                <span className="block  text-[11px] text-muted-foreground">
                   {sessionActive ? accountRoleLabel : "Inicia sesión"}
                 </span>
               </span>
@@ -555,7 +555,7 @@ function SidebarSubItem({
   onClick?: () => void;
 }) {
   const className = cn(
-    "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colors sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] lg:min-h-6 lg:gap-1.5 lg:px-1.5 lg:text-[10px]",
+    "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-[12px] font-medium transition-colorssm:min-h-10 sm:gap-3 sm:px-3 sm:text-[14px]        ",
     disabled
       ? "cursor-not-allowed text-white/30"
       : active
@@ -612,7 +612,7 @@ function SidebarButton({
       title={collapsed ? label : undefined}
       aria-expanded={expanded}
       className={cn(
-        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-out sm:min-h-7 sm:gap-2 sm:px-2 sm:text-[11px] sm:font-medium lg:min-h-6 lg:gap-1.5 lg:px-1.5 lg:text-[10px]",
+        "flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold transition-[background-color,color,gap,padding] duration-200 ease-outsm:min-h-10 sm:gap-3 sm:px-3 sm:text-[14px]         sm:font-medium",
         collapsed && "lg:justify-center lg:gap-0 lg:px-0",
         active ? "cmd-active-subtle" : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
