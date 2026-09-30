@@ -661,6 +661,12 @@
 }
 
 /* CMD Premium Electric: capas decorativas sin dimensiones propias ni cambios de layout. */
+@property --cmd-premium-electric-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 .cmd-premium-svg-filters {
   position: absolute;
   width: 0;
@@ -706,10 +712,32 @@
 
 .cmd-premium-electric__border {
   z-index: 2;
-  border: 1px solid var(--cmd-premium-electric);
-  opacity: 0.86;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--cmd-premium-electric-angle),
+    transparent 0deg 22deg,
+    color-mix(in srgb, var(--cmd-premium-electric-secondary) 70%, transparent) 30deg,
+    var(--cmd-premium-electric-light) 42deg,
+    var(--cmd-premium-electric) 54deg,
+    transparent 68deg 178deg,
+    color-mix(in srgb, var(--cmd-premium-electric) 78%, transparent) 192deg,
+    var(--cmd-premium-electric-light) 208deg,
+    transparent 224deg 320deg,
+    var(--cmd-premium-electric-secondary) 336deg,
+    transparent 352deg 360deg
+  );
+  opacity: 0.95;
   filter: url(#cmd-premium-electric-displace)
     drop-shadow(0 0 4px color-mix(in srgb, var(--cmd-premium-electric-secondary) 62%, transparent));
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: cmd-premium-electric-flow 2.8s linear infinite;
   transition:
     opacity 200ms ease,
     filter 200ms ease;
@@ -720,6 +748,7 @@
   border: 1px solid color-mix(in srgb, var(--cmd-premium-electric) 55%, transparent);
   opacity: 0.55;
   filter: blur(2px);
+  animation: cmd-premium-electric-pulse 2.8s ease-in-out infinite;
 }
 
 .cmd-premium-electric__glow--strong {
@@ -738,6 +767,22 @@
   );
   opacity: 0.34;
   filter: blur(12px);
+}
+
+@keyframes cmd-premium-electric-flow {
+  to {
+    --cmd-premium-electric-angle: 360deg;
+  }
+}
+
+@keyframes cmd-premium-electric-pulse {
+  0%,
+  100% {
+    opacity: 0.42;
+  }
+  50% {
+    opacity: 0.72;
+  }
 }
 
 .cmd-premium-electric
@@ -773,9 +818,15 @@
   .cmd-premium-electric__glow,
   .cmd-premium-electric__ambient {
     transition: none;
+    animation: none;
   }
 
   .cmd-premium-electric__border {
+    padding: 0;
+    background: none;
+    border: 1px solid var(--cmd-premium-electric);
+    -webkit-mask: none;
+    mask: none;
     filter: drop-shadow(
       0 0 4px color-mix(in srgb, var(--cmd-premium-electric-secondary) 52%, transparent)
     );
