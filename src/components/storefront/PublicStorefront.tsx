@@ -39,7 +39,8 @@ import { FaTiktok, FaXTwitter } from "react-icons/fa6";
 import { getStorefrontTemplate } from "@/components/storefront/storefront-templates";
 import { AvatarFrame, type AvatarFrameKey } from "@/components/storefront/AvatarFrame";
 import { countryFlag, countryLabel } from "@/components/tienda/productMetadata";
-import { getCardEffectClass } from "@/components/tienda/card-effects";
+import { getPremiumCardClasses } from "@/components/tienda/premium-card-effects";
+import { PremiumElectricLayers } from "@/components/tienda/PremiumElectricLayers";
 
 type PublicStoreProduct = {
   id: string;
@@ -59,7 +60,8 @@ type PublicStoreProduct = {
   deliveryType: "manual" | "completa" | "perfil" | null;
   scopeType: "global" | "pais_especifico" | null;
   scopeCountry: string | null;
-  cardEffect: string | null;
+  isPremium: boolean;
+  premiumStyle: string | null;
 };
 type PublicStore = {
   settings: {
@@ -417,8 +419,11 @@ export function PublicStorefront({ slug }: { slug: string }) {
               return (
                 <article
                   key={product.id}
-                  className={`group flex min-h-[23rem] flex-col overflow-hidden rounded-xl border border-white/10 bg-card transition duration-200 hover:-translate-y-1 hover:border-primary/60 hover:shadow-xl hover:shadow-black/25 ${getCardEffectClass(product.cardEffect)}`}
+                  className={`group flex min-h-[23rem] flex-col overflow-hidden rounded-xl border border-white/10 bg-card transition duration-200 hover:-translate-y-1 hover:border-primary/60 hover:shadow-xl hover:shadow-black/25 ${getPremiumCardClasses(product.isPremium, product.premiumStyle)}`}
                 >
+                  {getPremiumCardClasses(product.isPremium, product.premiumStyle) && (
+                    <PremiumElectricLayers />
+                  )}
                   <div className="relative aspect-square overflow-hidden bg-background">
                     <ProductImage
                       src={product.imageUrl}

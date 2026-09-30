@@ -69,6 +69,7 @@ function ProductsManagement() {
   const [markupPercent, setMarkupPercent] = useState("20");
   const [penPerUsd, setPenPerUsd] = useState("3.70");
   const [savingPricing, setSavingPricing] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
 
   const queryClient = useQueryClient();
   const upsertMutation = useServerFn(upsertProduct);
@@ -141,7 +142,8 @@ function ProductsManagement() {
       id: editingProduct?.id,
       name: formData.get("name") as string,
       price: Number(formData.get("price")),
-      card_effect: (formData.get("card_effect") as "none" | "electric") || "none",
+      is_premium: isPremium,
+      premium_style: (formData.get("premium_style") as "purple" | "blue" | "gold") || "purple",
       description: formData.get("description") as string,
       category: formData.get("category") as string,
       service_id: (formData.get("service_id") as string) || null,
@@ -179,6 +181,7 @@ function ProductsManagement() {
       setEditingProduct(null);
       setImagePreview(null);
       setSelectedIconId(null);
+      setIsPremium(false);
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
     } catch (err) {
       toast.error("Error: " + (err instanceof Error ? err.message : "Desconocido"));
@@ -189,6 +192,7 @@ function ProductsManagement() {
     setEditingProduct(product);
     setImagePreview(product?.image_url || null);
     setSelectedIconId(product?.icon_id || null);
+    setIsPremium(Boolean(product?.is_premium));
     setIsModalOpen(true);
   };
 
@@ -571,29 +575,52 @@ function ProductsManagement() {
                   </select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label
-                    htmlFor="card_effect"
-                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
-                  >
-                    Efecto visual
-                  </label>
-                  <select
-                    id="card_effect"
-                    name="card_effect"
-                    defaultValue={editingProduct?.card_effect ?? "none"}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  >
-                    <option value="none" className="bg-[#121212]">
-                      Sin efecto
-                    </option>
-                    <option value="electric" className="bg-[#121212]">
-                      Electricidad
-                    </option>
-                  </select>
+                <div className="space-y-2 sm:col-span-2 rounded-xl border border-white/10 bg-white/[0.03] p-4">
+                  <div className="flex items-center gap-3">
+                    <input
+                      id="is_premium"
+                      name="is_premium"
+                      type="checkbox"
+                      checked={isPremium}
+                      onChange={(event) => setIsPremium(event.target.checked)}
+                      className="h-4 w-4 rounded border-white/20 bg-white/5 text-primary focus:ring-primary/50"
+                    />
+                    <label
+                      htmlFor="is_premium"
+                      className="text-xs font-bold uppercase tracking-widest text-white/70"
+                    >
+                      Catálogo Premium
+                    </label>
+                  </div>
                   <p className="text-[10px] leading-relaxed text-white/35">
-                    Se aplica únicamente a esta tarjeta del catálogo.
+                    Activa CMD Premium Electric para esta tarjeta sin cambiar su tamaño ni su
+                    contenido.
                   </p>
+                  <div className="space-y-1.5">
+                    <label
+                      htmlFor="premium_style"
+                      className="text-xs font-bold uppercase tracking-widest text-white/40"
+                    >
+                      Estilo Premium
+                    </label>
+                    <select
+                      id="premium_style"
+                      name="premium_style"
+                      defaultValue={editingProduct?.premium_style ?? "purple"}
+                      disabled={!isPremium}
+                      className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <option value="purple" className="bg-[#121212]">
+                        Electric Purple
+                      </option>
+                      <option value="blue" className="bg-[#121212]">
+                        Electric Blue
+                      </option>
+                      <option value="gold" className="bg-[#121212]">
+                        Electric Gold
+                      </option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="space-y-1.5">

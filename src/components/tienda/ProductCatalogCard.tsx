@@ -25,7 +25,8 @@ import { PlatformIconMark } from "@/lib/platformIcons";
 import { ProductImage } from "@/components/ProductImage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMinuteTick } from "@/hooks/useMinuteTick";
-import { getCardEffectClass } from "./card-effects";
+import { getPremiumCardClasses } from "./premium-card-effects";
+import { PremiumElectricLayers } from "./PremiumElectricLayers";
 
 type ProductCatalogCardProps = {
   product: Product & {
@@ -38,7 +39,8 @@ type ProductCatalogCardProps = {
     scopeCountry?: string | null;
     publisherName?: string | null;
     isPublisherVerified?: boolean;
-    cardEffect?: string | null;
+    isPremium?: boolean;
+    premiumStyle?: string | null;
   };
   stock: ProductStock;
   lastSaleAt?: string | null;
@@ -111,6 +113,7 @@ export function ProductCatalogCard({
   );
 
   const sellerName = product.publisherName?.trim() || "CMD Streaming";
+  const premiumCardClasses = getPremiumCardClasses(product.isPremium, product.premiumStyle);
   const accountType = product.accountType ?? null;
   const accessScope = product.accessScope ?? null;
   const deliveryType = product.deliveryType ?? accountType ?? null;
@@ -144,8 +147,9 @@ export function ProductCatalogCard({
 
   return (
     <article
-      className={`product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[24rem] sm:flex-col ${getCardEffectClass(product.cardEffect)}`}
+      className={`product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[24rem] sm:flex-col ${premiumCardClasses}`}
     >
+      {premiumCardClasses && <PremiumElectricLayers />}
       <div className="relative aspect-square w-[48%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg">
         <ProductImage
           src={product.image}

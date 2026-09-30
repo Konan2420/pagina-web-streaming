@@ -667,7 +667,7 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
         ? supabaseAdmin
             .from("products")
             .select(
-              "id, name, description, image_url, category, duration_days, is_renewable, publisher_name, delivery_type, scope_type, scope_country, card_effect",
+              "id, name, description, image_url, category, duration_days, is_renewable, publisher_name, delivery_type, scope_type, scope_country, is_premium, premium_style",
             )
             .in("id", masterIds)
         : Promise.resolve({ data: [], error: null }),
@@ -726,7 +726,8 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
           deliveryType: "delivery_type" in source ? source.delivery_type : null,
           scopeType: "scope_type" in source ? source.scope_type : null,
           scopeCountry: "scope_country" in source ? source.scope_country : null,
-          cardEffect: "card_effect" in source ? source.card_effect : "none",
+          isPremium: "is_premium" in source ? source.is_premium === true : false,
+          premiumStyle: "premium_style" in source ? source.premium_style : "purple",
           stockCount: "image_url" in source ? (inventoryByProduct.get(source.id) ?? 0) : null,
           salePricePen: override.sale_price_pen,
           promoPricePen: override.promo_price_pen,

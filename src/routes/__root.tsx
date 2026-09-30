@@ -15,6 +15,7 @@ import { ConsentBanner } from "@/components/ConsentBanner";
 import { GlobalLoadingBar } from "@/components/ui/loading-states";
 import { configurePublicSupabase, type PublicSupabaseConfig } from "@/integrations/supabase/client";
 import { AppChromeProvider } from "@/components/layout/AppChromeProvider";
+import { PremiumElectricFilters } from "@/components/tienda/PremiumElectricFilters";
 
 /**
  * The browser needs only these two public values for Supabase Auth and RLS.
@@ -183,6 +184,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AppChromeProvider>
+        <PremiumElectricFilters />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <GlobalLoadingBar />
         <Outlet />

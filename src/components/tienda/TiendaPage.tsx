@@ -256,16 +256,9 @@ const EMPTY_STOCK_LEVELS: Record<string, number> = {};
  * esta lista existe solo para poder leer un catálogo de una base un paso por detrás.
  */
 const CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION =
-  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, card_effect, created_at, service_id";
+  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, is_premium, premium_style, created_at, service_id";
 const CATALOG_PRODUCT_COLUMNS_LEGACY =
-  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, card_effect, created_at, service_id";
-const CATALOG_PRODUCT_COLUMNS_WITHOUT_CARD_EFFECT =
-  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, created_at, service_id";
-const CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION_AND_CARD_EFFECT =
-  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, created_at, service_id";
-const CATALOG_PRODUCT_COLUMNS_LEGACY_WITHOUT_CARD_EFFECT =
-  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, created_at, service_id";
-
+  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, is_premium, premium_style, created_at, service_id";
 /**
  * PostgREST rechaza la consulta **completa** si una de las columnas pedidas no
  * existe en la base (Postgres 42703), así que hay que saber distinguir ese fallo
@@ -1002,7 +995,7 @@ export function TiendaPage({
           supabase
             .from("products")
             .select(
-              "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, card_effect, created_at, service_id",
+              "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, is_premium, premium_style, created_at, service_id",
             )
             .eq("is_active", true)
             .order("created_at", { ascending: false }),
@@ -1018,18 +1011,17 @@ export function TiendaPage({
         isMissingColumn(error, column),
       );
       const missingVerification = isMissingColumn(error, "publisher_is_verified");
-      const missingCardEffect = isMissingColumn(error, "card_effect");
-      if (!missingVerification && !missingNewMetadata && !missingCardEffect) throw error;
+      const missingPremium = ["is_premium", "premium_style"].some((column) =>
+        isMissingColumn(error, column),
+      );
+      if (missingPremium) {
+        throw new Error("El cat?logo Premium requiere la migraci?n de productos actualizada.");
+      }
+      if (!missingVerification && !missingNewMetadata) throw error;
 
       const fallbackColumns = missingNewMetadata
-        ? missingCardEffect
-          ? CATALOG_PRODUCT_COLUMNS_LEGACY_WITHOUT_CARD_EFFECT
-          : CATALOG_PRODUCT_COLUMNS_LEGACY
-        : missingVerification && missingCardEffect
-          ? CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION_AND_CARD_EFFECT
-          : missingCardEffect
-            ? CATALOG_PRODUCT_COLUMNS_WITHOUT_CARD_EFFECT
-            : CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION;
+        ? CATALOG_PRODUCT_COLUMNS_LEGACY
+        : CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION;
 
       const fallback = await withRequestTimeout(
         Promise.resolve(
@@ -1144,7 +1136,8 @@ export function TiendaPage({
       scopeCountry: p.scope_country ?? null,
       publisherName: p.publisher_name?.trim() || null,
       isPublisherVerified: p.publisher_is_verified === true,
-      cardEffect: p.card_effect ?? "none",
+      isPremium: p.is_premium === true,
+      premiumStyle: "premium_style" in p ? p.premium_style : "purple",
       createdAt: p.created_at,
     }));
   }, [dbProducts]);

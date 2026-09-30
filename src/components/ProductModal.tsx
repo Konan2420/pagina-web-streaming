@@ -49,7 +49,8 @@ export type ProductDetail = {
   scopeType?: ScopeType | null;
   scopeCountry?: string | null;
   /** Efecto visual de la tarjeta; lo consume el catálogo, no la ficha. */
-  cardEffect?: string | null;
+  isPremium?: boolean;
+  premiumStyle?: string | null;
 };
 
 type ProductModalProps = {
