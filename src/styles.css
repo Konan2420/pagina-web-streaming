@@ -660,6 +660,79 @@
     transform 200ms ease;
 }
 
+/* Efecto CMD reutilizable: no define dimensiones ni altera el flujo del contenido. */
+.cmd-card-effect {
+  position: relative;
+  isolation: isolate;
+  transition: box-shadow 200ms ease;
+}
+
+.cmd-card-effect::before,
+.cmd-card-effect::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Borde degradado con el azul de marca y su variante clara. */
+.cmd-card-effect::before {
+  padding: 1px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-hover));
+  opacity: 0.52;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  transition: opacity 200ms ease;
+}
+
+/* Reflejo azul muy tenue dentro del fondo de la tarjeta. */
+.cmd-card-effect::after {
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--brand) 12%, transparent),
+    transparent 66%
+  );
+  opacity: 0.45;
+  transition: opacity 200ms ease;
+}
+
+.cmd-card-effect > * {
+  position: relative;
+  z-index: 1;
+}
+
+.cmd-card-effect::before {
+  z-index: 2;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cmd-card-effect:hover {
+    box-shadow:
+      0 12px 34px color-mix(in srgb, var(--brand) 20%, transparent),
+      0 0 18px color-mix(in srgb, var(--brand-hover) 18%, transparent);
+  }
+
+  .cmd-card-effect:hover::before {
+    opacity: 0.95;
+  }
+
+  .cmd-card-effect:hover::after {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmd-card-effect,
+  .cmd-card-effect::before,
+  .cmd-card-effect::after {
+    transition: none;
+  }
+}
+
 @media (min-width: 640px) {
   .catalog-platform-grid {
     grid-template-columns: repeat(auto-fill, 2.25rem);
@@ -680,7 +753,9 @@
   .catalog-product-card:hover {
     transform: translateY(-4px);
     border-color: color-mix(in srgb, var(--red-accent) 72%, transparent);
-    box-shadow: 0 16px 34px rgb(0 0 0 / 38%);
+    box-shadow:
+      0 12px 34px color-mix(in srgb, var(--brand) 20%, transparent),
+      0 0 18px color-mix(in srgb, var(--brand-hover) 18%, transparent);
   }
 
   .catalog-product-card:hover .catalog-product-title {

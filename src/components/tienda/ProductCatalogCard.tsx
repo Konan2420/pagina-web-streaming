@@ -133,7 +133,7 @@ export function ProductCatalogCard({
   };
 
   return (
-    <article className="product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card  sm:min-h-[24rem] sm:flex-col">
+    <article className="product-card catalog-product-card cmd-card-effect group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card  sm:min-h-[24rem] sm:flex-col">
       <div className="relative aspect-square w-[48%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg">
         <ProductImage
           src={product.image}
