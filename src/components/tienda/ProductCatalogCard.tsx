@@ -12,12 +12,20 @@ import {
   UserRound,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { AccountType, AccessScope, DeliveryType, Product, ProductStock, ScopeType } from "./data";
+import type {
+  AccountType,
+  AccessScope,
+  DeliveryType,
+  Product,
+  ProductStock,
+  ScopeType,
+} from "./data";
 import { countryFlag, countryLabel } from "./data";
 import { PlatformIconMark } from "@/lib/platformIcons";
 import { ProductImage } from "@/components/ProductImage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMinuteTick } from "@/hooks/useMinuteTick";
+import { getCardEffectClass } from "./card-effects";
 
 type ProductCatalogCardProps = {
   product: Product & {
@@ -30,6 +38,7 @@ type ProductCatalogCardProps = {
     scopeCountry?: string | null;
     publisherName?: string | null;
     isPublisherVerified?: boolean;
+    cardEffect?: string | null;
   };
   stock: ProductStock;
   lastSaleAt?: string | null;
@@ -104,8 +113,9 @@ export function ProductCatalogCard({
   const sellerName = product.publisherName?.trim() || "CMD Streaming";
   const accountType = product.accountType ?? null;
   const accessScope = product.accessScope ?? null;
-  const deliveryType = product.deliveryType ?? (accountType ?? null);
-  const scopeType = product.scopeType ?? (accessScope === "regional" ? "pais_especifico" : accessScope);
+  const deliveryType = product.deliveryType ?? accountType ?? null;
+  const scopeType =
+    product.scopeType ?? (accessScope === "regional" ? "pais_especifico" : accessScope);
   const scopeCountry = product.scopeCountry ?? null;
   const isOutOfService = stock.status === "out-of-service";
   const isOutOfStock = stock.status === "out-of-stock";
@@ -133,7 +143,9 @@ export function ProductCatalogCard({
   };
 
   return (
-    <article className="product-card catalog-product-card cmd-card-effect group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card  sm:min-h-[24rem] sm:flex-col">
+    <article
+      className={`product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[24rem] sm:flex-col ${getCardEffectClass(product.cardEffect)}`}
+    >
       <div className="relative aspect-square w-[48%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg">
         <ProductImage
           src={product.image}
@@ -285,13 +297,19 @@ export function ProductCatalogCard({
               ) : (
                 <Layers className="h-4 w-4 text- white/70" aria-hidden="true" />
               )}
-              {deliveryType === "manual" ? "Manual" : deliveryType === "perfil" ? "Perfil" : "Completa"}
+              {deliveryType === "manual"
+                ? "Manual"
+                : deliveryType === "perfil"
+                  ? "Perfil"
+                  : "Completa"}
             </span>
           )}
           {scopeType && (
             <span className="inline-flex items-center gap-1 rounded-md border border-white/12 bg-white/[0.055] px-2 py-1 leading-nonesm:px-2 sm:py-1">
               <Globe2 className="h-4 w-4 text- sky-300" aria-hidden="true" />
-              {scopeType === "global" ? "Global" : `${countryFlag(scopeCountry)} ${countryLabel(scopeCountry)}`}
+              {scopeType === "global"
+                ? "Global"
+                : `${countryFlag(scopeCountry)} ${countryLabel(scopeCountry)}`}
             </span>
           )}
         </div>

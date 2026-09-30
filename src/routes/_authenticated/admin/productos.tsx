@@ -141,6 +141,7 @@ function ProductsManagement() {
       id: editingProduct?.id,
       name: formData.get("name") as string,
       price: Number(formData.get("price")),
+      card_effect: (formData.get("card_effect") as "none" | "electric") || "none",
       description: formData.get("description") as string,
       category: formData.get("category") as string,
       service_id: (formData.get("service_id") as string) || null,
@@ -153,7 +154,8 @@ function ProductsManagement() {
       // que la tarjeta del catálogo no afirme lo que el vendedor no eligió.
       account_type: editingProduct?.account_type ?? null,
       access_scope: editingProduct?.access_scope ?? null,
-      delivery_type: (formData.get("delivery_type") as "manual" | "completa" | "perfil" | null) || null,
+      delivery_type:
+        (formData.get("delivery_type") as "manual" | "completa" | "perfil" | null) || null,
       scope_type: (formData.get("scope_type") as "global" | "pais_especifico" | null) || null,
       scope_country:
         formData.get("scope_type") === "pais_especifico"
@@ -570,6 +572,31 @@ function ProductsManagement() {
                 </div>
 
                 <div className="space-y-1.5">
+                  <label
+                    htmlFor="card_effect"
+                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
+                  >
+                    Efecto visual
+                  </label>
+                  <select
+                    id="card_effect"
+                    name="card_effect"
+                    defaultValue={editingProduct?.card_effect ?? "none"}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
+                    <option value="none" className="bg-[#121212]">
+                      Sin efecto
+                    </option>
+                    <option value="electric" className="bg-[#121212]">
+                      Electricidad
+                    </option>
+                  </select>
+                  <p className="text-[10px] leading-relaxed text-white/35">
+                    Se aplica únicamente a esta tarjeta del catálogo.
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
                   <label className="text-xs font-bold text-white/40 uppercase tracking-widest">
                     Tipo de entrega
                   </label>
@@ -732,8 +759,18 @@ function ProductsManagement() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="delivery_type" className="text-xs font-bold text-white/40 uppercase tracking-widest">Entrega declarada</label>
-                  <select id="delivery_type" name="delivery_type" defaultValue={editingProduct?.delivery_type ?? ""} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                  <label
+                    htmlFor="delivery_type"
+                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
+                  >
+                    Entrega declarada
+                  </label>
+                  <select
+                    id="delivery_type"
+                    name="delivery_type"
+                    defaultValue={editingProduct?.delivery_type ?? ""}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
                     <option value="">Sin declarar</option>
                     <option value="manual">Manual</option>
                     <option value="completa">Cuenta completa</option>
@@ -741,18 +778,42 @@ function ProductsManagement() {
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label htmlFor="scope_type" className="text-xs font-bold text-white/40 uppercase tracking-widest">Alcance nuevo</label>
-                  <select id="scope_type" name="scope_type" defaultValue={editingProduct?.scope_type ?? ""} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                  <label
+                    htmlFor="scope_type"
+                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
+                  >
+                    Alcance nuevo
+                  </label>
+                  <select
+                    id="scope_type"
+                    name="scope_type"
+                    defaultValue={editingProduct?.scope_type ?? ""}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
                     <option value="">Sin declarar</option>
                     <option value="global">Global</option>
                     <option value="pais_especifico">País específico</option>
                   </select>
                 </div>
                 <div className="space-y-1.5">
-                  <label htmlFor="scope_country" className="text-xs font-bold text-white/40 uppercase tracking-widest">País (si aplica)</label>
-                  <select id="scope_country" name="scope_country" defaultValue={editingProduct?.scope_country ?? ""} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50">
+                  <label
+                    htmlFor="scope_country"
+                    className="text-xs font-bold text-white/40 uppercase tracking-widest"
+                  >
+                    País (si aplica)
+                  </label>
+                  <select
+                    id="scope_country"
+                    name="scope_country"
+                    defaultValue={editingProduct?.scope_country ?? ""}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  >
                     <option value="">Sin país</option>
-                    {COUNTRY_OPTIONS.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+                    {COUNTRY_OPTIONS.map(([code, label]) => (
+                      <option key={code} value={code}>
+                        {label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

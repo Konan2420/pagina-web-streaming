@@ -434,6 +434,7 @@ export const upsertProduct = createServerFn({ method: "POST" })
         name: z.string().min(1, "El nombre es obligatorio"),
         description: z.string().optional(),
         price: z.number().min(0, "El precio debe ser mayor o igual a 0"),
+        card_effect: z.enum(["none", "electric"]).default("none"),
         icon_id: z.string().trim().min(1).nullable().optional(),
         image_url: z.string().optional(),
         category: z.string().optional(),
@@ -463,10 +464,18 @@ export const upsertProduct = createServerFn({ method: "POST" })
       })
       .superRefine((value, ctx) => {
         if (value.scope_type === "pais_especifico" && !value.scope_country) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scope_country"], message: "Selecciona un país." });
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["scope_country"],
+            message: "Selecciona un país.",
+          });
         }
         if (value.scope_type !== "pais_especifico" && value.scope_country) {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scope_country"], message: "El país solo aplica al alcance específico." });
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["scope_country"],
+            message: "El país solo aplica al alcance específico.",
+          });
         }
       })
       .parse(d),

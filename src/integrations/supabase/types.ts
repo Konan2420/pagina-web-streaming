@@ -812,6 +812,7 @@ export type Database = {
       products: {
         Row: {
           category: string | null;
+          card_effect: string;
           account_type: string | null;
           access_scope: string | null;
           delivery_type: string | null;
@@ -840,6 +841,7 @@ export type Database = {
         };
         Insert: {
           category?: string | null;
+          card_effect?: string;
           account_type?: string | null;
           access_scope?: string | null;
           delivery_type?: string | null;
@@ -868,6 +870,7 @@ export type Database = {
         };
         Update: {
           category?: string | null;
+          card_effect?: string;
           account_type?: string | null;
           access_scope?: string | null;
           delivery_type?: string | null;

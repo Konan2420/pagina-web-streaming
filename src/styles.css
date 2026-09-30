@@ -733,6 +733,85 @@
   }
 }
 
+/* Electricidad configurable por tarjeta. El conic-gradient gira dentro de la
+ * máscara del borde: no añade nodos, no cambia el tamaño de la tarjeta y las
+ * capas siguen siendo transparentes para el puntero. */
+.cmd-effect-electric {
+  position: relative;
+  isolation: isolate;
+}
+
+.cmd-effect-electric::before,
+.cmd-effect-electric::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.cmd-effect-electric::before {
+  z-index: 2;
+  padding: 1px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 24deg,
+    var(--brand-hover) 38deg,
+    var(--brand) 52deg,
+    transparent 76deg 138deg,
+    color-mix(in srgb, var(--brand-hover) 84%, transparent) 154deg,
+    transparent 178deg 270deg,
+    var(--brand) 294deg,
+    transparent 320deg 360deg
+  );
+  opacity: 0.82;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--brand-hover) 62%, transparent));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: cmd-electric-border 3.2s linear infinite;
+}
+
+.cmd-effect-electric::after {
+  z-index: 0;
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    color-mix(in srgb, var(--brand) 16%, transparent),
+    transparent 68%
+  );
+  opacity: 0.34;
+}
+
+.cmd-effect-electric > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes cmd-electric-border {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cmd-effect-electric:hover::before {
+    opacity: 1;
+    filter: drop-shadow(0 0 7px color-mix(in srgb, var(--brand-hover) 78%, transparent));
+  }
+
+  .cmd-effect-electric:hover::after {
+    opacity: 0.62;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmd-effect-electric::before {
+    animation: none;
+    opacity: 0.76;
+  }
+}
+
 @media (min-width: 640px) {
   .catalog-platform-grid {
     grid-template-columns: repeat(auto-fill, 2.25rem);
