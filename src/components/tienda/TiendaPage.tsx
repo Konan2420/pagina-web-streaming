@@ -78,6 +78,7 @@ import {
 } from "@/lib/request-timeout";
 import { QueryErrorState } from "@/components/ui/loading-states";
 import { GravitLoader } from "@/components/GravitLoader";
+import { ChampionsRanking } from "@/components/tienda/ChampionsRanking";
 import { FestiveEventBanner } from "@/components/tienda/FestiveEventBanner";
 import { FestiveSurpriseBox } from "@/components/tienda/FestiveSurpriseBox";
 
@@ -1838,6 +1839,8 @@ export function TiendaPage({
             </div>
           </section>
         )}
+
+        {panel === "tienda" && activeCat === "todo" && !catalogOnly && <ChampionsRanking />}
 
         {panel === "compras" && (
           <PurchasesPanel
