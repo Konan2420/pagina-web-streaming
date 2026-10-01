@@ -1666,6 +1666,8 @@ export function TiendaPage({
           </div>
         )}
 
+        {panel === "tienda" && !catalogOnly && activeCat !== "redes" && <ChampionsRanking />}
+
         {panel === "tienda" && activeCat !== "redes" && (
           <section id="catalogo" className="relative z-10 mt-4 pb-24">
             <div className="max-w-[1600px] mx-auto px-4">
@@ -1839,8 +1841,6 @@ export function TiendaPage({
             </div>
           </section>
         )}
-
-        {panel === "tienda" && activeCat === "todo" && !catalogOnly && <ChampionsRanking />}
 
         {panel === "compras" && (
           <PurchasesPanel
