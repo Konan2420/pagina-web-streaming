@@ -628,6 +628,283 @@
     animation: none;
   }
 }
+
+/* Spotlight that introduces the ranking before the catalog. */
+.cmd-champions-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(15rem, 0.85fr);
+  align-items: center;
+  gap: 1rem;
+  max-width: 1600px;
+  min-height: 14rem;
+  margin: 1.5rem auto 0;
+  padding: clamp(1.2rem, 3vw, 2.4rem) clamp(1.1rem, 4vw, 3.5rem);
+  overflow: hidden;
+  border: 1px solid rgba(255, 215, 0, 0.56);
+  border-radius: 1.25rem;
+  color: #f8fafc;
+  background:
+    radial-gradient(circle at 76% 45%, rgba(255, 215, 0, 0.17), transparent 13rem),
+    linear-gradient(105deg, #080d18, #121827 62%, #0b0e17);
+  box-shadow:
+    0 1.2rem 3.5rem rgba(0, 0, 0, 0.28),
+    inset 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.cmd-champions-hero::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(
+    115deg,
+    transparent 15%,
+    rgba(255, 215, 0, 0.08) 48%,
+    transparent 80%
+  );
+  transform: translateX(-100%);
+  animation: cmd-champions-hero-sheen 7s ease-in-out infinite;
+}
+
+.cmd-champions-hero__copy {
+  position: relative;
+  z-index: 2;
+}
+.cmd-champions-hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #f5b942;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.cmd-champions-hero__eyebrow svg {
+  width: 1rem;
+}
+.cmd-champions-hero h2 {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display, Impact, sans-serif);
+  font-size: clamp(2.3rem, 6vw, 5.6rem);
+  line-height: 0.9;
+  letter-spacing: 0.03em;
+  text-shadow: 0 0 1.4rem rgba(255, 215, 0, 0.25);
+}
+.cmd-champions-hero h2 span {
+  color: #ffd700;
+}
+.cmd-champions-hero p {
+  margin: 0.7rem 0 1rem;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+}
+.cmd-champions-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid rgba(255, 215, 0, 0.75);
+  border-radius: 999px;
+  color: #1a1303;
+  background: linear-gradient(110deg, #f5b942, #ffd700);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: 0 0 1.4rem rgba(255, 215, 0, 0.3);
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+.cmd-champions-hero__cta svg {
+  width: 0.9rem;
+}
+.cmd-champions-hero__cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 2rem rgba(255, 215, 0, 0.5);
+}
+.cmd-champions-hero__trophy {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 11rem;
+}
+.cmd-champions-hero__wings {
+  position: absolute;
+  width: min(33rem, 155%);
+  height: auto;
+  fill: rgba(255, 215, 0, 0.17);
+  filter: drop-shadow(0 0 0.8rem rgba(255, 215, 0, 0.45));
+}
+.cmd-champions-hero__wing-line {
+  fill: none;
+  stroke: rgba(255, 228, 130, 0.78);
+  stroke-linecap: round;
+  stroke-width: 2;
+}
+.cmd-champions-hero__crown {
+  position: absolute;
+  top: 0.4rem;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 3.2rem;
+  height: 2.2rem;
+  color: #fff2a6;
+  filter: drop-shadow(0 0 0.8rem #ffd700);
+  transform: rotate(-4deg);
+}
+.cmd-champions-hero__crown svg {
+  width: 3rem;
+  height: 3rem;
+  fill: #ffd700;
+}
+.cmd-champions-hero__trophy-orb {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: clamp(5.3rem, 10vw, 7rem);
+  height: clamp(5.3rem, 10vw, 7rem);
+  border: 2px solid #ffd700;
+  border-radius: 50%;
+  color: #ffd700;
+  background: radial-gradient(circle at 35% 28%, #fff6b0, #be770b 34%, #321c04 72%);
+  box-shadow:
+    0 0 1.5rem rgba(255, 215, 0, 0.75),
+    inset 0 0 1.3rem rgba(255, 244, 180, 0.72);
+  animation: cmd-champions-trophy-pulse 2.4s ease-in-out infinite;
+}
+.cmd-champions-hero__trophy-orb svg {
+  width: 3.1rem;
+  height: 3.1rem;
+  stroke-width: 1.6;
+}
+.cmd-champions-hero__hint {
+  position: absolute;
+  right: 1.3rem;
+  bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.43);
+  font-size: 0.59rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cmd-champions-hero__hint i {
+  display: block;
+  width: 2rem;
+  height: 1px;
+  background: rgba(255, 215, 0, 0.62);
+}
+.cmd-champions-hero__particles span {
+  position: absolute;
+  width: 0.2rem;
+  height: 0.2rem;
+  border-radius: 50%;
+  background: #ffd700;
+  box-shadow: 0 0 0.7rem #ffd700;
+  animation: cmd-champions-hero-spark 2.8s ease-in-out infinite;
+}
+.cmd-champions-hero__particles span:nth-child(1) {
+  left: 58%;
+  top: 21%;
+}
+.cmd-champions-hero__particles span:nth-child(2) {
+  left: 82%;
+  top: 16%;
+  animation-delay: 0.5s;
+}
+.cmd-champions-hero__particles span:nth-child(3) {
+  left: 72%;
+  top: 75%;
+  animation-delay: 0.9s;
+}
+.cmd-champions-hero__particles span:nth-child(4) {
+  left: 94%;
+  top: 57%;
+  animation-delay: 1.3s;
+}
+.cmd-champions-hero__particles span:nth-child(5) {
+  left: 43%;
+  top: 11%;
+  animation-delay: 1.7s;
+}
+
+@keyframes cmd-champions-hero-sheen {
+  0%,
+  42% {
+    transform: translateX(-100%);
+  }
+  65%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+@keyframes cmd-champions-trophy-pulse {
+  0%,
+  100% {
+    transform: scale(0.98);
+  }
+  50% {
+    transform: scale(1.04);
+  }
+}
+@keyframes cmd-champions-hero-spark {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+
+@media (max-width: 680px) {
+  .cmd-champions-hero {
+    grid-template-columns: 1fr;
+    min-height: 24rem;
+    margin-top: 1rem;
+    padding: 1.4rem 1rem 0.8rem;
+    text-align: center;
+  }
+  .cmd-champions-hero__copy {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .cmd-champions-hero__trophy {
+    min-height: 9rem;
+    margin-top: -0.3rem;
+  }
+  .cmd-champions-hero__wings {
+    width: 125%;
+  }
+  .cmd-champions-hero__hint {
+    position: static;
+    justify-content: center;
+    margin-top: -0.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cmd-champions-hero::before,
+  .cmd-champions-hero__trophy-orb,
+  .cmd-champions-hero__particles span {
+    animation: none;
+  }
+  .cmd-champions-hero__cta {
+    transition: none;
+  }
+}
 @utility overflow-touch {
   -webkit-overflow-scrolling: touch;
 }

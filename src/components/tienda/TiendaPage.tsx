@@ -79,6 +79,7 @@ import {
 import { QueryErrorState } from "@/components/ui/loading-states";
 import { GravitLoader } from "@/components/GravitLoader";
 import { ChampionsRanking } from "@/components/tienda/ChampionsRanking";
+import { ChampionsHeroBanner } from "@/components/tienda/ChampionsHeroBanner";
 import { FestiveEventBanner } from "@/components/tienda/FestiveEventBanner";
 import { FestiveSurpriseBox } from "@/components/tienda/FestiveSurpriseBox";
 
@@ -1666,7 +1667,12 @@ export function TiendaPage({
           </div>
         )}
 
-        {panel === "tienda" && !catalogOnly && activeCat !== "redes" && <ChampionsRanking />}
+        {panel === "tienda" && !catalogOnly && activeCat !== "redes" && (
+          <>
+            <ChampionsHeroBanner />
+            <ChampionsRanking />
+          </>
+        )}
 
         {panel === "tienda" && activeCat !== "redes" && (
           <section id="catalogo" className="relative z-10 mt-4 pb-24">

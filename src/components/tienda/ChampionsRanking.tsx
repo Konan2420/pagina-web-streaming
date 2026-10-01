@@ -238,6 +238,7 @@ export function ChampionsRanking({
 
   return (
     <section
+      id="cmd-champions-ranking"
       ref={sectionRef}
       className={`cmd-champions ${isVisible ? "is-visible" : ""}`}
       aria-labelledby="cmd-champions-title"
