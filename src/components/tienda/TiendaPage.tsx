@@ -79,7 +79,6 @@ import {
 import { QueryErrorState } from "@/components/ui/loading-states";
 import { GravitLoader } from "@/components/GravitLoader";
 import { ChampionsRanking } from "@/components/tienda/ChampionsRanking";
-import { ChampionsHeroBanner } from "@/components/tienda/ChampionsHeroBanner";
 import { NoticiasPanel } from "@/components/tienda/NoticiasPanel";
 import { FestiveEventBanner } from "@/components/tienda/FestiveEventBanner";
 import { FestiveSurpriseBox } from "@/components/tienda/FestiveSurpriseBox";
@@ -1676,13 +1675,6 @@ export function TiendaPage({
 
             {/* El grid superior reemplaza la barra antigua */}
           </div>
-        )}
-
-        {panel === "tienda" && !catalogOnly && activeCat !== "redes" && (
-          <>
-            <ChampionsHeroBanner />
-            <ChampionsRanking />
-          </>
         )}
 
         {panel === "ranking" && !catalogOnly && <ChampionsRanking />}
