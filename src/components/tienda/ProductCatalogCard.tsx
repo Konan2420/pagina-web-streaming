@@ -150,7 +150,7 @@ export function ProductCatalogCard({
       className={`product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[24rem] sm:flex-col ${premiumCardClasses}`}
     >
       {premiumCardClasses && <PremiumElectricLayers />}
-      <div className="relative aspect-square w-[48%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg">
+      <div className="cmd-premium-electric__media relative aspect-square w-[48%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg">
         <ProductImage
           src={product.image}
           alt={`Portada de ${product.name}`}

@@ -11,53 +11,29 @@ export function PremiumElectricFilters() {
         <filter
           id="cmd-premium-electric-displace"
           colorInterpolationFilters="sRGB"
-          x="-20%"
-          y="-20%"
-          width="140%"
-          height="140%"
+          x="-30%"
+          y="-30%"
+          width="160%"
+          height="160%"
         >
           <feTurbulence
             type="turbulence"
-            baseFrequency="0.02"
-            numOctaves="4"
-            result="cmdNoiseVertical"
+            baseFrequency="0.025"
+            numOctaves="3"
+            result="cmdElectricNoise"
             seed="1"
-          />
-          <feOffset in="cmdNoiseVertical" dx="0" dy="0" result="cmdOffsetVertical">
+          >
             <animate
-              attributeName="dy"
-              values="700;0"
-              dur="6s"
+              attributeName="baseFrequency"
+              values="0.025;0.035;0.025"
+              dur="1.8s"
               repeatCount="indefinite"
-              calcMode="linear"
             />
-          </feOffset>
-          <feTurbulence
-            type="turbulence"
-            baseFrequency="0.02"
-            numOctaves="4"
-            result="cmdNoiseHorizontal"
-            seed="2"
-          />
-          <feOffset in="cmdNoiseHorizontal" dx="0" dy="0" result="cmdOffsetHorizontal">
-            <animate
-              attributeName="dx"
-              values="490;0"
-              dur="6s"
-              repeatCount="indefinite"
-              calcMode="linear"
-            />
-          </feOffset>
-          <feBlend
-            in="cmdOffsetVertical"
-            in2="cmdOffsetHorizontal"
-            mode="color-dodge"
-            result="cmdCombinedNoise"
-          />
+          </feTurbulence>
           <feDisplacementMap
             in="SourceGraphic"
-            in2="cmdCombinedNoise"
-            scale="22"
+            in2="cmdElectricNoise"
+            scale="11"
             xChannelSelector="R"
             yChannelSelector="B"
           />

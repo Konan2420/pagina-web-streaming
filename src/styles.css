@@ -681,6 +681,34 @@
   --cmd-premium-electric-light: #bfdbfe;
   position: relative;
   isolation: isolate;
+  overflow: visible;
+  border-color: color-mix(in srgb, var(--cmd-premium-electric) 72%, transparent);
+  background-image: linear-gradient(
+    -30deg,
+    color-mix(in srgb, var(--cmd-premium-electric) 16%, transparent),
+    transparent 48%,
+    color-mix(in srgb, var(--cmd-premium-electric-secondary) 12%, transparent)
+  );
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--cmd-premium-electric) 32%, transparent),
+    0 0 24px color-mix(in srgb, var(--cmd-premium-electric-secondary) 18%, transparent);
+}
+
+/* La imagen conserva las esquinas redondeadas aunque el halo salga del contorno. */
+.catalog-product-card.cmd-premium-electric > .cmd-premium-electric__media {
+  border-top-left-radius: inherit;
+  border-bottom-left-radius: inherit;
+}
+
+.cmd-premium-electric:not(.catalog-product-card) > .cmd-premium-electric__media {
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+@media (min-width: 640px) {
+  .catalog-product-card.cmd-premium-electric > .cmd-premium-electric__media {
+    border-bottom-left-radius: 0.5rem;
+  }
 }
 
 .cmd-premium-purple {
@@ -705,30 +733,38 @@
 .cmd-premium-electric__glow,
 .cmd-premium-electric__ambient {
   position: absolute;
-  inset: 0;
+  inset: -2px;
   border-radius: inherit;
   pointer-events: none;
 }
 
 .cmd-premium-electric__border {
   z-index: 2;
-  padding: 1px;
+  border: 2px solid var(--cmd-premium-electric);
+  filter: url(#cmd-premium-electric-displace)
+    drop-shadow(0 0 5px color-mix(in srgb, var(--cmd-premium-electric-light) 88%, transparent));
+  transition: filter 200ms ease;
+}
+
+/* Un destello da vueltas sin escalar ni desplazar el rectángulo de la tarjeta. */
+.cmd-premium-electric__border::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  border-radius: inherit;
+  pointer-events: none;
   background: conic-gradient(
     from var(--cmd-premium-electric-angle),
-    transparent 0deg 22deg,
-    color-mix(in srgb, var(--cmd-premium-electric-secondary) 70%, transparent) 30deg,
-    var(--cmd-premium-electric-light) 42deg,
-    var(--cmd-premium-electric) 54deg,
-    transparent 68deg 178deg,
-    color-mix(in srgb, var(--cmd-premium-electric) 78%, transparent) 192deg,
-    var(--cmd-premium-electric-light) 208deg,
-    transparent 224deg 320deg,
-    var(--cmd-premium-electric-secondary) 336deg,
-    transparent 352deg 360deg
+    transparent 0deg 24deg,
+    var(--cmd-premium-electric-secondary) 36deg,
+    white 43deg,
+    var(--cmd-premium-electric-light) 50deg,
+    transparent 68deg 185deg,
+    var(--cmd-premium-electric) 203deg,
+    white 212deg,
+    transparent 228deg 360deg
   );
-  opacity: 0.95;
-  filter: url(#cmd-premium-electric-displace)
-    drop-shadow(0 0 4px color-mix(in srgb, var(--cmd-premium-electric-secondary) 62%, transparent));
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -737,36 +773,36 @@
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
   mask-composite: exclude;
-  animation: cmd-premium-electric-flow 2.8s linear infinite;
-  transition:
-    opacity 200ms ease,
-    filter 200ms ease;
+  animation: cmd-premium-electric-flow 2.6s linear infinite;
 }
 
 .cmd-premium-electric__glow--soft {
   z-index: 1;
-  border: 1px solid color-mix(in srgb, var(--cmd-premium-electric) 55%, transparent);
-  opacity: 0.55;
+  border: 2px solid var(--cmd-premium-electric);
+  opacity: 0.8;
   filter: blur(2px);
-  animation: cmd-premium-electric-pulse 2.8s ease-in-out infinite;
+  animation: cmd-premium-electric-pulse 2.6s ease-in-out infinite;
 }
 
 .cmd-premium-electric__glow--strong {
   z-index: 0;
-  border: 1px solid color-mix(in srgb, var(--cmd-premium-electric-light) 70%, transparent);
-  opacity: 0.28;
-  filter: blur(7px);
+  inset: -3px;
+  border: 2px solid var(--cmd-premium-electric-light);
+  opacity: 0.58;
+  filter: blur(8px);
 }
 
 .cmd-premium-electric__ambient {
   z-index: 0;
-  background: radial-gradient(
-    ellipse at 50% 0%,
-    color-mix(in srgb, var(--cmd-premium-electric) 16%, transparent),
-    transparent 68%
+  inset: -6px;
+  background: linear-gradient(
+    -30deg,
+    var(--cmd-premium-electric-light),
+    transparent 48%,
+    var(--cmd-premium-electric)
   );
-  opacity: 0.34;
-  filter: blur(12px);
+  opacity: 0.28;
+  filter: blur(18px);
 }
 
 @keyframes cmd-premium-electric-flow {
@@ -778,10 +814,10 @@
 @keyframes cmd-premium-electric-pulse {
   0%,
   100% {
-    opacity: 0.42;
+    opacity: 0.56;
   }
   50% {
-    opacity: 0.72;
+    opacity: 0.94;
   }
 }
 
@@ -797,19 +833,22 @@
 
 @media (hover: hover) and (pointer: fine) {
   .cmd-premium-electric:hover .cmd-premium-electric__border {
-    opacity: 1;
     filter: url(#cmd-premium-electric-displace)
-      drop-shadow(
-        0 0 7px color-mix(in srgb, var(--cmd-premium-electric-secondary) 78%, transparent)
-      );
+      drop-shadow(0 0 9px color-mix(in srgb, var(--cmd-premium-electric-light) 95%, transparent));
   }
 
   .cmd-premium-electric:hover .cmd-premium-electric__glow--soft {
-    opacity: 0.82;
+    opacity: 1;
   }
 
   .cmd-premium-electric:hover .cmd-premium-electric__glow--strong {
-    opacity: 0.4;
+    opacity: 0.8;
+  }
+
+  .catalog-product-card.cmd-premium-electric:hover {
+    box-shadow:
+      0 0 18px color-mix(in srgb, var(--cmd-premium-electric) 54%, transparent),
+      0 0 36px color-mix(in srgb, var(--cmd-premium-electric-secondary) 30%, transparent);
   }
 }
 
@@ -822,14 +861,13 @@
   }
 
   .cmd-premium-electric__border {
-    padding: 0;
-    background: none;
-    border: 1px solid var(--cmd-premium-electric);
-    -webkit-mask: none;
-    mask: none;
     filter: drop-shadow(
-      0 0 4px color-mix(in srgb, var(--cmd-premium-electric-secondary) 52%, transparent)
+      0 0 5px color-mix(in srgb, var(--cmd-premium-electric-light) 62%, transparent)
     );
+  }
+
+  .cmd-premium-electric__border::after {
+    animation: none;
   }
 }
 

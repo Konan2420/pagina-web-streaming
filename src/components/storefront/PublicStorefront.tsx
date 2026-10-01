@@ -424,7 +424,7 @@ export function PublicStorefront({ slug }: { slug: string }) {
                   {getPremiumCardClasses(product.isPremium, product.premiumStyle) && (
                     <PremiumElectricLayers />
                   )}
-                  <div className="relative aspect-square overflow-hidden bg-background">
+                  <div className="cmd-premium-electric__media relative aspect-square overflow-hidden bg-background">
                     <ProductImage
                       src={product.imageUrl}
                       alt={product.name}
