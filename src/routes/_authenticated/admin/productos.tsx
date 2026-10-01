@@ -21,6 +21,7 @@ import {
   getServicios,
   upsertProduct,
   deleteProduct,
+  reviewProviderProduct,
 } from "@/lib/admin.functions";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { IconPicker } from "@/components/admin/IconPicker";
@@ -70,10 +71,14 @@ function ProductsManagement() {
   const [penPerUsd, setPenPerUsd] = useState("3.70");
   const [savingPricing, setSavingPricing] = useState(false);
   const [isPremium, setIsPremium] = useState(false);
+  const [approvalFilter, setApprovalFilter] = useState<"all" | "pending" | "approved" | "rejected">(
+    "all",
+  );
 
   const queryClient = useQueryClient();
   const upsertMutation = useServerFn(upsertProduct);
   const deleteMutation = useServerFn(deleteProduct);
+  const reviewMutation = useServerFn(reviewProviderProduct);
   const getPricingSettings = useServerFn(getCatalogPricingSettings);
   const savePricingSettings = useServerFn(saveCatalogPricingSettings);
   const pricingSettingsQuery = useQuery({
@@ -93,6 +98,26 @@ function ProductsManagement() {
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       p.category?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+  const visibleProducts = filteredProducts.filter(
+    (product) => approvalFilter === "all" || product.approval_status === approvalFilter,
+  );
+
+  const handleReview = async (product: Tables<"products">, decision: "approved" | "rejected") => {
+    const rejectionReason =
+      decision === "rejected"
+        ? window.prompt("Motivo del rechazo del producto:", product.rejection_reason ?? "")?.trim()
+        : undefined;
+    if (decision === "rejected" && !rejectionReason) return;
+    try {
+      await reviewMutation({
+        data: { product_id: product.id, decision, rejection_reason: rejectionReason },
+      });
+      await queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      toast.success(decision === "approved" ? "Producto aprobado." : "Producto rechazado.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo revisar el producto.");
+    }
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -255,6 +280,19 @@ function ProductsManagement() {
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto">
+          <select
+            value={approvalFilter}
+            onChange={(event) =>
+              setApprovalFilter(event.target.value as "all" | "pending" | "approved" | "rejected")
+            }
+            className="h-10 rounded-xl border border-white/10 bg-white/5 px-3 text-xs font-semibold text-white outline-none focus:ring-2 focus:ring-primary/50"
+            aria-label="Filtrar por aprobación"
+          >
+            <option value="all">Todos los estados</option>
+            <option value="pending">Pendientes</option>
+            <option value="approved">Aprobados</option>
+            <option value="rejected">Rechazados</option>
+          </select>
           <button
             onClick={() => setShowHelper(!showHelper)}
             className="p-2.5 rounded-xl border border-white/10 text-white/60 hover:text-white hover:bg-white/5 transition-all"
@@ -372,14 +410,14 @@ function ProductsManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
-              {filteredProducts.length === 0 ? (
+              {visibleProducts.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-white/30 italic">
                     No hay productos aún.
                   </td>
                 </tr>
               ) : (
-                filteredProducts.map((product) => (
+                visibleProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
@@ -408,28 +446,68 @@ function ProductsManagement() {
                       S/ {product.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={async () => {
-                          try {
-                            await upsertMutation({
-                              data: { ...product, is_active: !product.is_active },
-                            });
-                            queryClient.invalidateQueries({ queryKey: ["admin-products"] });
-                            toast.success(
-                              `Producto ${!product.is_active ? "activado" : "desactivado"}`,
-                            );
-                          } catch (err) {
-                            toast.error("Error al cambiar estado");
-                          }
-                        }}
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors ${
-                          product.is_active
-                            ? "bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20"
-                            : "bg-white/5 text-white/40 border-white/10 hover:bg-white/10"
-                        }`}
-                      >
-                        {product.is_active ? "Activo" : "Inactivo"}
-                      </button>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${
+                            product.approval_status === "pending"
+                              ? "border-amber-400/20 bg-amber-400/10 text-amber-300"
+                              : product.approval_status === "rejected"
+                                ? "border-red-400/20 bg-red-400/10 text-red-300"
+                                : product.is_active
+                                  ? "border-green-500/20 bg-green-500/10 text-green-400"
+                                  : "border-white/10 bg-white/5 text-white/40"
+                          }`}
+                        >
+                          {product.approval_status === "pending"
+                            ? "Pendiente"
+                            : product.approval_status === "rejected"
+                              ? "Rechazado"
+                              : product.is_active
+                                ? "Aprobado · Activo"
+                                : "Aprobado · Pausado"}
+                        </span>
+                        {product.supplier_id && product.approval_status === "pending" && (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => void handleReview(product, "approved")}
+                              className="rounded-lg bg-emerald-400/10 px-2 py-1 text-[10px] font-bold uppercase text-emerald-300 transition hover:bg-emerald-400/20"
+                            >
+                              <Check className="mr-1 inline h-3 w-3" /> Aprobar
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleReview(product, "rejected")}
+                              className="rounded-lg bg-red-400/10 px-2 py-1 text-[10px] font-bold uppercase text-red-300 transition hover:bg-red-400/20"
+                            >
+                              Rechazar
+                            </button>
+                          </>
+                        )}
+                        {(!product.supplier_id || product.approval_status !== "pending") && (
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              try {
+                                await upsertMutation({
+                                  data: { ...product, is_active: !product.is_active },
+                                });
+                                await queryClient.invalidateQueries({
+                                  queryKey: ["admin-products"],
+                                });
+                                toast.success(
+                                  `Producto ${!product.is_active ? "activado" : "desactivado"}`,
+                                );
+                              } catch {
+                                toast.error("Error al cambiar estado");
+                              }
+                            }}
+                            className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white/50 transition hover:bg-white/10"
+                          >
+                            {product.is_active ? "Pausar" : "Activar"}
+                          </button>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">

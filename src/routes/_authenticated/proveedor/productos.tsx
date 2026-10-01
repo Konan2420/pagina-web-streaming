@@ -69,7 +69,8 @@ function ProviderProducts() {
           // la tarjeta del catálogo afirme un valor que el proveedor no eligió.
           account_type: editing?.account_type ?? null,
           access_scope: editing?.access_scope ?? null,
-          delivery_type: (form.get("delivery_type") as "manual" | "completa" | "perfil" | null) || null,
+          delivery_type:
+            (form.get("delivery_type") as "manual" | "completa" | "perfil" | null) || null,
           scope_type: (form.get("scope_type") as "global" | "pais_especifico" | null) || null,
           scope_country:
             String(form.get("scope_type") ?? "") === "pais_especifico"
@@ -204,21 +205,39 @@ function ProviderProducts() {
                       S/ {Number(product.price).toFixed(2)}
                     </td>
                     <td className="px-5 py-4">
-                      <span
-                        className={
-                          product.is_active
-                            ? product.is_catalog_available
-                              ? "rounded-full bg-emerald-400/10 px-2.5 py-1 text-[10px] font-bold uppercase text-emerald-300"
-                              : "rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-bold uppercase text-red-300"
-                            : "rounded-full bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold uppercase text-amber-200"
-                        }
-                      >
-                        {product.is_active
-                          ? product.is_catalog_available
-                            ? "Publicado"
-                            : "Fuera de servicio"
-                          : "Borrador"}
-                      </span>
+                      <div className="space-y-1">
+                        <span
+                          className={
+                            product.approval_status === "pending"
+                              ? "rounded-full bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold uppercase text-amber-200"
+                              : product.approval_status === "rejected"
+                                ? "rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-bold uppercase text-red-300"
+                                : product.is_active
+                                  ? product.is_catalog_available
+                                    ? "rounded-full bg-emerald-400/10 px-2.5 py-1 text-[10px] font-bold uppercase text-emerald-300"
+                                    : "rounded-full bg-red-500/10 px-2.5 py-1 text-[10px] font-bold uppercase text-red-300"
+                                  : "rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-bold uppercase text-white/45"
+                          }
+                        >
+                          {product.approval_status === "pending"
+                            ? "Pendiente de revisión"
+                            : product.approval_status === "rejected"
+                              ? "Rechazado"
+                              : product.is_active
+                                ? product.is_catalog_available
+                                  ? "Publicado"
+                                  : "Fuera de servicio"
+                                : "Borrador"}
+                        </span>
+                        {product.approval_status === "rejected" && product.rejection_reason && (
+                          <p
+                            className="max-w-48 truncate text-[10px] text-red-200/70"
+                            title={product.rejection_reason}
+                          >
+                            {product.rejection_reason}
+                          </p>
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex justify-end gap-1">
@@ -355,7 +374,11 @@ function ProviderProducts() {
                 />
               </Field>
               <Field label="Entrega declarada">
-                <select name="delivery_type" defaultValue={editing?.delivery_type ?? ""} className={fieldClass}>
+                <select
+                  name="delivery_type"
+                  defaultValue={editing?.delivery_type ?? ""}
+                  className={fieldClass}
+                >
                   <option value="">Sin declarar</option>
                   <option value="manual">Manual</option>
                   <option value="completa">Cuenta completa</option>
@@ -363,16 +386,28 @@ function ProviderProducts() {
                 </select>
               </Field>
               <Field label="Alcance nuevo">
-                <select name="scope_type" defaultValue={editing?.scope_type ?? ""} className={fieldClass}>
+                <select
+                  name="scope_type"
+                  defaultValue={editing?.scope_type ?? ""}
+                  className={fieldClass}
+                >
                   <option value="">Sin declarar</option>
                   <option value="global">Global</option>
                   <option value="pais_especifico">País específico</option>
                 </select>
               </Field>
               <Field label="País (si aplica)">
-                <select name="scope_country" defaultValue={editing?.scope_country ?? ""} className={fieldClass}>
+                <select
+                  name="scope_country"
+                  defaultValue={editing?.scope_country ?? ""}
+                  className={fieldClass}
+                >
                   <option value="">Sin país</option>
-                  {COUNTRY_OPTIONS.map(([code, label]) => <option key={code} value={code}>{label}</option>)}
+                  {COUNTRY_OPTIONS.map(([code, label]) => (
+                    <option key={code} value={code}>
+                      {label}
+                    </option>
+                  ))}
                 </select>
               </Field>
               <label className="flex items-end gap-2 pb-2 text-sm text-white/70">

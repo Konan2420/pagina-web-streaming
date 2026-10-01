@@ -812,6 +812,10 @@ export type Database = {
       products: {
         Row: {
           category: string | null;
+          approval_status: string;
+          rejection_reason: string | null;
+          reviewed_at: string | null;
+          reviewed_by: string | null;
           is_premium: boolean;
           premium_style: string;
           account_type: string | null;
@@ -842,6 +846,10 @@ export type Database = {
         };
         Insert: {
           category?: string | null;
+          approval_status?: string;
+          rejection_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
           is_premium?: boolean;
           premium_style?: string;
           account_type?: string | null;
@@ -872,6 +880,10 @@ export type Database = {
         };
         Update: {
           category?: string | null;
+          approval_status?: string;
+          rejection_reason?: string | null;
+          reviewed_at?: string | null;
+          reviewed_by?: string | null;
           is_premium?: boolean;
           premium_style?: string;
           account_type?: string | null;

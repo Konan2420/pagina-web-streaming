@@ -236,9 +236,10 @@ export const getStorefrontManagement = createServerFn({ method: "GET" })
       supabaseAdmin
         .from("products")
         .select(
-          "id, name, description, category, image_url, price, publisher_name, delivery_type, scope_type, scope_country",
+          "id, name, description, category, image_url, price, publisher_name, delivery_type, scope_type, scope_country, approval_status",
         )
         .eq("is_active", true)
+        .eq("approval_status", "approved")
         .order("name"),
       supabaseAdmin.from("catalog_product_costs").select("product_id, unit_cost_pen"),
       supabaseAdmin.from("account_inventory").select("product_id, status"),
@@ -667,9 +668,10 @@ export const getPublicStorefront = createServerFn({ method: "GET" })
         ? supabaseAdmin
             .from("products")
             .select(
-              "id, name, description, image_url, category, duration_days, is_renewable, publisher_name, delivery_type, scope_type, scope_country, is_premium, premium_style",
+              "id, name, description, image_url, category, duration_days, is_renewable, publisher_name, delivery_type, scope_type, scope_country, is_premium, premium_style, approval_status",
             )
             .in("id", masterIds)
+            .eq("approval_status", "approved")
         : Promise.resolve({ data: [], error: null }),
       serviceIds.length > 0
         ? supabaseAdmin

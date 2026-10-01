@@ -96,6 +96,7 @@ function InventoryPage() {
         .from("products")
         .select("id, name, credential_template")
         .eq("is_active", true)
+        .eq("approval_status", "approved")
         .order("name");
       if (error) throw error;
       return data;

@@ -1,6 +1,8 @@
 import * as React from "react";
 import { Command, Search } from "lucide-react";
 import { Toaster } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuthState } from "@/hooks/useAuthState";
 import {
   Dialog,
   DialogContent,
@@ -23,11 +25,23 @@ const commands = [
 ] as const;
 
 export function AppChromeProvider({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthState();
+  const queryClient = useQueryClient();
+  const previousUserId = React.useRef<string | null | undefined>(undefined);
   const [colorMode, setColorMode] = React.useState<ColorMode>("dark");
   const [liveMode, setLiveMode] = React.useState(false);
   const [paletteOpen, setPaletteOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const searchRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    const currentUserId = user?.id ?? null;
+    if (previousUserId.current !== undefined && previousUserId.current !== currentUserId) {
+      // Las consultas contienen datos privados; no deben sobrevivir a un cambio de cuenta.
+      queryClient.clear();
+    }
+    previousUserId.current = currentUserId;
+  }, [queryClient, user?.id]);
 
   React.useLayoutEffect(() => {
     const savedTheme = window.localStorage.getItem("cmd-color-mode");

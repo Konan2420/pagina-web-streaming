@@ -71,9 +71,10 @@ export const getCatalogPurchaseContext = createServerFn({ method: "GET" })
     const { data: product, error: productError } = await context.supabase
       .from("products")
       .select(
-        "id, name, price, duration_days, is_renewable, is_active, is_catalog_available, supplier_id, publisher_name",
+        "id, name, price, duration_days, is_renewable, is_active, is_catalog_available, approval_status, supplier_id, publisher_name",
       )
       .eq("id", data.productId)
+      .eq("approval_status", "approved")
       .maybeSingle();
     if (productError || !product) throw new Error("No se encontró el producto.");
 

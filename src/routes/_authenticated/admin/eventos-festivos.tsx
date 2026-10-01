@@ -228,9 +228,10 @@ function FestiveEventsAdminPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, price, is_active, is_catalog_available")
+        .select("id, name, price, is_active, is_catalog_available, approval_status")
         .eq("is_active", true)
         .eq("is_catalog_available", true)
+        .eq("approval_status", "approved")
         .order("name");
       if (error) throw error;
       return (data ?? []) as Product[];

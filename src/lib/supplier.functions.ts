@@ -7,37 +7,53 @@ import {
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
-const providerProductSchema = z.object({
-  id: z.string().uuid().optional(),
-  name: z.string().trim().min(1, "El nombre es obligatorio").max(160),
-  description: z.string().trim().max(500).optional(),
-  descripcion_larga: z.string().trim().max(5_000).optional(),
-  price: z.number().finite().min(0, "El precio debe ser mayor o igual a 0"),
-  category: z.string().trim().max(80).optional(),
-  image_url: z.string().trim().url().nullable().optional(),
-  icon_id: z.string().trim().max(120).nullable().optional(),
-  service_id: z.string().uuid().nullable().optional(),
-  duration_days: z.number().int().positive().max(3_650).default(30),
-  is_renewable: z.boolean().default(true),
-  // Se publican en la tarjeta del catálogo tal cual: son la única forma que tiene
-  // el comprador de distinguir una cuenta completa de un perfil compartido. `null`
-  // es el estado de partida —sin declarar— y la tarjeta no pinta nada con él.
-  account_type: z.enum(["completa", "perfil"]).nullable().default(null),
-  access_scope: z.enum(["global", "regional"]).nullable().default(null),
-  delivery_type: z.enum(["manual", "completa", "perfil"]).nullable().default(null),
-  scope_type: z.enum(["global", "pais_especifico"]).nullable().default(null),
-  scope_country: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/).nullable().default(null),
-  credential_template: z
-    .enum(["account", "account_2fa", "redeem_code", "access_link", "none"])
-    .default("account"),
-}).superRefine((value, ctx) => {
-  if (value.scope_type === "pais_especifico" && !value.scope_country) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scope_country"], message: "Selecciona un país." });
-  }
-  if (value.scope_type !== "pais_especifico" && value.scope_country) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["scope_country"], message: "El país solo aplica al alcance específico." });
-  }
-});
+const providerProductSchema = z
+  .object({
+    id: z.string().uuid().optional(),
+    name: z.string().trim().min(1, "El nombre es obligatorio").max(160),
+    description: z.string().trim().max(500).optional(),
+    descripcion_larga: z.string().trim().max(5_000).optional(),
+    price: z.number().finite().min(0, "El precio debe ser mayor o igual a 0"),
+    category: z.string().trim().max(80).optional(),
+    image_url: z.string().trim().url().nullable().optional(),
+    icon_id: z.string().trim().max(120).nullable().optional(),
+    service_id: z.string().uuid().nullable().optional(),
+    duration_days: z.number().int().positive().max(3_650).default(30),
+    is_renewable: z.boolean().default(true),
+    // Se publican en la tarjeta del catálogo tal cual: son la única forma que tiene
+    // el comprador de distinguir una cuenta completa de un perfil compartido. `null`
+    // es el estado de partida —sin declarar— y la tarjeta no pinta nada con él.
+    account_type: z.enum(["completa", "perfil"]).nullable().default(null),
+    access_scope: z.enum(["global", "regional"]).nullable().default(null),
+    delivery_type: z.enum(["manual", "completa", "perfil"]).nullable().default(null),
+    scope_type: z.enum(["global", "pais_especifico"]).nullable().default(null),
+    scope_country: z
+      .string()
+      .trim()
+      .toUpperCase()
+      .regex(/^[A-Z]{2}$/)
+      .nullable()
+      .default(null),
+    credential_template: z
+      .enum(["account", "account_2fa", "redeem_code", "access_link", "none"])
+      .default("account"),
+  })
+  .superRefine((value, ctx) => {
+    if (value.scope_type === "pais_especifico" && !value.scope_country) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["scope_country"],
+        message: "Selecciona un país.",
+      });
+    }
+    if (value.scope_type !== "pais_especifico" && value.scope_country) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["scope_country"],
+        message: "El país solo aplica al alcance específico.",
+      });
+    }
+  });
 
 /** Summary for the provider / distributor dashboard. */
 export const getProviderDashboardStats = createServerFn({ method: "GET" })
@@ -156,7 +172,14 @@ export const saveProviderProduct = createServerFn({ method: "POST" })
 
       const { data: updated, error } = await supabaseAdmin
         .from("products")
-        .update({ ...productData, is_active: false } as TablesUpdate<"products">)
+        .update({
+          ...productData,
+          is_active: false,
+          approval_status: "pending",
+          rejection_reason: null,
+          reviewed_at: null,
+          reviewed_by: null,
+        } as TablesUpdate<"products">)
         .eq("id", id)
         .select("*")
         .single();
@@ -170,6 +193,10 @@ export const saveProviderProduct = createServerFn({ method: "POST" })
         ...productData,
         supplier_id: context.userId,
         is_active: false,
+        approval_status: "pending",
+        rejection_reason: null,
+        reviewed_at: null,
+        reviewed_by: null,
       } as TablesInsert<"products">)
       .select("*")
       .single();
@@ -198,6 +225,7 @@ export const setProviderProductAvailability = createServerFn({ method: "POST" })
       .update({ is_catalog_available: data.is_catalog_available })
       .eq("id", data.id)
       .eq("supplier_id", context.userId)
+      .eq("approval_status", "approved")
       .select("id, is_catalog_available")
       .maybeSingle();
 

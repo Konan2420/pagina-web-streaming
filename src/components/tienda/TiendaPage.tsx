@@ -256,9 +256,9 @@ const EMPTY_STOCK_LEVELS: Record<string, number> = {};
  * esta lista existe solo para poder leer un catálogo de una base un paso por detrás.
  */
 const CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION =
-  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, is_premium, premium_style, created_at, service_id";
+  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, is_premium, premium_style, approval_status, created_at, service_id";
 const CATALOG_PRODUCT_COLUMNS_LEGACY =
-  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, is_premium, premium_style, created_at, service_id";
+  "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, publisher_name, is_premium, premium_style, approval_status, created_at, service_id";
 /**
  * PostgREST rechaza la consulta **completa** si una de las columnas pedidas no
  * existe en la base (Postgres 42703), así que hay que saber distinguir ese fallo
@@ -995,9 +995,10 @@ export function TiendaPage({
           supabase
             .from("products")
             .select(
-              "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, is_premium, premium_style, created_at, service_id",
+              "id, name, category, price, image_url, icon_id, description, descripcion_larga, duration_days, is_renewable, is_catalog_available, total_vendidos, total_vistas, account_type, access_scope, delivery_type, scope_type, scope_country, publisher_name, publisher_is_verified, is_premium, premium_style, approval_status, created_at, service_id",
             )
             .eq("is_active", true)
+            .eq("approval_status", "approved")
             .order("created_at", { ascending: false }),
         ),
       );
@@ -1014,6 +1015,10 @@ export function TiendaPage({
       const missingPremium = ["is_premium", "premium_style"].some((column) =>
         isMissingColumn(error, column),
       );
+      const missingApproval = isMissingColumn(error, "approval_status");
+      if (missingApproval) {
+        throw new Error("El catálogo requiere la migración de aprobación de productos.");
+      }
       if (missingPremium) {
         throw new Error("El cat?logo Premium requiere la migraci?n de productos actualizada.");
       }
@@ -1029,6 +1034,7 @@ export function TiendaPage({
             .from("products")
             .select(fallbackColumns)
             .eq("is_active", true)
+            .eq("approval_status", "approved")
             .order("created_at", { ascending: false }),
         ),
       );

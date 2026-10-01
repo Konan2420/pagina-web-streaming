@@ -425,6 +425,61 @@ export const getAdminProducts = createServerFn({ method: "GET" })
     return (data || []) as Tables<"products">[];
   });
 
+/** Revisión idempotente del mismo producto enviado por un proveedor. */
+export const reviewProviderProduct = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((value) =>
+    z
+      .object({
+        product_id: z.string().uuid(),
+        decision: z.enum(["approved", "rejected"]),
+        rejection_reason: z.string().trim().max(1_000).optional(),
+      })
+      .superRefine((value, ctx) => {
+        if (value.decision === "rejected" && !value.rejection_reason) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["rejection_reason"],
+            message: "Indica el motivo del rechazo.",
+          });
+        }
+      })
+      .parse(value),
+  )
+  .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context.supabase, context.userId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const update =
+      data.decision === "approved"
+        ? {
+            approval_status: "approved",
+            rejection_reason: null,
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: context.userId,
+            is_active: true,
+          }
+        : {
+            approval_status: "rejected",
+            rejection_reason: data.rejection_reason,
+            reviewed_at: new Date().toISOString(),
+            reviewed_by: context.userId,
+            is_active: false,
+          };
+
+    const { data: product, error } = await supabaseAdmin
+      .from("products")
+      .update(update)
+      .eq("id", data.product_id)
+      .not("supplier_id", "is", null)
+      .select("id, approval_status, rejection_reason, is_active")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!product) throw new Error("El producto no pertenece a un proveedor.");
+    return product;
+  });
+
 export const upsertProduct = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((d) =>

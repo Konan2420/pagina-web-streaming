@@ -37,6 +37,11 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
+import {
+  normalizeCredentialTemplate,
+  parseInventoryLine,
+  validateInventoryCredentials,
+} from "@/lib/inventory-credentials";
 
 export const Route = createFileRoute("/_authenticated/admin/stock")({
   component: StockManagement,
@@ -59,8 +64,9 @@ function StockManagement() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, image_url, category")
+        .select("id, name, image_url, category, credential_template")
         .eq("is_active", true)
+        .eq("approval_status", "approved")
         .order("name");
       if (error) throw error;
       return data;
@@ -119,30 +125,19 @@ function StockManagement() {
 
     setIsSubmitting(true);
     try {
+      const selected = products.find((product) => product.id === selectedProduct);
+      const template = normalizeCredentialTemplate(selected?.credential_template);
+      if (template === "none") {
+        throw new Error("Este producto no usa inventario de credenciales.");
+      }
       const lines = bulkText.split("\n").filter((l) => l.trim().length > 0);
       const inserts = lines.map((line) => {
-        // Support email:password or email,password formats
-        let email = "";
-        let password = "";
-
-        if (line.includes(":")) {
-          const parts = line.split(":");
-          email = parts[0].trim();
-          password = parts.slice(1).join(":").trim();
-        } else if (line.includes(",")) {
-          const parts = line.split(",");
-          email = parts[0].trim();
-          password = parts.slice(1).join(",").trim();
-        } else {
-          // If no separator, use the whole line as email and placeholder password
-          email = line.trim();
-          password = "TEMPPASSWORD";
-        }
-
+        const credentials = parseInventoryLine(line, template);
+        const validationError = validateInventoryCredentials(credentials, template);
+        if (validationError) throw new Error(validationError);
         return {
           product_id: selectedProduct,
-          email,
-          password,
+          ...credentials,
           status: "disponible", // Matching the system's preferred status
         };
       });
@@ -317,7 +312,7 @@ function StockManagement() {
               {selectedProduct && (
                 <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
                   <label className="text-sm font-medium text-white/60">
-                    2. Carga credenciales (email:password)
+                    2. Carga credenciales según el tipo del producto
                   </label>
                   <Textarea
                     placeholder="correo@ejemplo.com:clave123&#10;otro@ejemplo.com:clave456"
