@@ -80,6 +80,7 @@ import { QueryErrorState } from "@/components/ui/loading-states";
 import { GravitLoader } from "@/components/GravitLoader";
 import { ChampionsRanking } from "@/components/tienda/ChampionsRanking";
 import { ChampionsHeroBanner } from "@/components/tienda/ChampionsHeroBanner";
+import { NoticiasPanel } from "@/components/tienda/NoticiasPanel";
 import { FestiveEventBanner } from "@/components/tienda/FestiveEventBanner";
 import { FestiveSurpriseBox } from "@/components/tienda/FestiveSurpriseBox";
 
@@ -282,7 +283,15 @@ const CATALOG_ONLY_PANELS: readonly PanelTab[] = ["tienda", "compras"];
 
 type SidebarPlaceholderPanel = Exclude<
   PanelTab,
-  "tienda" | "mi-tienda" | "compras" | "pedidos" | "perfil" | "soporte" | "clientes"
+  | "tienda"
+  | "noticias"
+  | "ranking"
+  | "mi-tienda"
+  | "compras"
+  | "pedidos"
+  | "perfil"
+  | "soporte"
+  | "clientes"
 >;
 
 const sidebarPlaceholderContent: Record<
@@ -314,6 +323,8 @@ const sidebarPlaceholderContent: Record<
 function isSidebarPlaceholderPanel(panel: PanelTab): panel is SidebarPlaceholderPanel {
   return (
     panel !== "tienda" &&
+    panel !== "noticias" &&
+    panel !== "ranking" &&
     panel !== "mi-tienda" &&
     panel !== "compras" &&
     panel !== "pedidos" &&
@@ -1672,6 +1683,12 @@ export function TiendaPage({
             <ChampionsHeroBanner />
             <ChampionsRanking />
           </>
+        )}
+
+        {panel === "ranking" && !catalogOnly && <ChampionsRanking />}
+
+        {panel === "noticias" && !catalogOnly && (
+          <NoticiasPanel onGoRanking={() => setPanel("ranking")} />
         )}
 
         {panel === "tienda" && activeCat !== "redes" && (
