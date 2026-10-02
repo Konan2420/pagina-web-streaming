@@ -41,6 +41,7 @@ const socialNetworksCategory = {
 
 const sidebarEmojis = {
   news: "\u{1F4F0}",
+  ranking: "\u{1F3C6}",
   academy: "🎓",
   business: "💼",
   catalog: "🛍️",
@@ -80,7 +81,7 @@ function SidebarEmojiIcon({ icon }: { icon: SidebarEmoji }) {
       aria-hidden="true"
       className={cn(
         "inline-flex h-5 w-5 shrink-0 select-none items-center justify-center text-[16px] leading-none sm:h-5 sm:w-5 sm:text-[16px]",
-        icon === "news" && "cmd-sidebar-3d-icon",
+        (icon === "news" || icon === "ranking") && "cmd-sidebar-3d-icon",
       )}
       data-sidebar-icon={icon}
     >
@@ -225,6 +226,13 @@ export function StoreSidebar({
                   label="Noticias"
                   active={activePanel === "noticias"}
                   onClick={() => selectPanel("noticias")}
+                />
+                <SidebarButton
+                  collapsed={collapsed}
+                  icon="ranking"
+                  label="Ranking"
+                  active={activePanel === "ranking"}
+                  onClick={() => selectPanel("ranking")}
                 />
                 <div className="my-2 border-t border-border/80" />
               </>

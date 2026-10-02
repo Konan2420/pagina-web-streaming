@@ -630,6 +630,7 @@ export type ProductStock = {
 export type PanelTab =
   | "tienda"
   | "noticias"
+  | "ranking"
   | "mi-tienda"
   | "compras"
   | "pedidos"
