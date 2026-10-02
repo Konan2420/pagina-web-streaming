@@ -78,7 +78,6 @@ import {
 } from "@/lib/request-timeout";
 import { QueryErrorState } from "@/components/ui/loading-states";
 import { GravitLoader } from "@/components/GravitLoader";
-import { ChampionsRanking } from "@/components/tienda/ChampionsRanking";
 import { NoticiasPanel } from "@/components/tienda/NoticiasPanel";
 import { FestiveEventBanner } from "@/components/tienda/FestiveEventBanner";
 import { FestiveSurpriseBox } from "@/components/tienda/FestiveSurpriseBox";
@@ -284,7 +283,6 @@ type SidebarPlaceholderPanel = Exclude<
   PanelTab,
   | "tienda"
   | "noticias"
-  | "ranking"
   | "mi-tienda"
   | "compras"
   | "pedidos"
@@ -323,7 +321,6 @@ function isSidebarPlaceholderPanel(panel: PanelTab): panel is SidebarPlaceholder
   return (
     panel !== "tienda" &&
     panel !== "noticias" &&
-    panel !== "ranking" &&
     panel !== "mi-tienda" &&
     panel !== "compras" &&
     panel !== "pedidos" &&
@@ -1677,10 +1674,8 @@ export function TiendaPage({
           </div>
         )}
 
-        {panel === "ranking" && !catalogOnly && <ChampionsRanking />}
-
         {panel === "noticias" && !catalogOnly && (
-          <NoticiasPanel onGoRanking={() => setPanel("ranking")} />
+          <NoticiasPanel />
         )}
 
         {panel === "tienda" && activeCat !== "redes" && (

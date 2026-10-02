@@ -1,9 +1,9 @@
-import { ArrowUpRight, Bell, CalendarDays, Megaphone, Sparkles } from "lucide-react";
+import { Bell, CalendarDays, Megaphone, Sparkles } from "lucide-react";
 
 const news = [
   {
-    title: "CMD Champions ya está activo",
-    text: "Consulta el ranking mensual y descubre quién lidera la comunidad.",
+    title: "Novedades de la comunidad",
+    text: "Descubre las actualizaciones y beneficios que CMD prepara para ti.",
     label: "Comunidad",
     icon: Sparkles,
   },
@@ -21,7 +21,7 @@ const news = [
   },
 ];
 
-export function NoticiasPanel({ onGoRanking }: { onGoRanking: () => void }) {
+export function NoticiasPanel() {
   return (
     <section className="mx-auto mt-6 max-w-[1200px] px-4 pb-24 sm:px-6">
       <div className="overflow-hidden rounded-2xl border border-border bg-card/80 shadow-2xl">
@@ -62,15 +62,6 @@ export function NoticiasPanel({ onGoRanking }: { onGoRanking: () => void }) {
               <p className="mt-2 text-xs leading-relaxed text-white/55">{text}</p>
             </article>
           ))}
-        </div>
-        <div className="flex justify-end border-t border-border px-4 py-4 sm:px-6">
-          <button
-            type="button"
-            onClick={onGoRanking}
-            className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-4 py-2 text-[10px] font-black uppercase tracking-wide text-primary transition hover:bg-primary/20"
-          >
-            Ver ranking CMD Champions <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
         </div>
       </div>
     </section>

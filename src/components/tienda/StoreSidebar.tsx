@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { BadgeCheck, ChevronDown, ChevronRight, LogOut, Plus, Wallet, X } from "lucide-react";
+import { BadgeCheck, ChevronDown, ChevronRight, LogOut, Plus, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { categories, type PanelTab } from "./data";
 import { cn } from "@/lib/utils";
@@ -41,7 +41,6 @@ const socialNetworksCategory = {
 
 const sidebarEmojis = {
   news: "\u{1F4F0}",
-  ranking: "\u{1F3C6}",
   academy: "🎓",
   business: "💼",
   catalog: "🛍️",
@@ -81,7 +80,7 @@ function SidebarEmojiIcon({ icon }: { icon: SidebarEmoji }) {
       aria-hidden="true"
       className={cn(
         "inline-flex h-5 w-5 shrink-0 select-none items-center justify-center text-[16px] leading-none sm:h-5 sm:w-5 sm:text-[16px]",
-        (icon === "news" || icon === "ranking") && "cmd-sidebar-3d-icon",
+        icon === "news" && "cmd-sidebar-3d-icon",
       )}
       data-sidebar-icon={icon}
     >
@@ -191,7 +190,7 @@ export function StoreSidebar({
           )}
         >
           <div className="flex items-center gap-2 text-[10px] font-semibold text-white/70 sm:gap-2 sm:text-[12px] sm:font-medium">
-            <Wallet className="h-3.5 w-3.5 text-red-accent" aria-hidden="true" />
+            <img src="/premium.png" alt="Mi Billetera" className="h-7 w-7 object-contain" />
             Mi Billetera
           </div>
           <p className="mt-2 text-lg font-black tracking-tight text-white sm:mt-2 sm:text-[22px]">
@@ -226,13 +225,6 @@ export function StoreSidebar({
                   label="Noticias"
                   active={activePanel === "noticias"}
                   onClick={() => selectPanel("noticias")}
-                />
-                <SidebarButton
-                  collapsed={collapsed}
-                  icon="ranking"
-                  label="Ranking"
-                  active={activePanel === "ranking"}
-                  onClick={() => selectPanel("ranking")}
                 />
                 <div className="my-2 border-t border-border/80" />
               </>
