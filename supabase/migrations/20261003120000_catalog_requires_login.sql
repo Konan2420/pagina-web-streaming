@@ -4,7 +4,13 @@
 REVOKE SELECT ON public.products FROM anon;
 REVOKE SELECT ON public.servicios_streaming FROM anon;
 REVOKE SELECT ON public.product_stock FROM anon;
-REVOKE SELECT ON public.stock_counts FROM anon;
+DO $$
+BEGIN
+  IF to_regclass('public.stock_counts') IS NOT NULL THEN
+    REVOKE SELECT ON public.stock_counts FROM anon;
+  END IF;
+END;
+$$;
 REVOKE SELECT ON public.festive_events FROM anon;
 REVOKE SELECT ON public.festive_event_products FROM anon;
 
