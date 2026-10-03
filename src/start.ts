@@ -30,7 +30,13 @@ const catalogAccessMiddleware = createMiddleware().server(async ({ next }) => {
   ) {
     const { hasValidCatalogSession } = await import("@/lib/catalog-session.server");
     if (!(await hasValidCatalogSession())) {
-      return Response.redirect(new URL("/acceso", request.url), 302);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: new URL("/acceso", request.url).toString(),
+          "Cache-Control": "no-store",
+        },
+      });
     }
     setResponseHeader("Cache-Control", "private, no-store");
   }
