@@ -137,11 +137,11 @@ export function AuthModal({
   }, [open, initialMode]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || fullscreen) return;
 
     const previousOverflow = document.body.style.overflow;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && !fullscreen) closeModal();
+      if (event.key === "Escape") closeModal();
     };
 
     document.body.style.overflow = "hidden";
