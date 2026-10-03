@@ -20,7 +20,7 @@ export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
 
 export const TICKET_STATUS_STYLES: Record<TicketStatus, string> = {
   abierto: "border-amber-400/25 bg-amber-400/10 text-amber-200",
-  respondido: "border-sky-400/25 bg-sky-400/10 text-sky-200",
+  respondido: "border-info/35 bg-info/15 text-info-foreground",
   cerrado: "border-white/15 bg-white/[0.05] text-white/50",
 };
 

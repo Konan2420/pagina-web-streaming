@@ -609,7 +609,7 @@ function InventoryPage() {
                             "py-1 h-7 text-[10px] font-bold uppercase tracking-wider transition-all",
                             item.payment_verified
                               ? "bg-green-500/10 text-green-400 border-green-500/20 hover:bg-green-500/20"
-                              : "bg-blue-500/10 text-blue-400 border-blue-500/20 hover:bg-blue-500/20",
+                              : "bg-info/10 text-info-foreground border-info/20 hover:bg-info/20",
                           )}
                         >
                           {item.payment_verified ? (

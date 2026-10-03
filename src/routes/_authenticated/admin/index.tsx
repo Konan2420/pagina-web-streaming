@@ -154,7 +154,7 @@ function StatCard({
 }) {
   const colors: Record<StatCardColor, string> = {
     primary: "bg-primary/20 text-primary border-primary/30",
-    blue: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    blue: "bg-info/20 text-info-foreground border-info/30",
     green: "bg-green-500/20 text-green-400 border-green-500/30",
     violet: "bg-violet-500/20 text-violet-400 border-violet-500/30",
   };

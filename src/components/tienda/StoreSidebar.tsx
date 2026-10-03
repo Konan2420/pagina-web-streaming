@@ -170,7 +170,7 @@ export function StoreSidebar({
             <img
               src="/cmd-logo.png"
               alt="CMD Streaming"
-              className="h-full w-full object-contain drop-shadow-[0_6px_12px_rgba(59,130,246,0.2)]"
+              className="cmd-sidebar-logo h-full w-full object-contain"
             />
           </Link>
           <button

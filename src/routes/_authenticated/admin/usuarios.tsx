@@ -98,7 +98,7 @@ function UsersManagement() {
         );
       case "distribuidor":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/10 text-sky-300 border border-sky-500/20">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-info/10 text-info-foreground border border-info/20">
             <Handshake className="w-3 h-3" /> Distribuidor
           </span>
         );
@@ -203,7 +203,7 @@ function UsersManagement() {
                           />
                           <span
                             className={`inline-flex items-center gap-1 text-xs font-medium ${
-                              user.is_verified ? "text-sky-300" : "text-muted-foreground"
+                              user.is_verified ? "text-info-foreground" : "text-muted-foreground"
                             }`}
                           >
                             {user.is_verified && (

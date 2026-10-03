@@ -622,7 +622,7 @@ export function ProductModal({
                   </p>
                 </details>
               </div>
-              <div className="min-w-0 space-y-5 rounded-xl border border-sky-200/15 bg-[#0b1424]/85 p-4 sm:p-5">
+              <div className="min-w-0 space-y-5 rounded-xl border border-sky-200/15 bg-card/85 p-4 sm:p-5">
                 {!isAuthenticated ? (
                   <div className="rounded-lg border border-sky-200/15 bg-sky-100/[0.04] p-4">
                     <p className="text-sm font-semibold text-white">Inicia sesión para comprar</p>
@@ -685,13 +685,13 @@ export function ProductModal({
                         value={clientSearch}
                         onChange={(event) => setClientSearch(event.target.value)}
                         placeholder="Buscar cliente…"
-                        className="mb-2 h-11 w-full rounded-lg border border-sky-200/15 bg-[#101d33] px-3 text-sm text-white outline-none placeholder:text-slate-400 focus:border-sky-300/50"
+                        className="mb-2 h-11 w-full rounded-lg border border-sky-200/15 bg-secondary px-3 text-sm text-white outline-none placeholder:text-slate-400 focus:border-sky-300/50"
                       />
                       <div className="relative">
                         <select
                           value={clientId}
                           onChange={(event) => setClientId(event.target.value)}
-                          className="h-11 w-full appearance-none rounded-lg border border-sky-200/15 bg-[#101d33] px-3 pr-9 text-sm text-white outline-none focus:border-sky-300/50"
+                          className="h-11 w-full appearance-none rounded-lg border border-sky-200/15 bg-secondary px-3 pr-9 text-sm text-white outline-none focus:border-sky-300/50"
                         >
                           <option value="">Buscar o crear cliente…</option>
                           {filteredClients.map((client) => (
@@ -713,20 +713,20 @@ export function ProductModal({
                           value={newClientName}
                           onChange={(event) => setNewClientName(event.target.value)}
                           placeholder="Nombre completo"
-                          className="h-10 w-full rounded-md border border-white/10 bg-[#101d33] px-3 text-sm text-white outline-none focus:border-sky-300/50"
+                          className="h-10 w-full rounded-md border border-white/10 bg-secondary px-3 text-sm text-white outline-none focus:border-sky-300/50"
                         />
                         <input
                           value={newClientEmail}
                           onChange={(event) => setNewClientEmail(event.target.value)}
                           type="email"
                           placeholder="Correo (opcional)"
-                          className="h-10 w-full rounded-md border border-white/10 bg-[#101d33] px-3 text-sm text-white outline-none focus:border-sky-300/50"
+                          className="h-10 w-full rounded-md border border-white/10 bg-secondary px-3 text-sm text-white outline-none focus:border-sky-300/50"
                         />
                         <input
                           value={newClientWhatsapp}
                           onChange={(event) => setNewClientWhatsapp(event.target.value)}
                           placeholder="WhatsApp (opcional)"
-                          className="h-10 w-full rounded-md border border-white/10 bg-[#101d33] px-3 text-sm text-white outline-none focus:border-sky-300/50"
+                          className="h-10 w-full rounded-md border border-white/10 bg-secondary px-3 text-sm text-white outline-none focus:border-sky-300/50"
                         />
                         <button
                           type="button"
@@ -747,7 +747,7 @@ export function ProductModal({
                       <label className="mb-2 block text-sm font-bold text-white">
                         Precio al cual lo vas a vender
                       </label>
-                      <div className="flex overflow-hidden rounded-lg border border-sky-200/15 bg-[#101d33] focus-within:border-sky-300/50">
+                      <div className="flex overflow-hidden rounded-lg border border-sky-200/15 bg-secondary focus-within:border-sky-300/50">
                         <span className="flex items-center px-3 text-sm font-semibold text-slate-300">
                           PEN
                         </span>

@@ -237,7 +237,7 @@ export function KeyboardShortcuts({
           <div className="absolute inset-0 bg-black/75" />
           <div
             ref={dialogRef}
-            className="relative flex w-full max-w-xl max-h-[calc(100dvh-2rem)] flex-col rounded-2xl border border-white/10 bg-gradient-to-b from-[#111827]/98 to-[#0a0e1a]/98 animate-in zoom-in-95 duration-200"
+            className="relative flex w-full max-w-xl max-h-[calc(100dvh-2rem)] flex-col rounded-2xl border border-white/10 bg-gradient-to-b from-card/98 to-background/98 animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

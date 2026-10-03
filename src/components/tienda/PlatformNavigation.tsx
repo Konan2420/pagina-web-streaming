@@ -42,7 +42,9 @@ export function PlatformNavigation({
       <div className="mx-auto max-w-[1600px] px-4 sm:px-6">
         <div className="pt-5 sm:pt-6">
           <div className="mb-4">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-[26px]">Plataformas</h2>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-[26px]">
+              Plataformas
+            </h2>
             <p className="mt-1 text-xs text-muted-foreground sm:text-sm lg:text-[13px]">
               Explora nuestro catálogo de productos y encuentra lo que necesitas
             </p>
@@ -101,7 +103,7 @@ export function PlatformNavigation({
                 type="button"
                 onClick={() => onPlatformSelect(platform)}
                 title={`Filtrar por ${platform.label}`}
-                className="group relative flex aspect-square w-full max-w-9 items-center justify-center rounded-[11px] border border-border bg-card p-0.5 transition duration-200 hover:scale-[1.04] hover:border-primary/70 hover:shadow-[0_0_14px_rgba(59,130,246,0.24)] active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9 sm:max-w-none sm:p-0.5 lg:h-[1.875rem] lg:w-[1.875rem]"
+                className="cmd-platform-shortcut group relative flex aspect-square w-full max-w-9 items-center justify-center rounded-[11px] border border-border bg-card p-0.5 transition duration-200 hover:scale-[1.04] hover:border-primary/70 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:h-9 sm:w-9 sm:max-w-none sm:p-0.5 lg:h-[1.875rem] lg:w-[1.875rem]"
               >
                 <PlatformShortcutIcon platform={platform} />
                 <span className="sr-only">Filtrar por {platform.label}</span>

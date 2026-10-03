@@ -32,6 +32,9 @@
   --color-violet-2: var(--violet-2);
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
+  --color-brand-text: var(--brand-text);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-red-accent: var(--red-accent);
   --color-ink: var(--ink);
   --font-display: "Anton", "Archivo Black", Impact, sans-serif;
@@ -44,43 +47,46 @@
   --radius: 1rem;
   color-scheme: dark;
 
-  /* CMD Blue: base azul-negra, superficies frías y acento eléctrico. */
-  --background: #0a0e1a;
+  /* CMD Zafiro: superficies profundas y acento azul intenso. */
+  --background: #071128;
   --foreground: #f8fafc;
 
-  --card: #111827;
+  --card: #0c1a35;
   --card-foreground: #f8fafc;
 
-  --popover: #131a2c;
+  --popover: #0e2041;
   --popover-foreground: #f8fafc;
 
-  --brand: #3b82f6;
-  --brand-hover: #60a5fa;
+  --brand: #0a4ae2;
+  --brand-hover: #0a4eea;
+  --brand-text: #8fb1ff;
   --primary: var(--brand);
-  --primary-foreground: #0a0e1a;
+  --primary-foreground: #ffffff;
 
-  --secondary: #131a2c;
+  --secondary: #0e2041;
   --secondary-foreground: #f8fafc;
 
-  --muted: #172033;
+  --muted: #102344;
   --muted-foreground: #94a3b8;
 
   --accent: var(--brand-hover);
-  --accent-foreground: #0a0e1a;
+  --accent-foreground: #ffffff;
+  --info: var(--brand);
+  --info-foreground: var(--brand-text);
 
   /* El rojo queda reservado para errores, acciones destructivas y servicio agotado. */
   --destructive: #dc2626;
   --destructive-foreground: #fef2f2;
 
-  --border: rgb(30 41 59 / 82%);
-  --input: rgb(30 41 59 / 92%);
+  --border: rgb(25 52 93 / 82%);
+  --input: rgb(25 52 93 / 92%);
   --ring: var(--brand-hover);
 
   --violet: var(--brand);
   --violet-2: var(--brand-hover);
   /* Alias de compatibilidad para clases existentes; representa marca, no estado de error. */
   --red-accent: var(--brand);
-  --ink: #070b14;
+  --ink: #050c1e;
 
   /* Una sola escala para el panel lateral y el espacio que reserva el catálogo. */
   --store-sidebar-mobile-width: min(84vw, 20rem);
@@ -101,6 +107,7 @@
   --popover-foreground: #0f172a;
   --brand: #2563eb;
   --brand-hover: #1d4ed8;
+  --brand-text: var(--brand);
   --primary: var(--brand);
   --primary-foreground: #ffffff;
   --secondary: #e8eef8;
@@ -109,6 +116,8 @@
   --muted-foreground: #52627a;
   --accent: #dbeafe;
   --accent-foreground: #0f172a;
+  --info: var(--brand);
+  --info-foreground: var(--brand-text);
   --border: rgb(30 41 59 / 16%);
   --input: rgb(30 41 59 / 18%);
   --ring: var(--brand);
@@ -282,7 +291,7 @@
 }
 
 :root[data-cmd-theme="light"] ::selection {
-  background: rgb(59 130 246 / 22%);
+  background: color-mix(in srgb, var(--brand) 22%, transparent);
   color: var(--foreground);
 }
 
@@ -346,7 +355,7 @@
   background-color: #0f172a !important;
 }
 
-/* #3B82F6 necesita texto oscuro para conservar AA en el tema oscuro. */
+/* Los botones zafiro admiten texto blanco con contraste AA en ambos temas. */
 :root:not([data-cmd-theme="light"])
   :is(.bg-primary, .bg-brand, .bg-brand-hover, .bg-red-accent).text-white {
   color: var(--primary-foreground) !important;
@@ -488,9 +497,13 @@
 
 /* Semantic interactive states shared by light and dark UI. */
 .cmd-active-subtle {
-  border-color: color-mix(in srgb, var(--brand) 48%, var(--border));
-  background-color: color-mix(in srgb, var(--brand) 16%, var(--card));
+  border-color: color-mix(in srgb, var(--brand) 65%, var(--border));
+  background-color: color-mix(in srgb, var(--brand) 25%, var(--card));
   color: var(--foreground);
+}
+
+.cmd-sidebar-logo {
+  filter: drop-shadow(0 6px 12px color-mix(in srgb, var(--brand) 20%, transparent));
 }
 
 :root[data-cmd-theme="light"] .cmd-active-subtle {
@@ -502,6 +515,31 @@
 /* Opaque brand buttons intentionally have a different foreground in each mode. */
 :root .cmd-on-accent {
   color: var(--primary-foreground) !important;
+}
+
+/* El azul de relleno es deliberadamente oscuro; enlaces e iconos necesitan
+   una versión más clara sobre el lienzo oscuro. */
+:root:not([data-cmd-theme="light"])
+  :is(
+    .text-primary,
+    .text-red-accent,
+    .hover\:text-primary:hover,
+    .hover\:text-brand-hover:hover,
+    .group:hover .group-hover\:text-primary
+  ) {
+  color: var(--brand-text);
+}
+
+:root:not([data-cmd-theme="light"]) .text-primary\/60 {
+  color: color-mix(in srgb, var(--brand-text) 60%, transparent);
+}
+
+:root:not([data-cmd-theme="light"]) .text-primary\/80 {
+  color: color-mix(in srgb, var(--brand-text) 80%, transparent);
+}
+
+:root:not([data-cmd-theme="light"]) .bg-white.text-red-accent {
+  color: var(--brand);
 }
 
 /* A stable backing for user-uploaded transparent logos and banners. */
@@ -651,6 +689,12 @@
   grid-template-columns: repeat(9, minmax(0, 1fr));
   gap: 0.25rem;
   justify-items: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cmd-platform-shortcut:hover {
+    box-shadow: 0 0 14px color-mix(in srgb, var(--brand) 24%, transparent);
+  }
 }
 
 /* Las tarjetas se ajustan a su contenido en todos los breakpoints. */
@@ -898,7 +942,7 @@
   }
 
   .catalog-product-card:hover .catalog-product-title {
-    color: var(--red-accent);
+    color: var(--brand-text);
   }
 
   .catalog-product-card:hover .catalog-product-image {
@@ -1022,10 +1066,10 @@
   background-image: none;
   -webkit-background-clip: initial;
   background-clip: initial;
-  color: var(--brand);
+  color: var(--brand-text);
 }
 @utility text-brand {
-  color: var(--brand);
+  color: var(--brand-text);
 }
 
 @utility glass-card {
@@ -1453,7 +1497,7 @@
 }
 /* 3. Neon energy */
 .avfx-neon-energy > .avfx-l1 {
-  background: conic-gradient(from 0deg, #3b82f6, #7c3aed, #2563eb, #3b82f6);
+  background: conic-gradient(from 0deg, var(--brand), #7c3aed, var(--brand-hover), var(--brand));
   filter: blur(6px);
   opacity: 0.8;
   animation: avfx-spin 5s linear infinite;
@@ -1627,7 +1671,14 @@
 }
 /* 11. RGB neon */
 .avfx-rgb-neon > .avfx-l1 {
-  background: conic-gradient(from 0deg, #60a5fa, #a21caf, #2563eb, #06b6d4, #60a5fa);
+  background: conic-gradient(
+    from 0deg,
+    var(--brand-hover),
+    #a21caf,
+    var(--brand),
+    #06b6d4,
+    var(--brand-hover)
+  );
   filter: blur(4px);
   animation:
     avfx-spin 4s linear infinite,
@@ -1691,7 +1742,7 @@
     from 0deg,
     transparent 0 88%,
     rgba(96, 165, 250, 0.2) 93%,
-    #60a5fa 99%,
+    var(--brand-hover) 99%,
     transparent
   );
   filter: blur(1.5px);
@@ -2081,9 +2132,9 @@
 }
 /* CMD Champions: ranking mensual visual, aislado del layout del catálogo. */
 .cmd-champions {
-  --champ-bg: color-mix(in srgb, var(--background, #0a0e1a) 78%, #000 22%);
-  --champ-surface: var(--card, #111827);
-  --champ-surface-raised: var(--secondary, #131a2c);
+  --champ-bg: color-mix(in srgb, var(--background) 78%, #000 22%);
+  --champ-surface: var(--card);
+  --champ-surface-raised: var(--secondary);
   --champ-gold: #ffd700;
   --champ-gold-soft: #f5b942;
   --champ-border: rgba(245, 185, 66, 0.34);
@@ -2358,7 +2409,7 @@
   border: 2px solid;
   border-radius: 50%;
   color: #fff;
-  background: #111827;
+  background: var(--card);
   font-weight: 900;
   box-shadow: 0 0 1.5rem rgba(255, 215, 0, 0.2);
 }
@@ -2826,7 +2877,7 @@
 .cmd-news-icon {
   display: grid;
   place-items: center;
-  color: var(--primary);
+  color: var(--brand-text);
   background: linear-gradient(
     145deg,
     color-mix(in srgb, var(--primary) 25%, transparent),

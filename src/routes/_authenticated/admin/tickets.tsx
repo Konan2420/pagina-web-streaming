@@ -307,7 +307,7 @@ function TicketStat({
 }) {
   const tones = {
     amber: "border-amber-400/20 bg-amber-400/[0.08] text-amber-200",
-    sky: "border-sky-400/20 bg-sky-400/[0.08] text-sky-200",
+    sky: "border-info/30 bg-info/[0.08] text-info-foreground",
     slate: "border-white/10 bg-white/[0.04] text-white/65",
   };
 

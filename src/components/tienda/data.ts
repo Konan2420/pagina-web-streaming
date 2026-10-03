@@ -653,7 +653,7 @@ export type Order = {
 
 export const estadoStyles: Record<Order["estado"], string> = {
   pendiente: "bg-yellow-500/15 border-yellow-500/40 text-yellow-300",
-  pagado: "bg-blue-500/15 border-blue-500/40 text-blue-300",
+  pagado: "bg-info/15 border-info/40 text-info-foreground",
   entregado: "bg-green-500/15 border-green-500/40 text-green-300",
   cancelado: "bg-red-500/15 border-red-500/40 text-red-300",
 };
