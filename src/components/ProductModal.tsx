@@ -396,7 +396,7 @@ export function ProductModal({
       if (!result) throw new Error("No se pudo crear el pedido.");
       void queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });
       void queryClient.invalidateQueries({ queryKey: ["wallet-movements"] });
-      void queryClient.invalidateQueries({ queryKey: ["public-products"] });
+      void queryClient.invalidateQueries({ queryKey: ["catalog-products"] });
       let receipt: OrderCredentialReceipt;
       try {
         const { data: receiptData, error: receiptError } = await supabase.rpc(

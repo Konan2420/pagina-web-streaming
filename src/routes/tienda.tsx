@@ -1,5 +1,4 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { products } from "@/components/tienda/data";
 import { TiendaPage } from "@/components/tienda/TiendaPage";
 
 export const Route = createFileRoute("/tienda")({
@@ -33,42 +32,6 @@ export const Route = createFileRoute("/tienda")({
       { name: "twitter:image", content: "https://cmd-streaming.vercel.app/cmd-logo.png" },
     ],
     links: [{ rel: "canonical", href: "https://cmdstreaming.pe/tienda" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "ItemList",
-          name: "Catálogo CMD Streaming",
-          itemListElement: products.map((product, index) => ({
-            "@type": "ListItem",
-            position: index + 1,
-            item: {
-              "@type": "Product",
-              name: product.name,
-              category: product.category,
-              offers: {
-                "@type": "Offer",
-                price: product.price.toFixed(2),
-                priceCurrency: "PEN",
-                availability: "https://schema.org/InStock",
-              },
-            },
-          })),
-        }),
-      },
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Inicio", item: "/" },
-            { "@type": "ListItem", position: 2, name: "Tienda", item: "/tienda" },
-          ],
-        }),
-      },
-    ],
   }),
   component: TiendaPage,
 });

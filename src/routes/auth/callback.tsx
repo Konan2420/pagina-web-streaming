@@ -5,6 +5,7 @@ import { GravitLoader } from "@/components/GravitLoader";
 
 import { supabase } from "@/integrations/supabase/client";
 import { getAuthDestination } from "@/lib/auth-destination";
+import { syncCatalogSession, clearCatalogSession } from "@/lib/catalog-session.functions";
 import { getCurrentAccountAccess } from "@/lib/ban.functions";
 import { suspensionUrl } from "@/lib/suspension-client";
 import {
@@ -107,6 +108,7 @@ function AuthCallbackPage() {
         const access = await getCurrentAccountAccess();
         if (!access.allowed) {
           await supabase.auth.signOut({ scope: "local" });
+          await clearCatalogSession();
           window.location.assign(
             suspensionUrl({
               type: access.block === "ip" ? "ip" : "account",
@@ -116,6 +118,7 @@ function AuthCallbackPage() {
           return;
         }
         const destination = await getAuthDestination(data.session.user.id);
+        await syncCatalogSession();
         if (!active) return;
 
         await router.invalidate();

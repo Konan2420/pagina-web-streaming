@@ -2911,3 +2911,13 @@
   width: 1.1rem;
   height: 1.1rem;
 }
+
+.auth-fullscreen-form input:not([type="checkbox"]) {
+  min-height: 3rem;
+  font-size: 0.95rem;
+}
+
+.auth-fullscreen-form form > button,
+.auth-fullscreen-form > div > button {
+  min-height: 3rem;
+}

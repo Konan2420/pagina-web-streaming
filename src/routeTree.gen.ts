@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AccesoRouteImport } from './routes/acceso'
 import { Route as CuentaSuspendidaRouteImport } from './routes/cuenta-suspendida'
 import { Route as PoliticasRouteImport } from './routes/politicas'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -61,6 +62,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccesoRoute = AccesoRouteImport.update({
+  id: '/acceso',
+  path: '/acceso',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CuentaSuspendidaRoute = CuentaSuspendidaRouteImport.update({
@@ -302,6 +308,7 @@ const ApiPublicWebhooksFloidRoute = ApiPublicWebhooksFloidRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/acceso': typeof AccesoRoute
   '/cuenta-suspendida': typeof CuentaSuspendidaRoute
   '/politicas': typeof PoliticasRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/acceso': typeof AccesoRoute
   '/cuenta-suspendida': typeof CuentaSuspendidaRoute
   '/politicas': typeof PoliticasRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -391,6 +399,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/acceso': typeof AccesoRoute
   '/cuenta-suspendida': typeof CuentaSuspendidaRoute
   '/politicas': typeof PoliticasRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -438,6 +447,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/acceso'
     | '/cuenta-suspendida'
     | '/politicas'
     | '/reset-password'
@@ -483,6 +493,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/acceso'
     | '/cuenta-suspendida'
     | '/politicas'
     | '/reset-password'
@@ -526,6 +537,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/acceso'
     | '/cuenta-suspendida'
     | '/politicas'
     | '/reset-password'
@@ -573,6 +585,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AccesoRoute: typeof AccesoRoute
   CuentaSuspendidaRoute: typeof CuentaSuspendidaRoute
   PoliticasRoute: typeof PoliticasRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -601,6 +614,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/acceso': {
+      id: '/acceso'
+      path: '/acceso'
+      fullPath: '/acceso'
+      preLoaderRoute: typeof AccesoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cuenta-suspendida': {
@@ -1013,6 +1033,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AccesoRoute: AccesoRoute,
   CuentaSuspendidaRoute: CuentaSuspendidaRoute,
   PoliticasRoute: PoliticasRoute,
   ResetPasswordRoute: ResetPasswordRoute,

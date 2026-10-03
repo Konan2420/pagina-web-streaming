@@ -1,91 +1,27 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Check, ShoppingBag } from "lucide-react";
-import { getPlatformPage, type PlatformPage as PlatformPageData } from "@/lib/platform-pages";
 import { AppTopbar } from "@/components/layout/AppTopbar";
+import { requireCatalogSession } from "@/lib/require-catalog-session";
+import { getProtectedPlatformPage } from "@/lib/platform-pages.functions";
 
 export const Route = createFileRoute("/plataformas/$slug")({
-  loader: ({ params }): PlatformPageData => {
-    const page = getPlatformPage(params.slug);
+  beforeLoad: requireCatalogSession,
+  loader: async ({ params }) => {
+    const page = await getProtectedPlatformPage({ data: params.slug });
     if (!page) throw notFound();
     return page;
   },
-  head: ({ params, loaderData }) => {
-    if (!loaderData) return {};
-    const url = `https://cmdstreaming.pe/plataformas/${params.slug}`;
-    const title = `${loaderData.name} — precio y activación | CMD Streaming`;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: loaderData.description.slice(0, 155) },
-        { property: "og:title", content: title },
-        { property: "og:description", content: loaderData.tagline },
-        { property: "og:type", content: "product" },
-        { property: "og:url", content: url },
-        {
-          property: "og:image",
-          content: "https://cmd-streaming.vercel.app/cmd-logo.png",
-        },
-        { property: "og:image:alt", content: `${loaderData.name} en CMD Streaming` },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: loaderData.tagline },
-        {
-          name: "twitter:image",
-          content: "https://cmd-streaming.vercel.app/cmd-logo.png",
-        },
-      ],
-      links: [{ rel: "canonical", href: url }],
-      scripts: [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
-            name: loaderData.name,
-            description: loaderData.description,
-            brand: { "@type": "Brand", name: "CMD Streaming" },
-            offers: {
-              "@type": "Offer",
-              price: loaderData.price.toFixed(2),
-              priceCurrency: "PEN",
-              availability: "https://schema.org/InStock",
-              url,
-            },
-          }),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            itemListElement: [
-              { "@type": "ListItem", position: 1, name: "Inicio", item: "/" },
-              { "@type": "ListItem", position: 2, name: "Plataformas", item: "/plataformas" },
-              { "@type": "ListItem", position: 3, name: loaderData.name, item: url },
-            ],
-          }),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            mainEntity: loaderData.faq.map((f) => ({
-              "@type": "Question",
-              name: f.q,
-              acceptedAnswer: { "@type": "Answer", text: f.a },
-            })),
-          }),
-        },
-      ],
-    };
-  },
+  head: ({ loaderData }) => ({
+    meta: [
+      { title: `${loaderData?.name ?? "Plataforma"} — CMD Streaming` },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
+  }),
   component: PlatformPage,
 });
 
 function PlatformPage() {
-  const page: PlatformPageData = Route.useLoaderData();
-
+  const page = Route.useLoaderData();
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <AppTopbar />
@@ -107,7 +43,6 @@ function PlatformPage() {
             <li className="text-white/85">{page.name}</li>
           </ol>
         </nav>
-
         <header className="mt-6">
           <h1 className="text-4xl sm:text-5xl">{page.name}</h1>
           <p className="mt-3 text-lg text-white/80">{page.tagline}</p>
@@ -124,7 +59,6 @@ function PlatformPage() {
             Comprar en la tienda
           </Link>
         </header>
-
         <section aria-labelledby="incluye" className="mt-14 border-t border-white/10 pt-10">
           <h2 id="incluye" className="text-2xl">
             Qué incluye
@@ -138,16 +72,15 @@ function PlatformPage() {
             ))}
           </ul>
         </section>
-
         <section aria-labelledby="faq-plataforma" className="mt-14 border-t border-white/10 pt-10">
           <h2 id="faq-plataforma" className="text-2xl">
             Preguntas frecuentes
           </h2>
           <dl className="mt-5 space-y-6">
-            {page.faq.map((f) => (
-              <div key={f.q}>
-                <dt className="text-base font-semibold">{f.q}</dt>
-                <dd className="mt-1 max-w-2xl text-sm text-white/75">{f.a}</dd>
+            {page.faq.map((item) => (
+              <div key={item.q}>
+                <dt className="text-base font-semibold">{item.q}</dt>
+                <dd className="mt-1 max-w-2xl text-sm text-white/75">{item.a}</dd>
               </div>
             ))}
           </dl>

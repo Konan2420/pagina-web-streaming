@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { TiendaPage } from "@/components/tienda/TiendaPage";
+import { requireCatalogSession } from "@/lib/require-catalog-session";
 
 export const Route = createFileRoute("/")({
+  beforeLoad: requireCatalogSession,
   head: () => ({
     meta: [
+      { name: "robots", content: "noindex, nofollow" },
       { title: "CMD Streaming — Catálogo de plataformas y servicios digitales" },
       {
         name: "description",

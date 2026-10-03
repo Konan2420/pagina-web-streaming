@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { platformPages } from "@/lib/platform-pages";
 
 const BASE_URL = "https://cmdstreaming.pe";
 
@@ -15,14 +14,7 @@ export const Route = createFileRoute("/sitemap.xml")({
     handlers: {
       GET: async () => {
         const entries: SitemapEntry[] = [
-          { path: "/", changefreq: "weekly", priority: "1.0" },
-          { path: "/tienda", changefreq: "daily", priority: "0.9" },
-          { path: "/plataformas", changefreq: "weekly", priority: "0.8" },
-          ...platformPages.map((p) => ({
-            path: `/plataformas/${p.slug}`,
-            changefreq: "weekly" as const,
-            priority: "0.7",
-          })),
+          { path: "/politicas", changefreq: "monthly", priority: "0.5" },
         ];
 
         const urls = entries.map((e) =>

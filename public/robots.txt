@@ -2,6 +2,11 @@ User-agent: *
 Allow: /
 
 Disallow: /admin
-Disallow: /_authenticated
+Disallow: /catalogo
+Disallow: /proveedor
+Disallow: /distribuidor
+Disallow: /plataformas
+Disallow: /tienda-publica
+Disallow: /acceso
 
 Sitemap: https://cmdstreaming.pe/sitemap.xml

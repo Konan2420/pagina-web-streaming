@@ -621,6 +621,7 @@ function isStorefrontAvailable(settings: {
 
 /** Proyección pública: no incluye costo, ganancia, credenciales ni controles internos. */
 export const getPublicStorefront = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .validator((data) => publicStorefrontSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

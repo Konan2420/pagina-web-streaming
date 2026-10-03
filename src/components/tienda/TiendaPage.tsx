@@ -22,7 +22,6 @@ import {
   ExternalLink,
 } from "lucide-react";
 import {
-  products,
   platformShortcuts,
   estadoStyles,
   WA_NUMBER,
@@ -52,6 +51,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { createOrders } from "@/lib/orders.functions";
 import type { Tables } from "@/integrations/supabase/types";
 import { getAuthDestination } from "@/lib/auth-destination";
+import { clearCatalogSession } from "@/lib/catalog-session.functions";
 import { cn } from "@/lib/utils";
 import { PlatformNavigation } from "@/components/tienda/PlatformNavigation";
 import { AppTopbar } from "@/components/layout/AppTopbar";
@@ -700,9 +700,10 @@ export function TiendaPage({
       return;
     }
 
+    await clearCatalogSession();
     setProfile(null);
     setAvatarFrameKey(null);
-    await router.navigate({ to: "/" });
+    await router.navigate({ to: "/acceso" });
   }, [router]);
 
   const handleUnavailableSection = useCallback((section: string) => {
@@ -859,9 +860,9 @@ export function TiendaPage({
    *
    * Va en una consulta aparte en vez de añadir `supplier_id` a la del catálogo por dos razones: la
    * lista de columnas tiene un duplicado de respaldo (`CATALOG_PRODUCT_COLUMNS_WITHOUT_VERIFICATION`)
-   * que habría que mantener sincronizado, y así el catálogo que recibe cualquier visitante no
-   * cambia. Esto no abre nada nuevo: `products` tiene SELECT público con `USING (true)`, así que
-   * `supplier_id` ya es legible hoy, y el filtro es el mismo que el panel de proveedor ya usa.
+   * que habría que mantener sincronizado, y para evitar exponer `supplier_id` en la respuesta
+   * general del catálogo. RLS permite esta lectura solo a usuarios autenticados; el filtro
+   * es el mismo que utiliza el panel de proveedor.
    */
   const ownProductIdsQuery = useQuery({
     queryKey: ["own-product-ids", userId],
@@ -1000,7 +1001,7 @@ export function TiendaPage({
     error: productsError,
     refetch: refetchProducts,
   } = useQuery({
-    queryKey: ["public-products"],
+    queryKey: ["catalog-products"],
     queryFn: async () => {
       const { data, error } = await withRequestTimeout(
         Promise.resolve(
@@ -1075,7 +1076,7 @@ export function TiendaPage({
     error: managedPlatformsError,
     refetch: refetchManagedPlatforms,
   } = useQuery({
-    queryKey: ["public-managed-platforms"],
+    queryKey: ["managed-platforms"],
     queryFn: async () => {
       const { data, error } = await withRequestTimeout(
         Promise.resolve(

@@ -71,7 +71,8 @@ async function authenticateRequest(): Promise<AuthenticatedRequestContext> {
   const attachedToken = request.headers.get("x-supabase-access-token")?.trim();
   const authHeader = request.headers.get("authorization")?.trim();
   const bearerMatch = authHeader ? /^Bearer\s+(.+)$/i.exec(authHeader) : null;
-  const token = attachedToken || bearerMatch?.[1].trim();
+  const { getCookie } = await import("@tanstack/react-start/server");
+  const token = attachedToken || bearerMatch?.[1].trim() || getCookie("cmd_catalog_session");
 
   if (!token) {
     throw new Error("Unauthorized: No valid session token was provided");

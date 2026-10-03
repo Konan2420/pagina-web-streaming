@@ -4,6 +4,40 @@ import { createCsrfMiddleware } from "@/middlewares/csrf";
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
+const catalogAccessMiddleware = createMiddleware().server(async ({ next }) => {
+  const { getRequest, setResponseHeader } = await import("@tanstack/react-start/server");
+  const request = getRequest();
+  const path = new URL(request.url).pathname;
+  const isPublicPage =
+    path === "/acceso" ||
+    path === "/politicas" ||
+    path === "/cuenta-suspendida" ||
+    path === "/reset-password" ||
+    path === "/auth/callback" ||
+    path.startsWith("/credenciales/");
+  const isInfrastructure =
+    path.startsWith("/api/") ||
+    path.startsWith("/assets/") ||
+    path.startsWith("/_") ||
+    path === "/sitemap.xml" ||
+    path === "/robots.txt" ||
+    /\.[a-z0-9]{2,8}$/i.test(path);
+
+  if (
+    (request.method === "GET" || request.method === "HEAD") &&
+    !isPublicPage &&
+    !isInfrastructure
+  ) {
+    const { hasValidCatalogSession } = await import("@/lib/catalog-session.server");
+    if (!(await hasValidCatalogSession())) {
+      return Response.redirect(new URL("/acceso", request.url), 302);
+    }
+    setResponseHeader("Cache-Control", "private, no-store");
+  }
+
+  return next();
+});
+
 function isRequestAbort(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
 
@@ -48,5 +82,5 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [csrfMiddleware, errorMiddleware],
+  requestMiddleware: [catalogAccessMiddleware, csrfMiddleware, errorMiddleware],
 }));

@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -17,6 +18,8 @@ import { GlobalLoadingBar } from "@/components/ui/loading-states";
 import { configurePublicSupabase, type PublicSupabaseConfig } from "@/integrations/supabase/client";
 import { AppChromeProvider } from "@/components/layout/AppChromeProvider";
 import { PremiumElectricFilters } from "@/components/tienda/PremiumElectricFilters";
+import { supabase } from "@/integrations/supabase/client";
+import { clearCatalogSession, syncCatalogSession } from "@/lib/catalog-session.functions";
 
 /**
  * The browser needs only these two public values for Supabase Auth and RLS.
@@ -162,7 +165,7 @@ function RootShell({ children }: { children: ReactNode }) {
   const restoreColorMode = `try { var mode = localStorage.getItem("cmd-color-mode"); if (mode === "light" || mode === "dark") { document.documentElement.dataset.cmdTheme = mode; document.documentElement.style.colorScheme = mode; } } catch (_) {}`;
 
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: restoreColorMode }} />
@@ -177,10 +180,22 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const isAccessPage = useLocation({ select: (location) => location.pathname === "/acceso" });
   const supabaseConfig = Route.useLoaderData();
 
   if (supabaseConfig) configurePublicSupabase(supabaseConfig);
   usePageView();
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (session) window.setTimeout(() => void syncCatalogSession().catch(() => {}), 0);
+      } else if (event === "SIGNED_OUT") {
+        window.setTimeout(() => void clearCatalogSession().catch(() => {}), 0);
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -189,7 +204,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <GlobalLoadingBar />
         <Outlet />
-        <ConsentBanner />
+        {!isAccessPage && <ConsentBanner />}
       </AppChromeProvider>
     </QueryClientProvider>
   );

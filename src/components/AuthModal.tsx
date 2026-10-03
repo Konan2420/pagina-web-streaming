@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { useRouter } from "@tanstack/react-router";
 import { getAuthDestination } from "@/lib/auth-destination";
+import { syncCatalogSession, clearCatalogSession } from "@/lib/catalog-session.functions";
 import { assertCurrentNetworkAllowed, getCurrentAccountAccess } from "@/lib/ban.functions";
 import { suspensionFromError, suspensionUrl } from "@/lib/suspension-client";
 import { Button } from "@/components/ui/button";
@@ -39,10 +40,12 @@ export function AuthModal({
   open,
   onClose,
   initialMode = "login",
+  fullscreen = false,
 }: {
   open: boolean;
   onClose: () => void;
   initialMode?: AuthMode;
+  fullscreen?: boolean;
 }) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState("");
@@ -78,6 +81,7 @@ export function AuthModal({
 
   async function redirectToSuspension(notice: { type: "account" | "ip"; endsAt: string | null }) {
     await supabase.auth.signOut({ scope: "local" });
+    await clearCatalogSession();
     window.location.assign(suspensionUrl(notice));
   }
 
@@ -105,6 +109,7 @@ export function AuthModal({
       return;
     }
     const to = await getAuthDestination(userId);
+    await syncCatalogSession();
     await router.invalidate();
     await router.navigate({ to });
   }
@@ -136,7 +141,7 @@ export function AuthModal({
 
     const previousOverflow = document.body.style.overflow;
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeModal();
+      if (event.key === "Escape" && !fullscreen) closeModal();
     };
 
     document.body.style.overflow = "hidden";
@@ -145,7 +150,7 @@ export function AuthModal({
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, closeModal]);
+  }, [open, closeModal, fullscreen]);
 
   if (!open) return null;
 
@@ -344,30 +349,50 @@ export function AuthModal({
           : "Crea una contraseña nueva y segura para tu cuenta";
 
   return (
-    <div className="fixed inset-0 z-[100] grid place-items-center overflow-y-auto p-4 sm:p-6">
+    <div
+      className={
+        fullscreen
+          ? "min-h-dvh w-full bg-[#0a0a0f] lg:grid"
+          : "fixed inset-0 z-[100] grid place-items-center overflow-y-auto p-4 sm:p-6"
+      }
+    >
+      {!fullscreen && (
+        <div
+          className="absolute inset-0 bg-black/80 backdrop-blur-md"
+          onClick={() => closeModal()}
+          aria-hidden="true"
+        />
+      )}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-md"
-        onClick={() => closeModal()}
-        aria-hidden="true"
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
+        role={fullscreen ? undefined : "dialog"}
+        aria-modal={fullscreen ? undefined : true}
         aria-labelledby="auth-modal-title"
         aria-describedby="auth-modal-description"
-        className="relative my-auto grid w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0f] shadow-[0_24px_80px_rgba(0,0,0,0.6)] lg:grid-cols-[1.04fr_0.96fr]"
+        className={
+          fullscreen
+            ? "grid min-h-dvh w-full bg-[#0a0a0f] lg:grid-cols-[1.05fr_0.95fr]"
+            : "relative my-auto grid w-full max-w-4xl overflow-hidden rounded-2xl border border-white/10 bg-[#0a0a0f] shadow-[0_24px_80px_rgba(0,0,0,0.6)] lg:grid-cols-[1.04fr_0.96fr]"
+        }
       >
-        <button
-          type="button"
-          onClick={() => closeModal()}
-          disabled={loading}
-          className="absolute right-3 top-3 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/65 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 sm:right-4 sm:top-4 sm:h-9 sm:w-9"
-          aria-label="Cerrar"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        {!fullscreen && (
+          <button
+            type="button"
+            onClick={() => closeModal()}
+            disabled={loading}
+            className="absolute right-3 top-3 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/65 transition hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50 sm:right-4 sm:top-4 sm:h-9 sm:w-9"
+            aria-label="Cerrar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
 
-        <aside className="relative hidden min-h-[640px] overflow-hidden lg:flex lg:flex-col lg:justify-end">
+        <aside
+          className={
+            fullscreen
+              ? "relative hidden min-h-dvh overflow-hidden lg:flex lg:flex-col lg:justify-end"
+              : "relative hidden min-h-[640px] overflow-hidden lg:flex lg:flex-col lg:justify-end"
+          }
+        >
           <img
             src="/landing/auth-platforms-collage.png"
             alt="Collage de contenidos de streaming, deportes, música y videojuegos"
@@ -383,13 +408,33 @@ export function AuthModal({
           />
         </aside>
 
-        <div className="max-h-[calc(100dvh-2rem)] overflow-y-auto bg-[#0a0a0f] px-6 py-8 sm:px-10 sm:py-10 lg:max-h-[680px]">
-          <div className="mx-auto w-full max-w-sm">
+        <div
+          className={
+            fullscreen
+              ? "flex min-h-dvh items-center justify-center overflow-y-auto bg-[#0a0a0f] px-6 py-10 sm:px-10 lg:px-14"
+              : "max-h-[calc(100dvh-2rem)] overflow-y-auto bg-[#0a0a0f] px-6 py-8 sm:px-10 sm:py-10 lg:max-h-[680px]"
+          }
+        >
+          <div
+            className={
+              fullscreen
+                ? "auth-fullscreen-form mx-auto w-full max-w-md"
+                : "mx-auto w-full max-w-sm"
+            }
+          >
             <div className="mb-7 text-center lg:text-left">
-              <img src="/cmd-logo.png" alt="CMD Streaming" className="mx-auto w-28 lg:mx-0" />
+              <img
+                src="/cmd-logo.png"
+                alt="CMD Streaming"
+                className={fullscreen ? "mx-auto w-40 lg:mx-0" : "mx-auto w-28 lg:mx-0"}
+              />
               <h2
                 id="auth-modal-title"
-                className="mt-7 text-2xl font-bold tracking-tight text-white sm:text-[1.75rem]"
+                className={
+                  fullscreen
+                    ? "mt-8 text-3xl font-bold tracking-tight text-white sm:text-4xl"
+                    : "mt-7 text-2xl font-bold tracking-tight text-white sm:text-[1.75rem]"
+                }
               >
                 {title}
               </h2>
@@ -651,6 +696,16 @@ export function AuthModal({
                 ) : (
                   <span>Contraseña restablecida mediante enlace seguro.</span>
                 )}
+              </p>
+            )}
+            {fullscreen && (
+              <p className="mt-8 text-center text-xs text-white/55">
+                <a
+                  href="/politicas"
+                  className="underline-offset-4 hover:text-white hover:underline"
+                >
+                  Políticas, términos y privacidad
+                </a>
               </p>
             )}
           </div>

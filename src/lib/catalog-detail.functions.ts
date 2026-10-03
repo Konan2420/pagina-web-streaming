@@ -49,6 +49,7 @@ async function getActorRoles(context: AuthContext) {
 
 /** Registra una apertura agregada de la PDP; no acepta ni conserva identidad del visitante. */
 export const recordCatalogProductView = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .validator((data) => productIdSchema.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
