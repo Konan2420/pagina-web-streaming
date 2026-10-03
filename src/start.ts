@@ -7,7 +7,7 @@ import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 const catalogAccessMiddleware = createMiddleware().server(async ({ next }) => {
   const { getRequest, setResponseHeader } = await import("@tanstack/react-start/server");
   const request = getRequest();
-  const path = new URL(request.url).pathname;
+  const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
   const isPublicPage =
     path === "/acceso" ||
     path === "/politicas" ||
@@ -21,7 +21,7 @@ const catalogAccessMiddleware = createMiddleware().server(async ({ next }) => {
     path.startsWith("/_") ||
     path === "/sitemap.xml" ||
     path === "/robots.txt" ||
-    /\.[a-z0-9]{2,8}$/i.test(path);
+    /\.[a-z0-9]{2,16}$/i.test(path);
 
   if (
     (request.method === "GET" || request.method === "HEAD") &&
