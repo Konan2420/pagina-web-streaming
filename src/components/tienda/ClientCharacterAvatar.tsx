@@ -171,9 +171,9 @@ export function ClientCharacterAvatar({
   return (
     <span
       aria-hidden="true"
-      className={cn(avatarClass, "bg-white bg-no-repeat")}
+      className={cn(avatarClass, "bg-transparent bg-no-repeat")}
       style={{
-        backgroundImage: "url('/avatars/personajes.png')",
+        backgroundImage: "url('/avatars/personajes-transparentes.png')",
         backgroundSize: "400% auto",
         backgroundPosition: `${(column * 100) / 3}% ${row === 0 ? 4 : 84}%`,
       }}

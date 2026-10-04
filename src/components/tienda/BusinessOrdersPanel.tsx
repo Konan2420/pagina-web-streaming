@@ -1167,13 +1167,7 @@ function OrderThumbnail({ order }: { order: BusinessOrder }) {
   );
 }
 function ClientAvatar({ order }: { order: BusinessOrder }) {
-  return (
-    <ClientCharacterAvatar
-      name={order.client_name}
-      imageUrl={order.client_avatar_url}
-      className="h-8 w-8"
-    />
-  );
+  return <ClientCharacterAvatar name={order.client_name} className="h-8 w-8" />;
 }
 function RemainingBadge({
   label,
