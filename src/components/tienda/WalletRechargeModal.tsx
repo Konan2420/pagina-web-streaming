@@ -80,7 +80,11 @@ export function WalletRechargeModal({
     queryKey: ["wallet-movements", userId],
     queryFn: async () => {
       const [rechargesResult, ordersResult, manualOrdersResult] = await Promise.all([
-        supabase.from("recargas").select("*").order("created_at", { ascending: false }),
+        supabase
+          .from("recargas")
+          .select("id, created_at, metodo, monto, moneda, estado, motivo_rechazo")
+          .or(`user_id.eq.${userId},beneficiario_id.eq.${userId}`)
+          .order("created_at", { ascending: false }),
         supabase
           .from("orders")
           .select("id, producto_nombre, precio, estado, created_at")
