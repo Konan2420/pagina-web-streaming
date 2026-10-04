@@ -424,11 +424,11 @@ export function PublicStorefront({ slug }: { slug: string }) {
                   {getPremiumCardClasses(product.isPremium, product.premiumStyle) && (
                     <PremiumElectricLayers />
                   )}
-                  <div className="cmd-premium-electric__media relative aspect-square overflow-hidden bg-background">
+                  <div className="cmd-premium-electric__media relative aspect-square overflow-hidden">
                     <ProductImage
                       src={product.imageUrl}
                       alt={product.name}
-                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                      className="cmd-product-image-fade h-full w-full object-cover transition duration-500 group-hover:scale-105"
                       fallback={
                         <div className="grid h-full place-items-center text-4xl font-black text-white/15">
                           {product.platform?.slice(0, 1) || product.name.slice(0, 1)}

@@ -150,15 +150,15 @@ export function ProductCatalogCard({
       className={`product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[24rem] sm:flex-col ${premiumCardClasses}`}
     >
       {premiumCardClasses && <PremiumElectricLayers />}
-      <div className="cmd-premium-electric__media relative aspect-square w-[48%] shrink-0 self-start overflow-hidden bg-background sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg">
+      <div className="cmd-premium-electric__media relative aspect-square w-[48%] shrink-0 self-start overflow-hidden sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg">
         <ProductImage
           src={product.image}
           alt={`Portada de ${product.name}`}
-          className={`catalog-product-image h-full w-full object-cover transition-transform duration-700 motion-reduce:transition-none ${
+          className={`catalog-product-image cmd-product-image-fade h-full w-full object-cover transition-transform duration-700 motion-reduce:transition-none ${
             isOutOfService ? "opacity-65 saturate-75" : ""
           }`}
           fallback={
-            <div className="grid h-full w-full place-items-center bg-background">
+            <div className="grid h-full w-full place-items-center">
               <Package className="h-10 w-10 text-white/10" aria-hidden="true" />
             </div>
           }

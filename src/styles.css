@@ -705,6 +705,31 @@
     transform 200ms ease;
 }
 
+/* La máscara afecta solo a la portada. Los distintivos y botones son hermanos
+   del <img> y conservan su nitidez y contraste. El contenedor transparente
+   revela el fondo real de la tarjeta, incluido su degradado premium. */
+.cmd-product-image-fade {
+  --cmd-product-image-mask: radial-gradient(
+    ellipse 70% 85% at 50% 25%,
+    #000 55%,
+    transparent 100%
+  );
+  -webkit-mask-image: var(--cmd-product-image-mask);
+  mask-image: var(--cmd-product-image-mask);
+}
+
+/* La portada horizontal ocupa menos ancho en móvil: un radio algo mayor evita
+   recortar visualmente el sujeto o los textos cercanos a los costados. */
+@media (max-width: 639px) {
+  .catalog-product-card .cmd-product-image-fade {
+    --cmd-product-image-mask: radial-gradient(
+      ellipse 78% 88% at 50% 25%,
+      #000 58%,
+      transparent 100%
+    );
+  }
+}
+
 /* CMD Premium Electric: capas decorativas sin dimensiones propias ni cambios de layout. */
 @property --cmd-premium-electric-angle {
   syntax: "<angle>";
