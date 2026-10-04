@@ -539,22 +539,24 @@ export function StorefrontSettingsEditor({
             <div className="grid min-h-0 flex-1 gap-5 overflow-y-auto px-5 py-5 sm:px-6 md:grid-cols-[13rem_minmax(0,1fr)]">
               <div className="flex flex-col items-center border-b border-border pb-5 md:border-b-0 md:border-r md:pr-5">
                 <p className="mb-3 text-xs font-bold text-white/75">Vista previa</p>
-                <AvatarFrame
-                  frameKey={form.avatarFrameKey}
-                  className="h-36 w-36 shrink-0 rounded-full border-4 border-white/10 bg-card text-2xl font-black text-white"
-                >
-                  {form.logoUrl ? (
-                    <img src={form.logoUrl} alt="Avatar de tienda" className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="grid h-full w-full place-items-center bg-card">
-                      {form.displayName.slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
-                </AvatarFrame>
+                <div className="grid h-52 w-full shrink-0 place-items-center">
+                  <AvatarFrame
+                    frameKey={form.avatarFrameKey}
+                    className="h-[7.5rem] w-[7.5rem] shrink-0 rounded-full border-4 border-white/10 bg-card text-2xl font-black text-white"
+                  >
+                    {form.logoUrl ? (
+                      <img src={form.logoUrl} alt="Avatar de tienda" className="h-full w-full object-cover" />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center bg-card">
+                        {form.displayName.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </AvatarFrame>
+                </div>
                 <button
                   type="button"
                   onClick={() => update({ avatarFrameKey: null })}
-                  className="mt-6 h-10 w-full rounded-md bg-red-accent px-3 text-xs font-bold text-white transition hover:brightness-110"
+                  className="mt-3 h-10 w-full rounded-md bg-red-accent px-3 text-xs font-bold text-white transition hover:brightness-110"
                 >
                   Quitar marco
                 </button>
@@ -613,7 +615,7 @@ export function StorefrontSettingsEditor({
                             : "flex min-h-24 flex-col items-center justify-center gap-2 rounded-lg border border-border bg-card p-2 text-white/65 transition hover:border-primary/60 hover:text-white"
                         }
                       >
-                        <AvatarFrame frameKey={frame.key} className="h-14 w-14 rounded-full bg-background">
+                        <AvatarFrame frameKey={frame.key} className={`${frame.key === "golden-eagle" ? "h-11 w-11" : "h-14 w-14"} rounded-full bg-background`}>
                           <span className="grid h-full w-full place-items-center bg-background text-[10px] font-black text-white/60">
                             {frame.name.slice(0, 2).toUpperCase()}
                           </span>
