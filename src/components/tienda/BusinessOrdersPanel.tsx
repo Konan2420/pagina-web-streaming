@@ -20,6 +20,7 @@ import {
 import { SiWhatsapp } from "react-icons/si";
 import { toast } from "sonner";
 import { GravitLoader } from "@/components/GravitLoader";
+import { ClientCharacterAvatar } from "@/components/tienda/ClientCharacterAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildCredentialDeliveryWhatsAppMessage,
@@ -262,18 +263,6 @@ function statusLabel(status: Exclude<BusinessOrderStatus, "all">) {
       cancelado: "Cancelado",
     } as const
   )[status];
-}
-
-function initials(name: string) {
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase() || "CL"
-  );
 }
 
 async function downloadReceipt(order: BusinessOrder) {
@@ -1178,16 +1167,12 @@ function OrderThumbnail({ order }: { order: BusinessOrder }) {
   );
 }
 function ClientAvatar({ order }: { order: BusinessOrder }) {
-  return order.client_avatar_url ? (
-    <img
-      src={order.client_avatar_url}
-      alt=""
-      className="h-8 w-8 shrink-0 rounded-full border border-border object-cover"
+  return (
+    <ClientCharacterAvatar
+      name={order.client_name}
+      imageUrl={order.client_avatar_url}
+      className="h-8 w-8"
     />
-  ) : (
-    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/15 text-[10px] font-black text-primary">
-      {initials(order.client_name)}
-    </span>
   );
 }
 function RemainingBadge({

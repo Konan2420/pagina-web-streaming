@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { GravitLoader } from "@/components/GravitLoader";
+import { ClientCharacterAvatar } from "@/components/tienda/ClientCharacterAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { downloadXlsx } from "@/lib/xlsx-export";
 import {
@@ -135,14 +136,6 @@ function maskPhone(value: string | null) {
   return phone.slice(0, 4) + "•".repeat(Math.max(3, phone.length - 7)) + phone.slice(-3);
 }
 
-function initials(name: string) {
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
 export function ClientsPanel({
   userId,
   isAdmin,
@@ -734,9 +727,7 @@ export function ClientsPanel({
                     <tr key={client.id} className="transition-colors hover:bg-muted/45">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/15 text-xs font-black text-primary ring-1 ring-primary/25">
-                            {initials(client.nombre)}
-                          </span>
+                          <ClientCharacterAvatar name={client.nombre} />
                           <div className="min-w-0">
                             <p className="truncate font-bold text-foreground">{client.nombre}</p>
                             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -925,9 +916,7 @@ export function ClientsPanel({
           {detailsClient && (
             <div className="space-y-4 py-2">
               <div className="flex items-center gap-3 rounded-lg border border-border bg-card/60 p-3">
-                <span className="grid h-12 w-12 place-items-center rounded-full bg-primary/15 text-sm font-black text-primary ring-1 ring-primary/25">
-                  {initials(detailsClient.nombre)}
-                </span>
+                <ClientCharacterAvatar name={detailsClient.nombre} className="h-12 w-12" />
                 <div className="min-w-0">
                   <p className="truncate text-base font-bold text-foreground">
                     {detailsClient.nombre}
@@ -1025,6 +1014,12 @@ export function ClientsPanel({
                 className="crm-input"
               />
             </Field>
+            {draft.nombre.trim().length >= 2 && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <ClientCharacterAvatar name={draft.nombre} className="h-10 w-10" />
+                <span>Avatar asignado automáticamente</span>
+              </div>
+            )}
             <Field label="Teléfono / WhatsApp">
               <input
                 value={draft.telefono}

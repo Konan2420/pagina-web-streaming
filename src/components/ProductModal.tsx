@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { GravitLoader } from "@/components/GravitLoader";
 import { OrderCelebrationDialog } from "@/components/OrderCelebrationDialog";
 import { ProductImage } from "@/components/ProductImage";
+import { ClientCharacterAvatar } from "@/components/tienda/ClientCharacterAvatar";
 import { inviteCatalogOrderClient } from "@/lib/catalog-detail.functions";
 import type { OrderCredentialReceipt } from "@/lib/order-credentials";
 import { saveStorefrontOverride } from "@/lib/storefront.functions";
@@ -715,6 +716,12 @@ export function ProductModal({
                           placeholder="Nombre completo"
                           className="h-10 w-full rounded-md border border-white/10 bg-secondary px-3 text-sm text-white outline-none focus:border-sky-300/50"
                         />
+                        {newClientName.trim().length >= 2 && (
+                          <div className="flex items-center gap-2 text-xs text-slate-300">
+                            <ClientCharacterAvatar name={newClientName} className="h-10 w-10" />
+                            <span>Avatar asignado automáticamente</span>
+                          </div>
+                        )}
                         <input
                           value={newClientEmail}
                           onChange={(event) => setNewClientEmail(event.target.value)}
