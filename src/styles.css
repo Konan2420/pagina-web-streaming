@@ -583,6 +583,20 @@
   user-select: none;
 }
 
+.cmd-avatar-frame-golden-eagle {
+  inset: -30%;
+  width: 160%;
+  height: 160%;
+  object-fit: cover;
+  object-position: center;
+  animation: cmd-avatar-eagle-glow 4s ease-in-out infinite;
+}
+
+@keyframes cmd-avatar-eagle-glow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgb(251 191 36 / 35%)); }
+  50% { filter: drop-shadow(0 0 7px rgb(251 191 36 / 70%)); }
+}
+
 .cmd-avatar-frame-rotate {
   transform-origin: 60px 60px;
   animation: cmd-avatar-frame-spin 16s linear infinite;
@@ -662,6 +676,7 @@
   .cmd-avatar-frame-particles,
   .cmd-avatar-frame-float,
   .cmd-avatar-frame-glow,
+  .cmd-avatar-frame-golden-eagle,
   .cmd-avatar-frame-spark {
     animation: none;
   }
