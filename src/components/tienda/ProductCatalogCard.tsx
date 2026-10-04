@@ -131,7 +131,7 @@ export function ProductCatalogCard({
   const atCartLimit = remaining === 0;
   const addLabel = quantityInCart > 0 ? `${stockLabel} · ${quantityInCart} en carrito` : stockLabel;
   const footer = lastSaleAt
-    ? `${sellerName} · ${relativeTime(lastSaleAt)}`
+    ? `Última compra · ${relativeTime(lastSaleAt)}`
     : "Sé el primero en comprar";
 
   const handleAdd = () => {
@@ -147,18 +147,25 @@ export function ProductCatalogCard({
 
   return (
     <article
-      className={`product-card catalog-product-card group flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card sm:min-h-[24rem] sm:flex-col ${premiumCardClasses}`}
+      className={`product-card catalog-product-card group flex h-full min-w-0 flex-col overflow-hidden rounded-[8px] border border-border/70 bg-card ${premiumCardClasses}`}
     >
       {premiumCardClasses && <PremiumElectricLayers />}
-      <div className="cmd-premium-electric__media relative aspect-square w-[48%] shrink-0 self-start overflow-hidden sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg">
+      <div className="cmd-premium-electric__media relative isolate aspect-[1.05] w-full shrink-0 overflow-hidden rounded-t-[7px]">
+        {product.image && (
+          <div
+            aria-hidden="true"
+            className="catalog-product-media-glow"
+            style={{ backgroundImage: `url(${JSON.stringify(product.image)})` }}
+          />
+        )}
         <ProductImage
           src={product.image}
           alt={`Portada de ${product.name}`}
-          className={`catalog-product-image cmd-product-image-fade h-full w-full object-cover transition-transform duration-700 motion-reduce:transition-none ${
+          className={`catalog-product-image cmd-product-image-fade pointer-events-none relative z-[1] h-full w-full object-contain transition-transform duration-500 motion-reduce:transition-none ${
             isOutOfService ? "opacity-65 saturate-75" : ""
           }`}
           fallback={
-            <div className="grid h-full w-full place-items-center">
+            <div className="relative z-[1] grid h-full w-full place-items-center">
               <Package className="h-10 w-10 text-white/10" aria-hidden="true" />
             </div>
           }
@@ -170,7 +177,7 @@ export function ProductCatalogCard({
             contenedor es transparente al puntero, así que el clic sigue llegando
             al botón de debajo. */}
         <div className="pointer-events-none absolute inset-0 z-10">
-          <div className="absolute left-2 top-2">
+          <div className="absolute left-1.5 top-1.5">
             {/* El color del texto va en el mismo condicional que el del fondo: blanco sobre
                 `emerald-500` se queda en ≈2,6:1 con texto de 8-9 px, por debajo del 4,5:1 que
                 pide AA. Sobre el verde, el emparejamiento correcto es el texto oscuro que el
@@ -178,7 +185,7 @@ export function ProductCatalogCard({
                 oscura, que es la única que necesita conservar el blanco en tema claro. */}
             <span
               data-cmd-fixed-contrast={product.isRenewable === false ? "" : undefined}
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 font-sans text-[10px] font-semibold uppercase tracking-[0.06em] shadow-sm ring-1 ring-white/15sm:px-2 sm:py-1 sm:text-[12px] ${
+              className={`inline-flex items-center gap-1 whitespace-nowrap rounded-[4px] px-1.5 py-1 font-sans text-[9px] font-semibold uppercase leading-none tracking-[0.02em] shadow-sm ring-1 ring-white/15 sm:text-[10px] ${
                 product.isRenewable === false
                   ? "bg-slate-700/95 text-white"
                   : "bg-emerald-500/95 text-emerald-950"
@@ -186,17 +193,16 @@ export function ProductCatalogCard({
             >
               {product.isRenewable === false ? (
                 <>
-                  <Clock3 className="h-3.5 w-3.5 sm:hidden" aria-hidden="true" />
-                  <RefreshCw className="hidden h-4 w-4 sm:block" aria-hidden="true" />
+                  <Clock3 className="h-3 w-3" aria-hidden="true" />
                 </>
               ) : (
-                <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                <RefreshCw className="h-3 w-3" aria-hidden="true" />
               )}
               {product.isRenewable === false ? "No renovable" : "Renovable"}
             </span>
           </div>
-          <div className="absolute right-2 top-2">
-            <span className="cmd-on-accent rounded-md bg-destructive px-2 py-1 font-sans text-[10px] font-semibold uppercase tracking-[0.06em] text-white shadow-sm ring-1 ring-white/15 sm:bg-primarysm:px-2 sm:py-1 sm:text-[12px]">
+          <div className="absolute right-1.5 top-1.5">
+            <span className="cmd-on-accent inline-flex whitespace-nowrap rounded-[4px] bg-destructive px-1.5 py-1 font-sans text-[9px] font-semibold uppercase leading-none tracking-[0.02em] text-white shadow-sm ring-1 ring-white/15 sm:text-[10px]">
               {product.duracion}
             </span>
           </div>
@@ -216,7 +222,7 @@ export function ProductCatalogCard({
           type="button"
           onClick={onOpen}
           onMouseEnter={onHover}
-          className="absolute inset-0 grid place-items-center bg-black/20 transition duration-200 pointer-fine:bg-black/45 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
+          className="absolute inset-0 z-[2] grid place-items-center bg-black/10 transition duration-200 pointer-fine:bg-black/40 pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100"
           aria-label={`Ver detalles de ${product.name}`}
         >
           <span
@@ -228,13 +234,13 @@ export function ProductCatalogCard({
         </button>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-3">
-        <div className="flex min-h-6 items-center gap-1.5 sm:min-h-6 sm:gap-1.5">
+      <div className="flex min-w-0 flex-1 flex-col px-2.5 pb-2.5 pt-2">
+        <div className="flex min-h-7 items-center justify-between gap-1.5">
           <div className="flex min-w-0 items-center gap-1">
             <span
               aria-hidden="true"
               data-cmd-fixed-contrast
-              className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-brand to-blue-950 text-[9px] font-black text-white sm:h-8 sm:w-8 sm:text-[10px]"
+              className="grid h-[26px] w-[26px] shrink-0 place-items-center rounded-full border border-white/15 bg-gradient-to-br from-brand to-blue-950 text-[9px] font-black text-white"
             >
               {initials(sellerName)}
             </span>
@@ -244,7 +250,7 @@ export function ProductCatalogCard({
                 enseña completo. */}
             <span
               title={sellerName}
-              className="truncate font-sans text-[11px] font-semibold tracking-[0.01em]text-white/85 sm:text-[13px]"
+              className="truncate font-sans text-[10px] font-semibold tracking-[0.01em] text-white/85 sm:text-[11px]"
             >
               {sellerName}
             </span>
@@ -252,7 +258,7 @@ export function ProductCatalogCard({
                 de datos; no se asume por publicar en el catálogo. */}
             {product.isPublisherVerified === true && (
               <BadgeCheck
-                className="h-3.5 w-3.5 shrink-0 text-destructive sm:h-4 sm:w-4 sm:text-sky-400"
+                className="h-3.5 w-3.5 shrink-0 text-sky-400"
                 role="img"
                 aria-label="Vendedor verificado"
               />
@@ -261,21 +267,21 @@ export function ProductCatalogCard({
           {product.iconId ? (
             <PlatformIconMark
               iconId={product.iconId}
-              className="ml-auto h-10 w-10 shrink-0 rounded-lg border border-white/20 shadow-md sm:h-8 sm:w-8"
-              iconClassName="h-5 w-5 sm:h-4 sm:w-4"
+              className="ml-auto h-7 w-7 shrink-0 rounded-md border border-white/20 shadow-sm"
+              iconClassName="h-4 w-4"
             />
           ) : (
-            <span className="ml-auto grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/15 bg-white/[0.06] text-white/55 sm:h-8 sm:w-8">
-              <Package className="h-5 w-5 sm:h-4 sm:w-4" aria-hidden="true" />
+            <span className="ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-md border border-white/15 bg-white/[0.06] text-white/55">
+              <Package className="h-4 w-4" aria-hidden="true" />
             </span>
           )}
         </div>
 
-        <h3 className=" catalog-product-title uppercase mt-2 line-clamp-3 min-h-[2.7rem] font-product text-[14px] font-bold leading-[1.3] tracking-[-0.015em] text-white transition-colors duration-200 sm:mt-2 sm:min-h-[3.75em] sm:text-[15px] sm:leading-[1.25] ">
+        <h3 className="catalog-product-title mt-1.5 line-clamp-2 min-h-[2.36em] font-product text-[13px] font-bold uppercase leading-[1.16] tracking-[-0.01em] text-foreground transition-colors duration-200 sm:text-[14px]">
           {product.name}
         </h3>
 
-        <div className="mt-1.5 flex flex-wrap items-center gap-1.5 font-sans text-[10px] font-medium text-white/80 sm:mt-1.5 sm:gap-1.5 sm:text-[9px]">
+        <div className="mt-1.5 flex min-h-5 flex-wrap items-center gap-1 font-sans text-[10px] font-medium text-white/80">
           {/* Este chip no es como los dos de abajo: no describe un dato que el vendedor
               declare al publicar, sino que el producto es de quien está mirando. Por eso es
               un botón que lleva a su editor y no una etiqueta. */}
@@ -283,9 +289,9 @@ export function ProductCatalogCard({
             <button
               type="button"
               onClick={onManage}
-              className="inline-flex items-center gap-1 rounded-md border border-sky-400/40 bg-sky-400/[0.12] px-2 py-1 leading-none text-sky-100 transition hover:border-sky-300 hover:text-whitesm:px-2 sm:py-1"
+              className="inline-flex min-h-6 items-center gap-1 rounded-[4px] border border-sky-400/40 bg-sky-400/[0.12] px-1.5 py-0.5 leading-none text-sky-100 transition hover:border-sky-300 hover:text-white"
             >
-              <Pencil className="h-4 w-4" aria-hidden="true" />
+              <Pencil className="h-3 w-3" aria-hidden="true" />
               Tu producto
             </button>
           )}
@@ -293,13 +299,13 @@ export function ProductCatalogCard({
               dato no se pinta ninguno: un icono verde junto a "Completa" validaba
               una afirmación que nadie había hecho. */}
           {deliveryType && (
-            <span className="inline-flex items-center gap-1 rounded-md border border-white/12 bg-white/[0.055] px-2 py-1 leading-nonesm:px-2 sm:py-1">
+            <span className="inline-flex items-center gap-1 rounded-[4px] border border-white/12 bg-white/[0.055] px-1.5 py-0.5 leading-none">
               {deliveryType === "manual" ? (
-                <KeyRound className="h-4 w-4 text- amber-200" aria-hidden="true" />
+                <KeyRound className="h-3 w-3 text-amber-200" aria-hidden="true" />
               ) : deliveryType === "perfil" ? (
-                <UserRound className="h-4 w-4 text- white/70" aria-hidden="true" />
+                <UserRound className="h-3 w-3 text-white/70" aria-hidden="true" />
               ) : (
-                <Layers className="h-4 w-4 text- white/70" aria-hidden="true" />
+                <Layers className="h-3 w-3 text-white/70" aria-hidden="true" />
               )}
               {deliveryType === "manual"
                 ? "Manual"
@@ -309,8 +315,8 @@ export function ProductCatalogCard({
             </span>
           )}
           {scopeType && (
-            <span className="inline-flex items-center gap-1 rounded-md border border-white/12 bg-white/[0.055] px-2 py-1 leading-nonesm:px-2 sm:py-1">
-              <Globe2 className="h-4 w-4 text- sky-300" aria-hidden="true" />
+            <span className="inline-flex items-center gap-1 rounded-[4px] border border-white/12 bg-white/[0.055] px-1.5 py-0.5 leading-none">
+              <Globe2 className="h-3 w-3 text-sky-300" aria-hidden="true" />
               {scopeType === "global"
                 ? "Global"
                 : `${countryFlag(scopeCountry)} ${countryLabel(scopeCountry)}`}
@@ -318,13 +324,11 @@ export function ProductCatalogCard({
           )}
         </div>
 
-        <div className="mt-auto border-t border-border pt-2">
-          {/* En las columnas más estrechas (el mínimo de la rejilla es 10rem) el
-              precio y la etiqueta no caben en la misma línea. El precio nunca se
-              parte —una cifra cortada es lo peor que puede pasar aquí— y la
-              etiqueta baja a la línea siguiente conservando la derecha. */}
-          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-            <span className="shrink-0 whitespace-nowrap font-product text-[17px] font-bold leading-tight tracking-[-0.02em] text-white sm:text-[16px]">
+        <div className="mt-auto pt-2">
+          {/* El precio permanece completo y el estado conserva una sola fila;
+              si es largo, se trunca visualmente y sigue completo para lectores. */}
+          <div className="flex min-w-0 items-center justify-between gap-1.5">
+            <span className="shrink-0 whitespace-nowrap font-product text-[15px] font-bold leading-tight tracking-[-0.02em] text-white sm:text-[16px]">
               S/ {product.price.toFixed(2)}
             </span>
             {isOutOfService ? (
@@ -332,12 +336,12 @@ export function ProductCatalogCard({
               // se ocupa el sitio del botón sin afirmar nada sobre las unidades.
               <span
                 title="El vendedor retiró este producto de la venta."
-                className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md bg-white/[0.07] px-2 py-1 font-sans text-[10px] font-medium text-white/45sm:px-2 sm:py-1 sm:text-[12px]"
+                className="ml-auto min-w-0 max-w-[57%] truncate rounded-[4px] bg-white/[0.07] px-1.5 py-1 font-sans text-[10px] font-medium text-white/55"
               >
                 No disponible
               </span>
             ) : isOutOfStock ? (
-              <span className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-md bg-white/[0.07] px-2 py-1 font-sans text-[10px] font-medium text-white/45sm:px-2 sm:py-1 sm:text-[12px]">
+              <span className="ml-auto min-w-0 max-w-[57%] truncate rounded-[4px] bg-white/[0.07] px-1.5 py-1 font-sans text-[10px] font-medium text-white/55">
                 Sin stock
               </span>
             ) : isStockUnknown ? (
@@ -348,7 +352,7 @@ export function ProductCatalogCard({
                 disabled
                 title="No pudimos comprobar el stock. Reintenta en un momento."
                 aria-label={`Sin dato: no pudimos comprobar el stock de ${product.name}`}
-                className="ml-auto inline-flex min-h-11 shrink-0 cursor-not-allowed items-center gap-1 rounded-md bg-white/[0.07] px-2 py-1 font-sans text-[10px] font-medium text-white/45 sm:min-h-0sm:px-2 sm:py-1 sm:text-[12px]"
+                className="ml-auto min-h-8 min-w-0 max-w-[57%] truncate rounded-[4px] bg-white/[0.07] px-1.5 py-1 font-sans text-[10px] font-medium text-white/55"
               >
                 Sin dato
               </button>
@@ -360,7 +364,7 @@ export function ProductCatalogCard({
                 disabled
                 title={`Ya tienes las ${quantityInCart} unidades disponibles de este producto en el carrito.`}
                 aria-label={`En el carrito: ya tienes las ${quantityInCart} unidades disponibles de ${product.name}`}
-                className="ml-auto inline-flex min-h-11 shrink-0 cursor-not-allowed items-center gap-1 rounded-md bg-white/[0.07] px-2 py-1 font-sans text-[10px] font-medium text-white/45 sm:min-h-0sm:px-2 sm:py-1 sm:text-[12px]"
+                className="ml-auto min-h-8 min-w-0 max-w-[57%] truncate rounded-[4px] bg-white/[0.07] px-1.5 py-1 font-sans text-[10px] font-medium text-white/55"
               >
                 En el carrito
               </button>
@@ -369,7 +373,7 @@ export function ProductCatalogCard({
                 type="button"
                 onClick={handleAdd}
                 onMouseEnter={onHover}
-                className="ml-auto inline-flex min-h-11 shrink-0 items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 font-sans text-[10px] font-semibold text-emerald-950 shadow-sm shadow-emerald-500/25 transition hover:brightness-110 active:scale-[0.97] sm:min-h-0sm:px-2 sm:py-1 sm:text-[12px]"
+                className="ml-auto inline-flex min-h-8 min-w-0 max-w-[57%] items-center gap-1 rounded-[4px] bg-emerald-500 px-1.5 py-1 font-sans text-[10px] font-semibold text-emerald-950 shadow-sm shadow-emerald-500/25 transition hover:brightness-110 active:scale-[0.97]"
                 // El nombre accesible empieza por el texto visible ("5 Stock",
                 // "5 Stock · 2 en carrito"): quien navega por voz dice lo que ve,
                 // y un `aria-label` que no lo contenga rompe ese control (WCAG
@@ -379,20 +383,22 @@ export function ProductCatalogCard({
               >
                 {justAdded ? (
                   <Check
-                    className="h-4 w-4 animate-in zoom-in-50 duration-200 sm:h-4 sm:w-4"
+                    className="h-3 w-3 shrink-0 animate-in zoom-in-50 duration-200"
                     aria-hidden="true"
                   />
                 ) : (
-                  <ShoppingCart className="h-4 w-4 sm:h-4 sm:w-4" aria-hidden="true" />
+                  <ShoppingCart className="h-3 w-3 shrink-0" aria-hidden="true" />
                 )}
-                {addLabel}
+                <span className="min-w-0 truncate" title={addLabel}>
+                  {addLabel}
+                </span>
               </button>
             )}
           </div>
 
           <p
             title={footer}
-            className="mt-1 truncate font-sans text-[10px] font-medium leading-3 text-white/45 sm:text-[12px] sm:leading-4"
+            className="mt-1.5 truncate font-sans text-[10px] font-medium leading-3 text-white/55"
           >
             {footer}
           </p>
@@ -414,14 +420,14 @@ export function ProductCatalogCardSkeleton() {
   return (
     <article
       aria-hidden="true"
-      className="flex h-full min-h-0 flex-row overflow-hidden rounded-xl border border-border bg-card  sm:min-h-[24rem] sm:flex-col"
+      className="flex h-full min-w-0 flex-col overflow-hidden rounded-[8px] border border-border/70 bg-card"
     >
-      <Skeleton className="aspect-square w-[48%] shrink-0 self-start rounded-none bg-white/[0.08] sm:aspect-[1.05] sm:mt-2 sm:w-[calc(100%_-_1rem)] sm:self-center sm:rounded-lg" />
-      <div className="flex min-w-0 flex-1 flex-col p-3 sm:p-3">
-        <div className="flex h-6 items-center gap-1.5">
-          <Skeleton className="h-7 w-7 rounded-full bg-white/[0.08] sm:h-6 sm:w-6" />
+      <Skeleton className="aspect-[1.05] w-full shrink-0 rounded-none bg-white/[0.08]" />
+      <div className="flex min-w-0 flex-1 flex-col px-2.5 pb-2.5 pt-2">
+        <div className="flex h-7 items-center gap-1.5">
+          <Skeleton className="h-[26px] w-[26px] rounded-full bg-white/[0.08]" />
           <Skeleton className="h-2.5 w-20 bg-white/[0.08]" />
-          <Skeleton className="ml-auto h-10 w-10 rounded-lg bg-white/[0.08] sm:h-8 sm:w-8" />
+          <Skeleton className="ml-auto h-7 w-7 rounded-md bg-white/[0.08]" />
         </div>
         <Skeleton className="mt-1 h-3.5 w-4/5 bg-white/[0.08]" />
         <Skeleton className="mt-1 h-3.5 w-3/5 bg-white/[0.08]" />
@@ -429,10 +435,10 @@ export function ProductCatalogCardSkeleton() {
           <Skeleton className="h-5 w-14 rounded-md bg-white/[0.08]" />
           <Skeleton className="h-5 w-12 rounded-md bg-white/[0.08]" />
         </div>
-        <div className="mt-3 border-t border-border pt-2">
+        <div className="mt-auto pt-2">
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-16 bg-white/[0.08]" />
-            <Skeleton className="h-11 w-16 rounded-md bg-white/[0.08] sm:h-5" />
+            <Skeleton className="h-8 w-16 rounded-md bg-white/[0.08]" />
           </div>
           <Skeleton className="mt-1 h-2.5 w-3/5 bg-white/[0.08]" />
         </div>

@@ -1624,10 +1624,9 @@ export function TiendaPage({
       <div
         className={cn(
           "min-h-screen transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          !catalogOnly &&
-            (sidebarCollapsed
-              ? "lg:pl-[var(--store-sidebar-collapsed-width)]"
-              : "lg:pl-[var(--store-sidebar-width)]"),
+          sidebarCollapsed
+            ? "lg:pl-[var(--store-sidebar-collapsed-width)]"
+            : "lg:pl-[var(--store-sidebar-width)]",
         )}
       >
         <AppTopbar onToggleSidebar={handleSidebarToggle} businessNavigation={businessNavigation} />
@@ -1717,7 +1716,7 @@ export function TiendaPage({
                   <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
                     <GravitLoader label="Cargando productos" />
                   </div>
-                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-4 opacity-45 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] lg:gap-4 xl:grid-cols-7">
+                  <div className="catalog-product-grid opacity-45">
                     {Array.from({ length: 12 }, (_, index) => (
                       <ProductCatalogCardSkeleton key={index} />
                     ))}
@@ -1817,7 +1816,7 @@ export function TiendaPage({
                       </button>
                     </div>
                   )}
-                  <div className="grid auto-rows-fr grid-cols-1 items-stretch gap-4 min-[520px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 lg:grid-cols-[repeat(auto-fill,minmax(12.5rem,1fr))] lg:gap-4 xl:grid-cols-7">
+                  <div className="catalog-product-grid">
                     {renderedVisibleProducts.map((p) => (
                       <ProductCatalogCard
                         key={p.id}
