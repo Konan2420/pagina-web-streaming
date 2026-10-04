@@ -146,12 +146,12 @@ function orderFailureMessage(error: unknown): string {
   if (/Authentication and a client are required|JWT expired|Not authenticated/i.test(message))
     return "Tu sesión caducó. Inicia sesión de nuevo para confirmar el pedido.";
   if (/Failed to fetch|NetworkError/i.test(message))
-    return "No se pudo conectar con Supabase. Comprueba tu conexión antes de reintentar.";
+    return "Se perdió la conexión durante la confirmación. Revisa Mis pedidos antes de reintentar.";
   if (code === "PGRST202")
     return "La función de pedidos no está disponible en Supabase. Contacta al administrador.";
   return code
-    ? `No se pudo confirmar el pedido (código ${code}). Contacta al administrador si vuelve a ocurrir.`
-    : "No se pudo confirmar el pedido. Comprueba el saldo y vuelve a intentarlo.";
+    ? `No recibimos confirmación del pedido (código ${code}). Revisa Mis pedidos antes de reintentar.`
+    : "No recibimos confirmación del pedido. Revisa Mis pedidos antes de reintentar.";
 }
 
 /** PDP única del catálogo: la base de datos, no el navegador, decide rol, cobro y destinatario. */
