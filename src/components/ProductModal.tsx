@@ -79,6 +79,7 @@ type ProductModalProps = {
   /** Verificación del perfil comercial que publica el producto. */
   publisherIsVerified?: boolean;
   isRenewable?: boolean;
+  walletBalance?: number | null;
   onOrderCreated?: () => void | Promise<void>;
 };
 
@@ -122,6 +123,37 @@ function clientLabel(client: CatalogClient) {
   return client.nombre_completo?.trim() || "Cliente sin nombre";
 }
 
+function orderFailureMessage(error: unknown): string {
+  const details =
+    error && typeof error === "object" ? (error as { message?: unknown; code?: unknown }) : null;
+  const message =
+    typeof details?.message === "string"
+      ? details.message
+      : error instanceof Error
+        ? error.message
+        : "";
+  const code = typeof details?.code === "string" ? details.code : "";
+  if (/Insufficient wallet balance/i.test(message))
+    return "Saldo insuficiente para este pedido. Recarga tu billetera y vuelve a intentarlo.";
+  if (/No stock available/i.test(message))
+    return "La última unidad se agotó. Actualiza el catálogo antes de volver a comprar.";
+  if (/Product is not available/i.test(message))
+    return "Este producto ya no está disponible para la compra.";
+  if (/Sale price must cover the product cost/i.test(message))
+    return "El precio de venta debe cubrir el costo actual del producto. Actualiza el precio e inténtalo de nuevo.";
+  if (/The selected client does not exist|You cannot assign orders to this client/i.test(message))
+    return "El cliente seleccionado ya no está disponible. Actualiza la lista y elige otro cliente.";
+  if (/Authentication and a client are required|JWT expired|Not authenticated/i.test(message))
+    return "Tu sesión caducó. Inicia sesión de nuevo para confirmar el pedido.";
+  if (/Failed to fetch|NetworkError/i.test(message))
+    return "No se pudo conectar con Supabase. Comprueba tu conexión antes de reintentar.";
+  if (code === "PGRST202")
+    return "La función de pedidos no está disponible en Supabase. Contacta al administrador.";
+  return code
+    ? `No se pudo confirmar el pedido (código ${code}). Contacta al administrador si vuelve a ocurrir.`
+    : "No se pudo confirmar el pedido. Comprueba el saldo y vuelve a intentarlo.";
+}
+
 /** PDP única del catálogo: la base de datos, no el navegador, decide rol, cobro y destinatario. */
 export function ProductModal({
   product,
@@ -140,6 +172,7 @@ export function ProductModal({
   publisherName,
   publisherIsVerified = false,
   isRenewable = true,
+  walletBalance = null,
   onOrderCreated,
 }: ProductModalProps) {
   const queryClient = useQueryClient();
@@ -259,7 +292,11 @@ export function ProductModal({
   const unitCost = purchaseContext?.unitCostPen ?? 0;
   const profit = canResell && Number.isFinite(actualSalePrice) ? actualSalePrice - unitCost : 0;
   const salePriceValid =
-    !canResell || (Number.isFinite(actualSalePrice) && actualSalePrice >= unitCost);
+    !canResell ||
+    (salePrice.trim() !== "" &&
+      Number.isFinite(actualSalePrice) &&
+      actualSalePrice > 0 &&
+      actualSalePrice >= unitCost);
   // Nunca asumimos que una cuenta es cliente final mientras se resuelve el
   // contexto seguro del servidor. Antes, un error dejaba `purchaseContext`
   // como undefined y por ello mostraba por accidente la interfaz simplificada.
@@ -386,6 +423,24 @@ export function ProductModal({
 
     setSubmitting(true);
     try {
+      // La RPC sigue siendo la autoridad: este aviso anticipa el error de saldo,
+      // pero un fallo al leer la billetera no debe impedir su validación atómica.
+      const { data: balance, error: balanceError } = await supabase
+        .from("wallet_balances")
+        .select("saldo_pen")
+        .eq("user_id", userId!)
+        .maybeSingle();
+      if (!balanceError) {
+        const available = Number(balance?.saldo_pen ?? 0);
+        queryClient.setQueryData(["wallet-balance", userId], available);
+        if (available < Number(purchaseContext.walletDebitPen)) {
+          toast.error(
+            `Saldo insuficiente: tienes ${money(available)} y necesitas ${money(Number(purchaseContext.walletDebitPen))}. Recarga tu billetera antes de confirmar.`,
+          );
+          return;
+        }
+      }
+
       const { data, error } = await supabase.rpc("place_catalog_order_from_wallet", {
         p_product_id: product.id,
         p_client_id: clientId,
@@ -435,10 +490,18 @@ export function ProductModal({
       toast.success(
         `Pedido confirmado. Se descontó ${money(Number(result.charged_pen))} de tu billetera.`,
       );
-      await onOrderCreated?.();
       setCelebration(receipt);
+      // El pedido ya se cobró. Una recarga fallida de la vista nunca debe
+      // presentarse como compra fallida ni inducir a repetir el pago.
+      try {
+        await onOrderCreated?.();
+      } catch {
+        toast.info(
+          "El pedido se confirmó, pero no se pudo actualizar la lista. Recarga la página para verlo.",
+        );
+      }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "No se pudo confirmar el pedido.");
+      toast.error(orderFailureMessage(error));
     } finally {
       setSubmitting(false);
     }
@@ -838,6 +901,16 @@ export function ProductModal({
                     </span>{" "}
                     de tu saldo.
                   </p>
+                  {walletBalance !== null && Number.isFinite(walletBalance) && (
+                    <p
+                      className={`mt-2 text-xs ${walletBalance < Number(purchaseContext?.walletDebitPen ?? 0) ? "text-amber-300" : "text-slate-300"}`}
+                    >
+                      Saldo disponible: {money(walletBalance)}
+                      {walletBalance < Number(purchaseContext?.walletDebitPen ?? 0)
+                        ? " · Necesitas recargar tu billetera para completar el pedido."
+                        : ""}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>

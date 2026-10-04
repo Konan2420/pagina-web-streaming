@@ -2077,6 +2077,7 @@ export function TiendaPage({
               publisherName={selected.publisherName}
               publisherIsVerified={selected.isPublisherVerified}
               isRenewable={selected.isRenewable}
+              walletBalance={walletBalanceQuery.data}
               onOrderCreated={async () => {
                 await Promise.all([loadOrders(), walletBalanceQuery.refetch()]);
                 // Este camino es el del modal del catálogo, que registra el pedido contra un
