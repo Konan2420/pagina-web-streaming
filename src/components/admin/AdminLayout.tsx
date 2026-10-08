@@ -190,7 +190,7 @@ function AdminSidebar({
       />
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[min(84vw,20rem)] flex-col overflow-y-auto border-r border-white/5 bg-ink/95 shadow-2xl transition-[transform,width] duration-300 md:sticky md:top-0 md:h-screen md:w-64 md:translate-x-0 md:bg-ink/50 md:shadow-none",
+          "cmd-theme-sidebar fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[min(84vw,20rem)] flex-col overflow-y-auto border-r border-white/5 bg-ink/95 shadow-2xl transition-[transform,width] duration-300 md:sticky md:top-0 md:h-screen md:w-64 md:translate-x-0 md:bg-ink/50 md:shadow-none",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
           collapsed && "md:w-20",
         )}
@@ -235,7 +235,7 @@ function AdminSidebar({
                   className={cn(
                     "flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 md:min-h-0",
                     active
-                      ? "bg-primary text-white shadow-lg shadow-primary/20"
+                      ? "cmd-active-subtle"
                       : "text-white/60 hover:bg-white/5 hover:text-white",
                     collapsed && "md:justify-center md:px-2",
                   )}

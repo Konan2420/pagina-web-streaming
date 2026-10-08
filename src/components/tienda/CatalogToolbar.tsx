@@ -151,7 +151,7 @@ export function CatalogToolbar({
 
   return (
     <>
-      <section className="mt-4 border-y border-border bg-background">
+      <section className="cmd-theme-toolbar mt-4 border-y border-border bg-background">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-2 px-4 py-3 sm:gap-3">
           <div className="relative min-w-0 basis-full sm:flex-1">
             <div className="relative flex h-9 items-center rounded-lg border border-border bg-background pl-9 pr-8 transition-colors focus-within:border-primary/60">

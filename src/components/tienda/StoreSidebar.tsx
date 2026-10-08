@@ -154,7 +154,7 @@ export function StoreSidebar({
       />
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex h-[100dvh] max-h-[100dvh] w-[var(--store-sidebar-mobile-width)] flex-col overflow-hidden border-r border-border bg-card p-3 text-foreground shadow-2xl transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:p-2.5 lg:w-[var(--store-sidebar-width)] lg:p-2 lg:translate-x-0 lg:shadow-none",
+          "cmd-theme-sidebar fixed inset-y-0 left-0 z-50 flex h-[100dvh] max-h-[100dvh] w-[var(--store-sidebar-mobile-width)] flex-col overflow-hidden border-r border-border bg-card p-3 text-foreground shadow-2xl transition-[transform,width] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:p-2.5 lg:w-[var(--store-sidebar-width)] lg:p-2 lg:translate-x-0 lg:shadow-none",
           open ? "translate-x-0" : "-translate-x-full",
           collapsed && "lg:w-[var(--store-sidebar-collapsed-width)]",
         )}

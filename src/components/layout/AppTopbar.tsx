@@ -45,7 +45,7 @@ export function AppTopbar({ onToggleSidebar, businessNavigation, className }: Ap
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur",
+        "cmd-theme-topbar sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur",
         className,
       )}
     >

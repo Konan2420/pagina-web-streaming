@@ -47,27 +47,49 @@
   --radius: 1rem;
   color-scheme: dark;
 
-  /* CMD Zafiro: superficies profundas y acento azul intenso. */
-  --background: #071128;
-  --foreground: #f8fafc;
+  /* Azul noche: cada superficie asciende un paso sin perder profundidad. */
+  --cmd-bg-main: #030b1d;
+  --cmd-bg-secondary: #07132a;
+  --cmd-bg-sidebar: #08162f;
+  --cmd-bg-section: #081731;
+  --cmd-bg-card: #0b1b38;
+  --cmd-bg-card-hover: #10264c;
+  --cmd-bg-elevated: #0e2144;
+  --cmd-bg-control: #041026;
+  --cmd-border: #17396a;
+  --cmd-border-soft: rgb(73 126 210 / 18%);
+  --cmd-border-active: rgb(45 124 255 / 42%);
+  --cmd-primary: #1463ff;
+  /* El extremo claro conserva contraste AA con texto blanco. */
+  --cmd-primary-hover: #1f6cff;
+  --cmd-cyan: #2acbff;
+  --cmd-text-primary: #f5f9ff;
+  --cmd-text-secondary: #c4d1e8;
+  --cmd-text-muted: #8ea1c2;
+  --cmd-success: #22e6a8;
+  --cmd-warning: #f5c56d;
+  --cmd-danger: #ff4d67;
 
-  --card: #0c1a35;
-  --card-foreground: #f8fafc;
+  --background: var(--cmd-bg-main);
+  --foreground: var(--cmd-text-primary);
 
-  --popover: #0e2041;
-  --popover-foreground: #f8fafc;
+  --card: var(--cmd-bg-card);
+  --card-foreground: var(--cmd-text-primary);
 
-  --brand: #0a4ae2;
-  --brand-hover: #0a4eea;
-  --brand-text: #8fb1ff;
+  --popover: var(--cmd-bg-elevated);
+  --popover-foreground: var(--cmd-text-primary);
+
+  --brand: var(--cmd-primary);
+  --brand-hover: var(--cmd-primary-hover);
+  --brand-text: #9fc2ff;
   --primary: var(--brand);
   --primary-foreground: #ffffff;
 
-  --secondary: #0e2041;
-  --secondary-foreground: #f8fafc;
+  --secondary: var(--cmd-bg-section);
+  --secondary-foreground: var(--cmd-text-primary);
 
-  --muted: #102344;
-  --muted-foreground: #94a3b8;
+  --muted: var(--cmd-bg-card-hover);
+  --muted-foreground: var(--cmd-text-muted);
 
   --accent: var(--brand-hover);
   --accent-foreground: #ffffff;
@@ -75,18 +97,18 @@
   --info-foreground: var(--brand-text);
 
   /* El rojo queda reservado para errores, acciones destructivas y servicio agotado. */
-  --destructive: #dc2626;
+  --destructive: #db244b;
   --destructive-foreground: #fef2f2;
 
-  --border: rgb(25 52 93 / 82%);
-  --input: rgb(25 52 93 / 92%);
-  --ring: var(--brand-hover);
+  --border: var(--cmd-border);
+  --input: color-mix(in srgb, var(--cmd-border) 75%, transparent);
+  --ring: #2d7cff;
 
   --violet: var(--brand);
   --violet-2: var(--brand-hover);
   /* Alias de compatibilidad para clases existentes; representa marca, no estado de error. */
   --red-accent: var(--brand);
-  --ink: #050c1e;
+  --ink: var(--cmd-bg-elevated);
   --cmd-logo-color: #ffffff;
 
   /* Una sola escala para el panel lateral y el espacio que reserva el catálogo. */
@@ -100,6 +122,26 @@
    las superficies compartidas sin alterar la jerarquía visual de los paneles. */
 :root[data-cmd-theme="light"] {
   color-scheme: light;
+  --cmd-bg-main: #f4f7fb;
+  --cmd-bg-secondary: #e8eef8;
+  --cmd-bg-sidebar: #ffffff;
+  --cmd-bg-section: #f4f7fb;
+  --cmd-bg-card: #ffffff;
+  --cmd-bg-card-hover: #edf2f8;
+  --cmd-bg-elevated: #ffffff;
+  --cmd-bg-control: #ffffff;
+  --cmd-border: rgb(30 41 59 / 16%);
+  --cmd-border-soft: rgb(30 41 59 / 12%);
+  --cmd-border-active: rgb(37 99 235 / 42%);
+  --cmd-primary: #2563eb;
+  --cmd-primary-hover: #1d4ed8;
+  --cmd-cyan: #1267b7;
+  --cmd-text-primary: #0f172a;
+  --cmd-text-secondary: #263142;
+  --cmd-text-muted: #52627a;
+  --cmd-success: #08775a;
+  --cmd-warning: #9a5a00;
+  --cmd-danger: #c61f2b;
   --background: #f4f7fb;
   --foreground: #0f172a;
   --card: #ffffff;
@@ -489,18 +531,85 @@
 }
 
 @utility gradient-violet {
-  background-image: none;
+  background-image: linear-gradient(135deg, var(--brand), var(--brand-hover));
   background-color: var(--brand);
 }
 @utility gradient-brand {
-  background-image: none;
+  background-image: linear-gradient(135deg, var(--brand), var(--brand-hover));
   background-color: var(--brand);
+}
+
+/* La paleta se aplica a las superficies de todas las rutas sin cambiar su layout. */
+:root:not([data-cmd-theme="light"]) body {
+  background-image:
+    radial-gradient(circle at 50% 0, rgb(28 83 180 / 10%), transparent 35%),
+    linear-gradient(180deg, #06132b 0%, var(--cmd-bg-main) 45%, #020816 100%);
+  background-repeat: no-repeat;
+}
+
+:root:not([data-cmd-theme="light"]) .cmd-theme-sidebar {
+  background-color: var(--cmd-bg-sidebar);
+  border-color: var(--cmd-border-soft);
+}
+
+:root:not([data-cmd-theme="light"]) .cmd-theme-topbar {
+  background-color: color-mix(in srgb, var(--cmd-bg-secondary) 94%, transparent);
+  border-color: var(--cmd-border-soft);
+}
+
+:root:not([data-cmd-theme="light"]) .tienda-main-content {
+  background-color: var(--cmd-bg-section);
+}
+
+.cmd-catalog-fade-start {
+  background-image: linear-gradient(to right, var(--cmd-bg-section), transparent);
+}
+
+.cmd-catalog-fade-end {
+  background-image: linear-gradient(to left, var(--cmd-bg-section), transparent);
+}
+
+:root:not([data-cmd-theme="light"]) .cmd-theme-toolbar {
+  background-color: var(--cmd-bg-secondary);
+  border-color: var(--cmd-border-soft);
+}
+
+:root:not([data-cmd-theme="light"])
+  :is(.cmd-theme-toolbar, .cmd-theme-topbar)
+  .bg-background {
+  background-color: var(--cmd-bg-control);
+}
+
+/* Fondos neutros heredados de acceso, editor de tienda y selects de admin. */
+:root:not([data-cmd-theme="light"]) [class~="bg-[#0a0a0f]"] {
+  background-color: var(--cmd-bg-secondary);
+}
+
+:root:not([data-cmd-theme="light"])
+  :is(
+    [class~="bg-[#121212]"],
+    [class~="bg-[#121722]"],
+    [class~="bg-[#0d1017]"]
+  ) {
+  background-color: var(--cmd-bg-elevated);
+}
+
+:root:not([data-cmd-theme="light"]) [class~="bg-[#12131d]"] {
+  background-color: var(--cmd-bg-control);
 }
 
 /* Semantic interactive states shared by light and dark UI. */
 .cmd-active-subtle {
-  border-color: color-mix(in srgb, var(--brand) 65%, var(--border));
-  background-color: color-mix(in srgb, var(--brand) 25%, var(--card));
+  border-color: var(--cmd-border-active);
+  background-color: color-mix(in srgb, var(--brand) 16%, var(--card));
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--brand) 24%, transparent),
+    color-mix(in srgb, var(--brand) 8%, transparent)
+  );
+  box-shadow:
+    inset 0 0 0 1px var(--cmd-border-active),
+    0 0 24px color-mix(in srgb, var(--brand) 10%, transparent);
   color: var(--foreground);
 }
 
@@ -517,7 +626,13 @@
 :root[data-cmd-theme="light"] .cmd-active-subtle {
   border-color: color-mix(in srgb, var(--brand) 48%, var(--border));
   background-color: color-mix(in srgb, var(--brand) 12%, var(--card));
+  background-image: none;
+  box-shadow: none;
   color: var(--foreground);
+}
+
+:root[data-cmd-theme="light"] :is(.gradient-violet, .gradient-brand) {
+  background-image: none;
 }
 
 /* Opaque brand buttons intentionally have a different foreground in each mode. */
@@ -775,6 +890,15 @@
     border-color 200ms ease,
     box-shadow 200ms ease,
     transform 200ms ease;
+}
+
+:root:not([data-cmd-theme="light"]) .catalog-product-card:not(.cmd-premium-electric) {
+  border-color: var(--cmd-border-soft);
+  background-image: linear-gradient(
+    180deg,
+    var(--cmd-bg-elevated),
+    var(--cmd-bg-card)
+  );
 }
 
 /* La segunda capa usa la misma URL: el color se difunde hacia los laterales,
@@ -1079,6 +1203,23 @@
     box-shadow:
       0 8px 22px color-mix(in srgb, var(--brand) 14%, transparent),
       0 0 12px color-mix(in srgb, var(--brand-hover) 12%, transparent);
+  }
+
+  :root:not([data-cmd-theme="light"])
+    .catalog-product-card:not(.cmd-premium-electric):hover {
+    border-color: var(--cmd-border-active);
+    box-shadow:
+      0 8px 22px rgb(0 0 0 / 22%),
+      0 0 12px color-mix(in srgb, var(--brand) 8%, transparent);
+  }
+
+  :root:not([data-cmd-theme="light"])
+    .catalog-product-card:not(.cmd-premium-electric):hover {
+    background-image: linear-gradient(
+      180deg,
+      var(--cmd-bg-card-hover),
+      var(--cmd-bg-card)
+    );
   }
 
   .catalog-product-card:hover .catalog-product-title {
