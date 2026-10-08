@@ -152,18 +152,19 @@ export function ProductCatalogCard({
       className={`product-card catalog-product-card group flex h-full min-w-0 flex-col overflow-hidden rounded-[8px] border border-border/70 bg-card ${premiumCardClasses}`}
     >
       {premiumCardClasses && <PremiumElectricLayers />}
-      <div className="cmd-premium-electric__media relative isolate aspect-[1.05] w-full shrink-0 overflow-hidden rounded-t-[7px]">
+      <div className="cmd-premium-electric__media catalog-product-media-shell relative isolate aspect-[1.05] shrink-0 overflow-hidden">
         {product.image && (
-          <div
-            aria-hidden="true"
+          <ProductImage
+            src={product.image}
+            alt=""
             className="catalog-product-media-glow"
-            style={{ backgroundImage: `url(${JSON.stringify(product.image)})` }}
+            fallback={null}
           />
         )}
         <ProductImage
           src={product.image}
           alt={`Portada de ${product.name}`}
-          className={`catalog-product-image cmd-product-image-fade pointer-events-none relative z-[1] h-full w-full object-contain transition-transform duration-500 motion-reduce:transition-none ${
+          className={`catalog-product-image pointer-events-none absolute z-[1] object-cover object-center ${
             isOutOfService ? "opacity-65 saturate-75" : ""
           }`}
           fallback={
@@ -436,7 +437,7 @@ export function ProductCatalogCardSkeleton() {
       aria-hidden="true"
       className="flex h-full min-w-0 flex-col overflow-hidden rounded-[8px] border border-border/70 bg-card"
     >
-      <Skeleton className="aspect-[1.05] w-full shrink-0 rounded-none bg-white/[0.08]" />
+      <Skeleton className="catalog-product-media-shell aspect-[1.05] shrink-0 bg-white/[0.08]" />
       <div className="flex min-w-0 flex-1 flex-col px-2.5 pb-2.5 pt-2">
         <div className="flex h-7 items-center gap-1.5">
           <Skeleton className="h-[26px] w-[26px] rounded-full bg-white/[0.08]" />
