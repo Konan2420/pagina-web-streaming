@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useMinuteTick } from "@/hooks/useMinuteTick";
 import { getPremiumCardClasses } from "./premium-card-effects";
 import { PremiumElectricLayers } from "./PremiumElectricLayers";
+import { getCategoryLabel } from "./catalog-taxonomy";
 
 type ProductCatalogCardProps = {
   product: Product & {
@@ -41,6 +42,7 @@ type ProductCatalogCardProps = {
     isPublisherVerified?: boolean;
     isPremium?: boolean;
     premiumStyle?: string | null;
+    totalSold?: number;
   };
   stock: ProductStock;
   lastSaleAt?: string | null;
@@ -281,6 +283,13 @@ export function ProductCatalogCard({
           {product.name}
         </h3>
 
+        <div className="mt-1 flex min-w-0 items-center justify-between gap-1 text-[10px] text-muted-foreground">
+          <span className="truncate" title={getCategoryLabel(product.category)}>
+            {getCategoryLabel(product.category)}
+          </span>
+          {product.isPremium && <span className="shrink-0 text-amber-300">Destacado</span>}
+        </div>
+
         <div className="mt-1.5 flex min-h-5 flex-wrap items-center gap-1 font-sans text-[10px] font-medium text-white/80">
           {/* Este chip no es como los dos de abajo: no describe un dato que el vendedor
               declare al publicar, sino que el producto es de quien está mirando. Por eso es
@@ -402,6 +411,11 @@ export function ProductCatalogCard({
           >
             {footer}
           </p>
+          {typeof product.totalSold === "number" && product.totalSold > 0 && (
+            <p className="mt-0.5 text-[10px] text-muted-foreground">
+              {product.totalSold} venta{product.totalSold === 1 ? "" : "s"}
+            </p>
+          )}
         </div>
       </div>
     </article>

@@ -509,7 +509,7 @@ export function ProductModal({
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center p-2 sm:p-4"
+      className="fixed inset-0 z-[90] flex items-end justify-center p-0 sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="product-modal-title"
@@ -517,9 +517,13 @@ export function ProductModal({
     >
       <div className="absolute inset-0 bg-black/85 backdrop-blur-sm" />
       <section
-        className="relative flex max-h-[calc(100dvh-1rem)] w-full max-w-[96rem] flex-col overflow-hidden overscroll-contain rounded-xl border border-sky-200/15 bg-popover shadow-[0_20px_90px_rgba(0,0,0,0.6)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
+        className="relative flex max-h-[calc(100dvh-0.75rem)] w-full max-w-[96rem] flex-col overflow-hidden overscroll-contain rounded-t-2xl border border-sky-200/15 bg-popover shadow-[0_20px_90px_rgba(0,0,0,0.6)] sm:max-h-[calc(100dvh-2rem)] sm:rounded-2xl"
         onClick={(event) => event.stopPropagation()}
       >
+        <span
+          aria-hidden="true"
+          className="absolute left-1/2 top-2 z-20 h-1 w-12 -translate-x-1/2 rounded-full bg-white/30 sm:hidden"
+        />
         <button
           type="button"
           onClick={onClose}
@@ -916,7 +920,7 @@ export function ProductModal({
             </div>
           </div>
         </div>
-        <footer className="border-t border-white/[0.08] bg-popover p-3 sm:px-8 sm:py-4">
+        <footer className="border-t border-white/[0.08] bg-popover p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-8 sm:py-4">
           <div className="mx-auto max-w-[76rem]">
             <button
               type="button"

@@ -1,4 +1,4 @@
-import { categories, platformShortcuts, type PlatformShortcut } from "./data";
+import { categories, platformShortcuts, type Category, type PlatformShortcut } from "./data";
 import { cn } from "@/lib/utils";
 import { useHorizontalScroll } from "@/hooks/useHorizontalScroll";
 import { getPlatformIconIdByName, PlatformIconMark } from "@/lib/platformIcons";
@@ -6,6 +6,7 @@ import { getPlatformIconIdByName, PlatformIconMark } from "@/lib/platformIcons";
 type PlatformNavigationProps = {
   activeCategory: string;
   platforms: PlatformShortcut[];
+  catalogCategories?: Category[];
   onCategorySelect: (categoryId: string) => void;
   onPlatformSelect: (platform: PlatformShortcut) => void;
   showCatalogNavigation?: boolean;
@@ -27,6 +28,7 @@ function PlatformShortcutIcon({ platform }: { platform: PlatformShortcut }) {
 export function PlatformNavigation({
   activeCategory,
   platforms,
+  catalogCategories = categories,
   onCategorySelect,
   onPlatformSelect,
   showCatalogNavigation = true,
@@ -64,7 +66,7 @@ export function PlatformNavigation({
               onPointerCancel={categoryScroll.onPointerCancel}
               onClickCapture={categoryScroll.onClickCapture}
             >
-              {categories.map((category) => {
+              {catalogCategories.map((category) => {
                 const active = activeCategory === category.id;
                 return (
                   <button

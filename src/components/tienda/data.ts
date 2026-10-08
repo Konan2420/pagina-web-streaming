@@ -19,7 +19,7 @@ export type Category = {
 export const WA_NUMBER = "51970097715";
 
 export const categories: Category[] = [
-  { id: "todo", label: "Plataformas", accent: "#f8fafc" },
+  { id: "todo", label: "Todos", accent: "#f8fafc" },
   { id: "combos", label: "Packs Premium", accent: "#fbbf24" },
   { id: "streaming", label: "Streaming", accent: "#3b82f6" },
   { id: "ia", label: "Inteligencia Artificial", accent: "#a78bfa" },
@@ -27,8 +27,15 @@ export const categories: Category[] = [
   { id: "licencias", label: "Licencias", accent: "#eab308" },
   { id: "cursos", label: "Cursos", accent: "#2dd4bf" },
   { id: "recargas", label: "Recargas", accent: "#fb923c" },
-  { id: "videojuegos", label: "Juegos", accent: "#8b5cf6" },
-  { id: "giftcards", label: "Giftcards", accent: "#ec4899" },
+  { id: "videojuegos", label: "Gaming", accent: "#8b5cf6" },
+  { id: "vpn", label: "VPN", accent: "#38bdf8" },
+  { id: "educacion", label: "Educación", accent: "#2dd4bf" },
+  { id: "productividad", label: "Productividad", accent: "#60a5fa" },
+  { id: "diseno", label: "Diseño", accent: "#a78bfa" },
+  { id: "cloud", label: "Cloud", accent: "#38bdf8" },
+  { id: "email", label: "Email", accent: "#2dd4bf" },
+  { id: "giftcards", label: "Gift Cards", accent: "#ec4899" },
+  { id: "ofertas", label: "Ofertas", accent: "#fbbf24" },
   { id: "invitaciones", label: "Invitaciones", accent: "#60a5fa" },
   { id: "music", label: "Música", accent: "#f472b6" },
   { id: "adult", label: "Adultos", accent: "#2563eb" },

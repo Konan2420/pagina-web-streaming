@@ -168,7 +168,7 @@ export function CatalogToolbar({
                 }}
                 onFocus={() => setSearchOpen(true)}
                 onBlur={deferCloseSearch}
-                placeholder="Buscar productos..."
+                placeholder="Buscar nombre, categoría, tipo o proveedor..."
                 autoComplete="off"
                 className="w-full bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground"
                 aria-autocomplete="list"

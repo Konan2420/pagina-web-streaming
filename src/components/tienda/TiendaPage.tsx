@@ -82,6 +82,14 @@ import { NoticiasPanel } from "@/components/tienda/NoticiasPanel";
 import { ChampionsRanking } from "@/components/tienda/ChampionsRanking";
 import { FestiveEventBanner } from "@/components/tienda/FestiveEventBanner";
 import { FestiveSurpriseBox } from "@/components/tienda/FestiveSurpriseBox";
+import {
+  getCatalogCategories,
+  getCategoryLabel,
+  matchesCatalogSearch,
+  normalizeCatalogSearch,
+  toCatalogCategory,
+} from "@/components/tienda/catalog-taxonomy";
+import { filterCatalogProducts } from "@/components/tienda/catalog-filters";
 
 const AuthModal = React.lazy(() =>
   import("@/components/AuthModal").then(({ AuthModal: Component }) => ({ default: Component })),
@@ -156,36 +164,6 @@ type CatalogProduct = Product & {
   createdAt: string | null;
 };
 
-const categoryAliases: Record<string, string> = {
-  musica: "music",
-  música: "music",
-  juegos: "videojuegos",
-  videojuegos: "videojuegos",
-  inteligencia_artificial: "ia",
-};
-
-function toCatalogCategory(category: string): PlatformShortcut["categoryId"] {
-  const normalized = (categoryAliases[category.toLowerCase()] || category.toLowerCase()).trim();
-  const knownCategories = new Set([
-    "todo",
-    "combos",
-    "streaming",
-    "ia",
-    "apps",
-    "licencias",
-    "cursos",
-    "recargas",
-    "videojuegos",
-    "giftcards",
-    "invitaciones",
-    "music",
-    "adult",
-    "iptv",
-    "redes",
-  ]);
-  return (knownCategories.has(normalized) ? normalized : "todo") as PlatformShortcut["categoryId"];
-}
-
 function toPlatformSlug(value: string) {
   return value
     .normalize("NFD")
@@ -193,14 +171,6 @@ function toPlatformSlug(value: string) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
-}
-
-function normalizeCatalogSearch(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLocaleLowerCase("es")
-    .trim();
 }
 
 function getDurationLabel(days: number) {
@@ -211,26 +181,6 @@ function getDurationLabel(days: number) {
     365: "12 meses",
   };
   return commonDurations[days] ?? `${days} días`;
-}
-
-function getCategoryLabel(category: string) {
-  const labels: Record<string, string> = {
-    combos: "Packs Premium",
-    streaming: "Streaming",
-    ia: "Inteligencia Artificial",
-    apps: "Aplicaciones",
-    licencias: "Licencias",
-    cursos: "Cursos",
-    recargas: "Recargas",
-    videojuegos: "Juegos",
-    giftcards: "Giftcards",
-    invitaciones: "Invitaciones",
-    music: "Música",
-    adult: "Adultos",
-    iptv: "IPTV",
-    redes: "Redes Sociales",
-  };
-  return labels[category] ?? category;
 }
 
 const EMPTY_CATALOG_FILTERS: CatalogFilters = {
@@ -480,6 +430,7 @@ export function TiendaPage({
   const [activeServiceId, setActiveServiceId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [catalogUrlReady, setCatalogUrlReady] = useState(false);
   const [sort, setSort] = useState<CatalogSortKey>("recent");
   const [catalogFilters, setCatalogFilters] = useState<CatalogFilters>(EMPTY_CATALOG_FILTERS);
   const [catalogPage, setCatalogPage] = useState(1);
@@ -519,6 +470,41 @@ export function TiendaPage({
   useEffect(() => {
     setIsClientMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (window.location.pathname !== "/" && window.location.pathname !== "/catalogo") return;
+    const restore = () => {
+      const params = new URLSearchParams(window.location.search);
+      const nextQuery = (params.get("q") ?? "").slice(0, 120);
+      setQuery(nextQuery);
+      setDebouncedQuery(nextQuery);
+      setActiveCat(
+        params.has("categoria")
+          ? toCatalogCategory(params.get("categoria") ?? "") || "todo"
+          : initialCategory,
+      );
+      setActiveServiceId(null);
+    };
+    restore();
+    setCatalogUrlReady(true);
+    window.addEventListener("popstate", restore);
+    return () => window.removeEventListener("popstate", restore);
+  }, [initialCategory]);
+
+  useEffect(() => {
+    if (!catalogUrlReady || panel !== "tienda") return;
+    const url = new URL(window.location.href);
+    if (url.pathname !== "/" && url.pathname !== "/catalogo") return;
+    const search = query.trim();
+    if (search) url.searchParams.set("q", search);
+    else url.searchParams.delete("q");
+    if (activeCat !== "todo") url.searchParams.set("categoria", activeCat);
+    else url.searchParams.delete("categoria");
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    if (next !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      window.history.replaceState(window.history.state, "", next);
+    }
+  }, [activeCat, catalogUrlReady, panel, query]);
 
   useEffect(() => {
     try {
@@ -1128,7 +1114,7 @@ export function TiendaPage({
     return dbProducts.map<CatalogProduct>((p) => ({
       id: p.id,
       name: p.name,
-      category: p.category?.toLowerCase() || "streaming",
+      category: toCatalogCategory(p.category || "streaming"),
       price: p.price,
       // Se conserva el hueco real del dato. Antes se sustituía por
       // "/placeholder.svg", un archivo que no existe en el proyecto: la tarjeta lo
@@ -1161,6 +1147,11 @@ export function TiendaPage({
     }));
   }, [dbProducts]);
 
+  const catalogCategories = useMemo(
+    () => getCatalogCategories(allProducts.map((product) => product.category)),
+    [allProducts],
+  );
+
   const priceBounds = useMemo(() => {
     if (allProducts.length === 0) return { min: 0, max: 0 };
     const prices = allProducts.map((product) => product.price);
@@ -1180,7 +1171,7 @@ export function TiendaPage({
     if (!normalizedQuery) return [];
 
     return allProducts
-      .filter((product) => normalizeCatalogSearch(product.name).includes(normalizedQuery))
+      .filter((product) => matchesCatalogSearch(product, normalizedQuery))
       .slice(0, 6)
       .map((product) => ({
         id: String(product.id),
@@ -1192,42 +1183,11 @@ export function TiendaPage({
   }, [allProducts, debouncedQuery]);
 
   const catalogCandidates = useMemo(() => {
-    const normalizedQuery = normalizeCatalogSearch(debouncedQuery);
-    const minPrice = catalogFilters.minPrice === "" ? null : Number(catalogFilters.minPrice);
-    const maxPrice = catalogFilters.maxPrice === "" ? null : Number(catalogFilters.maxPrice);
-
-    return allProducts.filter((p) => {
-      const matchesCategory = activeServiceId
-        ? true
-        : activeCat === "todo"
-          ? p.category !== "redes"
-          : p.category === activeCat;
-      const matchesService =
-        !activeServiceId ||
-        p.serviceId === activeServiceId ||
-        (normalizedQuery !== "" && normalizeCatalogSearch(p.name).includes(normalizedQuery));
-      const matchesSearch =
-        activeServiceId ||
-        normalizedQuery === "" ||
-        normalizeCatalogSearch(p.name).includes(normalizedQuery);
-      const matchesMinPrice = minPrice == null || !Number.isFinite(minPrice) || p.price >= minPrice;
-      const matchesMaxPrice = maxPrice == null || !Number.isFinite(maxPrice) || p.price <= maxPrice;
-      const matchesDuration =
-        catalogFilters.durationDays.length === 0 ||
-        catalogFilters.durationDays.includes(p.durationDays);
-      const matchesRenewal =
-        catalogFilters.renewalTypes.length === 0 ||
-        catalogFilters.renewalTypes.includes(p.isRenewable ? "renewable" : "nonrenewable");
-
-      return (
-        matchesCategory &&
-        matchesService &&
-        matchesSearch &&
-        matchesMinPrice &&
-        matchesMaxPrice &&
-        matchesDuration &&
-        matchesRenewal
-      );
+    return filterCatalogProducts(allProducts, {
+      category: activeCat,
+      serviceId: activeServiceId,
+      query: debouncedQuery,
+      filters: catalogFilters,
     });
   }, [allProducts, activeCat, activeServiceId, catalogFilters, debouncedQuery]);
 
@@ -1635,6 +1595,7 @@ export function TiendaPage({
             <PlatformNavigation
               activeCategory={activeCat}
               platforms={navigationPlatforms}
+              catalogCategories={catalogCategories}
               onCategorySelect={handleCategorySelect}
               onPlatformSelect={handlePlatformSelect}
               showCatalogNavigation={panel === "tienda" && activeCat !== "redes"}

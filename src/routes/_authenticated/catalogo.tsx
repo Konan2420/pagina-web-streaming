@@ -1,9 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { getRoleDestination, isCatalogOnlyRole, resolvePrimaryRole } from "@/lib/role-access";
+import { isCatalogOnlyRole, resolvePrimaryRole } from "@/lib/role-access";
 import { TiendaPage } from "@/components/tienda/TiendaPage";
 
-/** Ruta exclusiva de clientes: catálogo, filtros, carrito y compra, más sus propias compras. */
+/** Catálogo compartible para todos los roles autenticados. */
 export const Route = createFileRoute("/_authenticated/catalogo")({
   ssr: false,
   beforeLoad: async () => {
@@ -17,8 +17,12 @@ export const Route = createFileRoute("/_authenticated/catalogo")({
     if (rolesError) throw redirect({ to: "/tienda" });
 
     const role = resolvePrimaryRole((roles ?? []).map((row) => row.role));
-    if (!isCatalogOnlyRole(role)) throw redirect({ to: getRoleDestination(role) });
-    return { user: auth.user };
+    return { user: auth.user, catalogOnly: isCatalogOnlyRole(role) };
   },
-  component: () => <TiendaPage catalogOnly />,
+  component: CatalogRoute,
 });
+
+function CatalogRoute() {
+  const { catalogOnly } = Route.useRouteContext();
+  return <TiendaPage catalogOnly={catalogOnly} redirectAuthenticatedRoles={false} />;
+}

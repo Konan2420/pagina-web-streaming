@@ -20,7 +20,11 @@ export function StoreHeader({
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/80">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-        <Link to="/" aria-label="CMD Streaming: volver al inicio" className="flex items-center gap-2.5 shrink-0">
+        <Link
+          to="/"
+          aria-label="CMD Streaming: volver al inicio"
+          className="flex items-center gap-2.5 shrink-0"
+        >
           <Logo variant="compact" aria-hidden="true" className="h-10 w-10" />
         </Link>
 
