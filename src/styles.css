@@ -87,6 +87,7 @@
   /* Alias de compatibilidad para clases existentes; representa marca, no estado de error. */
   --red-accent: var(--brand);
   --ink: #050c1e;
+  --cmd-logo-color: #ffffff;
 
   /* Una sola escala para el panel lateral y el espacio que reserva el catálogo. */
   --store-sidebar-mobile-width: min(84vw, 20rem);
@@ -125,6 +126,7 @@
   --violet-2: var(--brand-hover);
   --red-accent: var(--brand);
   --ink: #e7edf7;
+  --cmd-logo-color: #0f172a;
 }
 
 /*
@@ -500,6 +502,12 @@
   border-color: color-mix(in srgb, var(--brand) 65%, var(--border));
   background-color: color-mix(in srgb, var(--brand) 25%, var(--card));
   color: var(--foreground);
+}
+
+.cmd-logo {
+  display: block;
+  color: var(--cmd-logo-color);
+  flex-shrink: 0;
 }
 
 .cmd-sidebar-logo {

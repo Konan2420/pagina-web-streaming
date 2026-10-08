@@ -7,6 +7,7 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { IconBtn } from "./IconBtn";
+import { Logo } from "@/components/brand/Logo";
 
 /** Customer profile chip below the banner + action row. */
 export function ProfileHeader({
@@ -36,10 +37,10 @@ export function ProfileHeader({
             {authed ? (
               initials || <UserIcon className="w-7 h-7 sm:w-9 sm:h-9 m-auto" />
             ) : (
-              <img
-                src="/cmd-logo.png"
-                alt="Avatar de CMD Streaming"
-                className="h-full w-full object-contain"
+              <Logo
+                variant="compact"
+                aria-label="Avatar de CMD Streaming"
+                className="h-full w-full"
               />
             )}
           </div>

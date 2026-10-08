@@ -10,6 +10,7 @@ import { suspensionFromError, suspensionUrl } from "@/lib/suspension-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/brand/Logo";
 
 export type AuthMode = "login" | "signup" | "forgot" | "update";
 
@@ -423,10 +424,9 @@ export function AuthModal({
             }
           >
             <div className="mb-7 text-center lg:text-left">
-              <img
-                src="/cmd-logo.png"
-                alt="CMD Streaming"
-                className={fullscreen ? "mx-auto w-40 lg:mx-0" : "mx-auto w-28 lg:mx-0"}
+              <Logo
+                variant="full"
+                className={fullscreen ? "mx-auto h-44 w-32" : "mx-auto h-36 w-28"}
               />
               <h2
                 id="auth-modal-title"

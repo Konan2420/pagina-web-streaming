@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import { categories, type PanelTab } from "./data";
 import { cn } from "@/lib/utils";
 import { AvatarFrame, type AvatarFrameKey } from "@/components/storefront/AvatarFrame";
+import { Logo } from "@/components/brand/Logo";
 
 type StoreSidebarProps = {
   open: boolean;
@@ -165,12 +166,15 @@ export function StoreSidebar({
             onClick={onClose}
             title="Volver al inicio"
             aria-label="Volver al inicio de CMD Streaming"
-            className="block aspect-[2/1] w-full max-w-52 transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className={cn(
+              "flex h-20 w-full items-center justify-center transition-transform duration-200 hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              collapsed && "lg:h-14",
+            )}
           >
-            <img
-              src="/cmd-logo.png"
-              alt="CMD Streaming"
-              className="cmd-sidebar-logo h-full w-full object-contain"
+            <Logo
+              variant="compact"
+              aria-hidden="true"
+              className={cn("cmd-sidebar-logo h-[68px] w-[68px]", collapsed && "lg:h-11 lg:w-11")}
             />
           </Link>
           <button

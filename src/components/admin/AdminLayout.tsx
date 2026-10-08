@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   BarChart3,
   BadgePercent,
   Banknote,
@@ -23,6 +22,7 @@ import {
 } from "lucide-react";
 import { AppTopbar } from "@/components/layout/AppTopbar";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/brand/Logo";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -203,7 +203,7 @@ function AdminSidebar({
               className="group flex min-w-0 items-center gap-2"
               title="Volver a la tienda"
             >
-              <ArrowLeft className="h-4 w-4 shrink-0 text-white/40 transition-colors group-hover:text-primary" />
+              <Logo variant="compact" aria-hidden="true" className="h-9 w-9" />
               <span
                 className={cn(
                   "truncate font-display text-xl tracking-tighter text-white",

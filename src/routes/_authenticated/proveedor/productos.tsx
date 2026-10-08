@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent, type ReactNode } from "react";
-import { Boxes, Package, Pencil, Plus, Power, Trash2, X } from "lucide-react";
+import { Boxes, Pencil, Plus, Power, Trash2, X } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { SupplierLayout } from "@/components/supplier/SupplierLayout";
 import { ProductImage } from "@/components/ProductImage";
+import { Logo } from "@/components/brand/Logo";
 import { COUNTRY_OPTIONS } from "@/components/tienda/productMetadata";
 import {
   deleteProviderProduct,
@@ -187,11 +188,15 @@ function ProviderProducts() {
                       <div className="flex items-center gap-3">
                         <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-lg bg-white/7">
                           <ProductImage
-                            src={product.image_url || "/cmd-logo.png"}
+                            src={product.image_url}
                             alt=""
                             className="h-full w-full object-cover"
                             fallback={
-                              <Package className="h-4 w-4 text-white/25" aria-hidden="true" />
+                              <Logo
+                                variant="compact"
+                                aria-hidden="true"
+                                className="h-6 w-6 opacity-45"
+                              />
                             }
                           />
                         </div>

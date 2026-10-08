@@ -22,7 +22,7 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "https://cmdstreaming.pe/" },
       {
         property: "og:image",
-        content: "https://cmd-streaming.vercel.app/cmd-logo.png",
+        content: "https://cmd-streaming.vercel.app/cmd-lion-og.png",
       },
       { property: "og:image:alt", content: "CMD Streaming" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/")({
       },
       {
         name: "twitter:image",
-        content: "https://cmd-streaming.vercel.app/cmd-logo.png",
+        content: "https://cmd-streaming.vercel.app/cmd-lion-og.png",
       },
     ],
     links: [{ rel: "canonical", href: "https://cmdstreaming.pe/" }],

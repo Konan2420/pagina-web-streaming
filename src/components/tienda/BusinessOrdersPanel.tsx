@@ -280,16 +280,31 @@ async function downloadReceipt(order: BusinessOrder) {
       y += Math.max(9, lines.length * 6 + 3);
     };
 
-    pdf.setFillColor(17, 24, 39);
-    pdf.rect(0, 0, 210, 38, "F");
-    pdf.setTextColor(248, 250, 252);
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(20);
-    pdf.text("CMD Streaming", margin, 20);
+    // The receipt uses the dark brand mark on white paper. Keep a text fallback
+    // so a temporary asset loading failure never prevents the PDF download.
+    try {
+      const logoResponse = await fetch("/cmd-lion-pdf.png");
+      if (!logoResponse.ok) throw new Error("Receipt logo unavailable");
+      const logoBlob = await logoResponse.blob();
+      const logoDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(logoBlob);
+      });
+      pdf.addImage(logoDataUrl, "PNG", margin, 2, 23, 33);
+    } catch {
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(14);
+      pdf.text("CMD Streaming", margin, 20);
+    }
+    pdf.setTextColor(15, 23, 42);
     pdf.setFontSize(10);
     pdf.setFont("helvetica", "normal");
-    pdf.text(`Comprobante de pedido #${order.order_id.slice(0, 8)}`, margin, 29);
-    pdf.setTextColor(15, 23, 42);
+    pdf.text("COMPROBANTE NO TRIBUTARIO", 48, 19);
+    pdf.text(`Pedido #${order.order_id.slice(0, 8)}`, 48, 29);
+    pdf.setDrawColor(203, 213, 225);
+    pdf.line(margin, 39, 192, 39);
     pdf.setFontSize(11);
 
     y = 54;
