@@ -152,7 +152,7 @@ export function ProductCatalogCard({
       className={`product-card catalog-product-card group flex h-full min-w-0 flex-col overflow-hidden rounded-[8px] border border-border/70 bg-card ${premiumCardClasses}`}
     >
       {premiumCardClasses && <PremiumElectricLayers />}
-      <div className="cmd-premium-electric__media catalog-product-media-shell relative isolate aspect-[1.05] shrink-0 overflow-hidden">
+      <div className="cmd-premium-electric__media catalog-product-media-shell relative isolate aspect-[1.05] w-full shrink-0 overflow-hidden">
         {product.image && (
           <ProductImage
             src={product.image}
@@ -180,7 +180,7 @@ export function ProductCatalogCard({
             contenedor es transparente al puntero, así que el clic sigue llegando
             al botón de debajo. */}
         <div className="pointer-events-none absolute inset-0 z-10">
-          <div className="absolute left-1.5 top-1.5">
+          <div className="catalog-product-badge-start absolute">
             {/* El color del texto va en el mismo condicional que el del fondo: blanco sobre
                 `emerald-500` se queda en ≈2,6:1 con texto de 8-9 px, por debajo del 4,5:1 que
                 pide AA. Sobre el verde, el emparejamiento correcto es el texto oscuro que el
@@ -204,14 +204,14 @@ export function ProductCatalogCard({
               {product.isRenewable === false ? "No renovable" : "Renovable"}
             </span>
           </div>
-          <div className="absolute right-1.5 top-1.5">
+          <div className="catalog-product-badge-end absolute">
             <span className="cmd-on-accent inline-flex whitespace-nowrap rounded-[4px] bg-destructive px-1.5 py-1 font-sans text-[9px] font-semibold uppercase leading-none tracking-[0.02em] text-white shadow-sm ring-1 ring-white/15 sm:text-[10px]">
               {product.duracion}
             </span>
           </div>
 
           {isOutOfService && (
-            <div className="absolute inset-x-0 bottom-0 flex h-9 items-center justify-center bg-destructive px-2 font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-white sm:h-9 sm:text-[12px]">
+            <div className="catalog-product-service-banner absolute flex h-9 items-center justify-center bg-destructive px-2 font-sans text-[11px] font-bold uppercase tracking-[0.08em] text-white sm:h-9 sm:text-[12px]">
               Fuera de servicio
             </div>
           )}
@@ -437,7 +437,7 @@ export function ProductCatalogCardSkeleton() {
       aria-hidden="true"
       className="flex h-full min-w-0 flex-col overflow-hidden rounded-[8px] border border-border/70 bg-card"
     >
-      <Skeleton className="catalog-product-media-shell aspect-[1.05] shrink-0 bg-white/[0.08]" />
+      <Skeleton className="catalog-product-media-shell aspect-[1.05] w-full shrink-0 bg-white/[0.08]" />
       <div className="flex min-w-0 flex-1 flex-col px-2.5 pb-2.5 pt-2">
         <div className="flex h-7 items-center gap-1.5">
           <Skeleton className="h-[26px] w-[26px] rounded-full bg-white/[0.08]" />

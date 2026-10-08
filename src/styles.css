@@ -777,8 +777,8 @@
     transform 200ms ease;
 }
 
-/* La segunda capa usa la misma URL y deja un halo de color entre la portada
-   y el borde interno, siempre recortado por el contenedor. */
+/* La segunda capa usa la misma URL: el color se difunde hacia los laterales,
+   pero el recorte del área de portada lo mantiene dentro de la tarjeta. */
 .catalog-product-media-glow {
   position: absolute;
   inset: 0;
@@ -786,17 +786,18 @@
   height: 100%;
   object-fit: cover;
   object-position: center;
-  filter: blur(22px) saturate(1.15);
-  opacity: 0.35;
+  filter: blur(22px) saturate(1.3);
+  opacity: 0.7;
   transform: scale(1.08);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
   transition: transform 250ms ease, opacity 250ms ease;
   pointer-events: none;
 }
 
 .catalog-product-media-shell {
   --catalog-image-inset: 8px;
-  margin: var(--catalog-image-inset);
-  border-radius: 10px;
+  border-radius: 7px 7px 0 0;
   background: color-mix(in srgb, var(--background) 65%, var(--card));
 }
 
@@ -813,11 +814,31 @@
 }
 
 .catalog-product-image {
-  inset: 4px;
-  width: calc(100% - 8px);
-  height: calc(100% - 8px);
+  inset: var(--catalog-image-inset);
+  width: calc(100% - var(--catalog-image-inset) - var(--catalog-image-inset));
+  height: calc(100% - var(--catalog-image-inset) - var(--catalog-image-inset));
   border-radius: 8px;
   transition: transform 250ms ease;
+}
+
+.catalog-product-badge-start,
+.catalog-product-badge-end {
+  top: calc(var(--catalog-image-inset) + 6px);
+}
+
+.catalog-product-badge-start {
+  left: calc(var(--catalog-image-inset) + 6px);
+}
+
+.catalog-product-badge-end {
+  right: calc(var(--catalog-image-inset) + 6px);
+}
+
+.catalog-product-service-banner {
+  right: var(--catalog-image-inset);
+  bottom: var(--catalog-image-inset);
+  left: var(--catalog-image-inset);
+  border-radius: 0 0 8px 8px;
 }
 
 /* La máscara anterior permanece disponible para otras portadas fuera del catálogo. */
@@ -867,7 +888,7 @@
 
 /* El halo eléctrico conserva la silueta exterior y la portada queda enmarcada. */
 .catalog-product-card.cmd-premium-electric > .cmd-premium-electric__media {
-  border-radius: 10px;
+  border-radius: 7px 7px 0 0;
 }
 
 .cmd-premium-electric:not(.catalog-product-card) > .cmd-premium-electric__media {
@@ -1069,7 +1090,7 @@
   }
 
   .catalog-product-card:hover .catalog-product-media-glow {
-    opacity: 0.45;
+    opacity: 0.82;
     transform: scale(1.12);
   }
 }
