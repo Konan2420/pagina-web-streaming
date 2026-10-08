@@ -97,7 +97,7 @@ export default defineConfig({
         }
       : undefined,
     watch: {
-      ignored: ["**/.output/**", "**/.tanstack/**", "**/.vercel/**"],
+      ignored: ["**/.output/**", "**/.tanstack/**", "**/.vercel/**", "**/.tmp-*/**"],
     },
   },
 });

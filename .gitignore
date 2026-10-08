@@ -42,5 +42,8 @@ dist-ssr
 # Estado temporal generado por la CLI de Supabase.
 supabase/.temp/
 
+# Perfiles temporales de navegador usados en pruebas locales.
+.tmp-*/
+
 .env*
 .vercel
